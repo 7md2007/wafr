@@ -3271,7 +3271,7 @@ function timelineHTML(items,max){if(!items.length)return`<p class="panel-empty">
 /* the one visual on Home: how much of today's allowance is left */
 function todayMeter(r){
   const daily=Math.max(0,r.daily),spent=Math.max(0,r.spentToday),left=Math.max(0,r.todayLeft);
-  const pct=daily>0?Math.max(0,Math.min(100,left/daily*100)):0;
+  const pct=daily>0?Math.max(0,Math.min(100,spent/daily*100)):(spent>0||r.realShort>0?100:0);
   const label=r.realShort>0?L(`Short by ${aedT(r.realShort)} until payday`,`ناقصك ${aedT(r.realShort)} لين الراتب`)
     :r.todayLeft<0?L(`${aedT(-r.todayLeft)} over today’s plan`,`${aedT(-r.todayLeft)} فوق خطة اليوم`)
     :L(`${aedT(spent)} spent of ${aedT(daily)}`,`صرفت ${aedT(spent)} من ${aedT(daily)}`);
