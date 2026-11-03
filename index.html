@@ -1405,6 +1405,12 @@ html:not(.light) .mo-prof{background:#164B40}
 .mo-prof .btn{background:#A8D5BA!important;color:#103D35!important;border:0!important;flex:none}
 .mo-grp{margin:0 0 18px}.mo-grp h2{font-size:15px;font-weight:600;color:var(--tx2);margin:0 4px 8px;letter-spacing:.01em}
 .settings section[aria-labelledby="s-dz"]{margin:0 0 18px}
+
+/* ----- Emerald & Ivory: forms & sheets ----- */
+#expform .btn-text{display:inline-flex;align-items:center;gap:8px}
+@media (max-width:719px){.sh-actions>.btn-pri:last-child{flex:1 1 auto}.sh-actions>.grow:has(+ .btn-pri:last-child){display:none}}
+.sheet{background:var(--card)}
+html.light .sheet{background:#FFFFFF}
 </style>
 </head>
 <body>
@@ -3398,7 +3404,8 @@ function privacySheet(){const ai=aiAllowed(),sy=syncAllowed();
       <li><b>${L('On this device','على هالجهاز')}</b> — ${L('everything you add is saved in this browser.','كل اللي تضيفه ينحفظ في هالمتصفح.')}</li>
       <li><b>${L('Sync','المزامنة')}</b> — ${!window.claude?L('not available in this version — everything stays on this phone. Use Backup to move your data.','مب متوفرة في هالنسخة — كل شي يبقى على هالتلفون. استخدم النسخة الاحتياطية عشان تنقل بياناتك.'):sy?L('a private copy is kept in your Claude account so it works on your other devices. Only you can open it.','نسخة خاصة تنحفظ في حساب Claude مالك عشان تشتغل على أجهزتك الثانية. محد غيرك يقدر يفتحها.'):L('off — nothing is copied off this device.','مطفية — ما ينسخ شي برا هالجهاز.')}</li>
       <li><b>${L('No bank connection','ما في ربط بالبنك')}</b> — ${L('Wafr never logs in to your bank. It only sees amounts you add, paste or send from a shortcut.','وفر ما يدخل حسابك في البنك أبداً. يشوف بس المبالغ اللي تضيفها أو تلصقها أو يرسلها الاختصار.')}</li>
-      <li><b>${L('No analytics','ما في تتبع')}</b> — ${L('Wafr doesn’t send your amounts or descriptions to any analytics or ad service.','وفر ما يرسل مبالغك أو وصفها لأي خدمة تحليلات أو إعلانات.')}</li></ul></section>
+      <li><b>${L('No analytics','ما في تتبع')}</b> — ${L('Wafr doesn’t send your amounts or descriptions to any analytics or ad service.','وفر ما يرسل مبالغك أو وصفها لأي خدمة تحليلات أو إعلانات.')}</li>
+      <li><b>${L('Fonts','الخطوط')}</b> — ${L('The fonts come with the app, so opening Wafr doesn’t contact Google or any font service.','الخطوط جزء من التطبيق، فلما تفتح وفر ما يتصل بقوقل أو أي خدمة خطوط.')}</li></ul></section>
     <section><h3 class="h3">${ic('spark')}${L('AI features (optional)','ميزات الذكاء (اختياري)')}</h3><p class="fhelp">${L('Ask Wafr, receipt scanning, automatic categories and “Read with AI” send the needed details (amounts, shop names, receipt photo or message text) to Claude '+(window.claude?'through your own Claude account':'(Anthropic) using your own API key')+', only when you use them. If a receipt is in another currency, Wafr fetches today’s exchange rate from open.er-api.com (only the currency is sent, never your data). If you set up the Apple Pay inbox, each payment’s amount and shop name are stored in your own Cloudflare inbox until Wafr collects them (deleted then, or after 30 days). Turning AI off keeps all your data and manual budgeting.','اسأل وفر، قراءة الإيصالات، التصنيف التلقائي و"اقرأ بالذكاء" ترسل التفاصيل اللازمة (المبالغ، أسماء المحلات، صورة الإيصال أو نص الرسالة) لـ Claude من حسابك، بس لما تستخدمها. لو الإيصال بعملة ثانية، وفر يجيب سعر الصرف من open.er-api.com (يرسل العملة بس، مو بياناتك). لو ربطت صندوق أبل باي، مبلغ كل دفعة واسم المحل ينحفظون في صندوقك الخاص في Cloudflare لين وفر يجمعهم (وبعدها ينحذفون، أو بعد 30 يوم). لو طفيت الذكاء، بياناتك والميزانية اليدوية تبقى.')}</p>
       <label class="check field"><input type="checkbox" data-pv="ai" ${ai?'checked':''}><span><b>${L('Use AI features','استخدم ميزات الذكاء')}</b></span></label></section>
     <section><h3 class="h3">${ic('repeat')}${L('Sync between devices','المزامنة بين الأجهزة')}</h3>
