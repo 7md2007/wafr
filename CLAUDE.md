@@ -37,6 +37,10 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
 - Bank SMS parser `parseBankMsg()` (versioned rules, EN+AR, rejects OTP/promo/balance, foreign currency → review queue). Duplicates → `findDups()` → review queue (`S.queue`), never auto-deleted.
 - Shortcut links: `#jp-AMOUNT-SHOP` (opens prefilled form), `#jpa-AMOUNT-SHOP` (auto-save; empty = test), `#jps-<url-encoded SMS>`.
   NOTE: on iPhone, Shortcuts open Safari, whose storage is separate from the Home Screen web app — automatic capture doesn't reach the full-screen app. Real fix = native app (App Intents).
+- Apple Pay inbox (Nov 2026): Wallet automation → "Get Contents of URL" POST {amount, merchant} to the owner's Cloudflare Worker
+  (`inbox-worker/worker.js`, KV binding `INBOX`). App pulls on open/visible (`inboxPull()`), converts currency (`parseMoney`, `fxToAED`),
+  then acks (deletes). Config in `settings.autoCfg.inbox {url,key}`. Setup sheet: `inboxSheet()`. Workaround until the native app.
+- Receipt scan converts foreign totals to AED (`fxToAED`: USD peg 3.6725, else open.er-api.com, else AI estimate) and writes a description.
 - AI chat proposes expenses as cards; nothing saved until the user taps Add. Daily AI limits in `AI_LIMITS`.
 - UI modules were appended in order inside the single file (search for comment banners "Money engine UI", "Transactions", "Import & trust",
   "Calm redesign", "Round 3", "Apple-style interaction layer", "AI outside Claude"). Later modules override earlier views (e.g. `VIEWS.home=homeV3`).

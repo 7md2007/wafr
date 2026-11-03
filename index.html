@@ -3189,7 +3189,7 @@ function privacySheet(){const ai=aiAllowed(),sy=syncAllowed();
       <li><b>${L('Sync','المزامنة')}</b> — ${!window.claude?L('not available in this version — everything stays on this phone. Use Backup to move your data.','مب متوفرة في هالنسخة — كل شي يبقى على هالتلفون. استخدم النسخة الاحتياطية عشان تنقل بياناتك.'):sy?L('a private copy is kept in your Claude account so it works on your other devices. Only you can open it.','نسخة خاصة تنحفظ في حساب Claude مالك عشان تشتغل على أجهزتك الثانية. محد غيرك يقدر يفتحها.'):L('off — nothing is copied off this device.','مطفية — ما ينسخ شي برا هالجهاز.')}</li>
       <li><b>${L('No bank connection','ما في ربط بالبنك')}</b> — ${L('Wafr never logs in to your bank. It only sees amounts you add, paste or send from a shortcut.','وفر ما يدخل حسابك في البنك أبداً. يشوف بس المبالغ اللي تضيفها أو تلصقها أو يرسلها الاختصار.')}</li>
       <li><b>${L('No analytics','ما في تتبع')}</b> — ${L('Wafr doesn’t send your amounts or descriptions to any analytics or ad service.','وفر ما يرسل مبالغك أو وصفها لأي خدمة تحليلات أو إعلانات.')}</li></ul></section>
-    <section><h3 class="h3">${ic('spark')}${L('AI features (optional)','ميزات الذكاء (اختياري)')}</h3><p class="fhelp">${L('Ask Wafr, receipt scanning, automatic categories and “Read with AI” send the needed details (amounts, shop names, receipt photo or message text) to Claude '+(window.claude?'through your own Claude account':'(Anthropic) using your own API key')+', only when you use them. If a receipt is in another currency, Wafr fetches today’s exchange rate from open.er-api.com (only the currency is sent, never your data). Turning AI off keeps all your data and manual budgeting.','اسأل وفر، قراءة الإيصالات، التصنيف التلقائي و"اقرأ بالذكاء" ترسل التفاصيل اللازمة (المبالغ، أسماء المحلات، صورة الإيصال أو نص الرسالة) لـ Claude من حسابك، بس لما تستخدمها. لو الإيصال بعملة ثانية، وفر يجيب سعر الصرف من open.er-api.com (يرسل العملة بس، مو بياناتك). لو طفيت الذكاء، بياناتك والميزانية اليدوية تبقى.')}</p>
+    <section><h3 class="h3">${ic('spark')}${L('AI features (optional)','ميزات الذكاء (اختياري)')}</h3><p class="fhelp">${L('Ask Wafr, receipt scanning, automatic categories and “Read with AI” send the needed details (amounts, shop names, receipt photo or message text) to Claude '+(window.claude?'through your own Claude account':'(Anthropic) using your own API key')+', only when you use them. If a receipt is in another currency, Wafr fetches today’s exchange rate from open.er-api.com (only the currency is sent, never your data). If you set up the Apple Pay inbox, each payment’s amount and shop name are stored in your own Cloudflare inbox until Wafr collects them (deleted then, or after 30 days). Turning AI off keeps all your data and manual budgeting.','اسأل وفر، قراءة الإيصالات، التصنيف التلقائي و"اقرأ بالذكاء" ترسل التفاصيل اللازمة (المبالغ، أسماء المحلات، صورة الإيصال أو نص الرسالة) لـ Claude من حسابك، بس لما تستخدمها. لو الإيصال بعملة ثانية، وفر يجيب سعر الصرف من open.er-api.com (يرسل العملة بس، مو بياناتك). لو ربطت صندوق أبل باي، مبلغ كل دفعة واسم المحل ينحفظون في صندوقك الخاص في Cloudflare لين وفر يجمعهم (وبعدها ينحذفون، أو بعد 30 يوم). لو طفيت الذكاء، بياناتك والميزانية اليدوية تبقى.')}</p>
       <label class="check field"><input type="checkbox" data-pv="ai" ${ai?'checked':''}><span><b>${L('Use AI features','استخدم ميزات الذكاء')}</b></span></label></section>
     <section><h3 class="h3">${ic('repeat')}${L('Sync between devices','المزامنة بين الأجهزة')}</h3>
       <label class="check field"><input type="checkbox" data-pv="sync" ${sy?'checked':''}><span><b>${L('Keep a private synced copy','احفظ نسخة خاصة متزامنة')}</b><small>${L('Turning this off stops new uploads. Use “Delete synced copy” to remove what’s already there.','إطفاها يوقف الرفع. استخدم "امسح النسخة المتزامنة" عشان تشيل الموجود.')}</small></span></label>
@@ -3232,6 +3232,74 @@ async function fxToAED(cur,amt,aiAed){if(!(amt>0)||!/^[A-Z]{3}$/.test(cur))retur
     if(j&&j.result==='success'&&j.rates){c={day,rates:j.rates};try{localStorage.setItem(key,JSON.stringify(c))}catch(_){}}}catch(_){}}
   const per=c&&c.rates&&+c.rates[cur];if(per>0)return done(1/per);
   if(aiAed>0)return{...done(aiAed/amt),src:'ai'};return null}
+/* ===== Apple Pay inbox =====
+   Shortcuts can't write into the Home Screen app's storage, so the Wallet automation POSTs each payment to the
+   owner's own Cloudflare Worker (see inbox-worker/). When Wafr opens it collects them (/list), adds them, then
+   deletes them from the inbox (/ack). Only amount, shop name and time pass through it. */
+const SYM_CUR=[[/E£|ج\.?\s?م/,'EGP'],[/CA?\$/,'CAD'],[/AU?\$/,'AUD'],[/HK\$/,'HKD'],[/S\$/,'SGD'],[/US\$|\$/,'USD'],[/€/,'EUR'],[/£/,'GBP'],[/₹/,'INR'],[/¥|円/,'JPY'],[/₩/,'KRW'],[/₺/,'TRY'],[/฿/,'THB'],
+  [/د\.?\s?إ|درهم|\bDHS?\b/i,'AED'],[/ر\.?\s?س|ريال|\bSR\b/,'SAR'],[/ر\.?\s?ق/,'QAR'],[/د\.?\s?ك/,'KWD'],[/ر\.?\s?ع/,'OMR'],[/د\.?\s?ب/,'BHD']];
+function parseMoney(v){let s=String(v==null?'':v).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d)).replace(/٫/g,'.').replace(/٬/g,',');
+  let cur=(s.match(/\b[A-Z]{3}\b/)||[])[0]||'';if(!cur)for(const[re,c]of SYM_CUR)if(re.test(s)){cur=c;break}
+  const m=s.match(/(-|−)?\s*\D{0,4}?(\d[\d.,\s]*)/);if(!m)return{amt:0,cur:cur||'AED'};let a=m[2].replace(/\s/g,'').replace(/[.,]$/,'');
+  const lc=a.lastIndexOf(','),ld=a.lastIndexOf('.');
+  if(lc>-1&&ld>-1)a=lc>ld?a.replace(/\./g,'').replace(',','.'):a.replace(/,/g,'');else if(/,\d{1,2}$/.test(a))a=a.replace(',','.');else a=a.replace(/,/g,'');
+  const amt=Math.round(parseFloat(a)*100)/100;return{amt:amt>0?amt:0,cur:cur||'AED',refund:!!m[1]}}
+const INBOX_SEEN='wafr.inboxSeen';let inboxBusy=false;
+function inboxCfg(){const a=S.settings&&S.settings.autoCfg;return a&&a.inbox&&a.inbox.url&&a.inbox.key?a.inbox:null}
+async function inboxItem(it,docs){const ac=S.settings.autoCfg;
+  const dt=new Date(it.at),ok=!isNaN(dt),date=ok?ymd(dt):today(),time=ok?pad(dt.getHours())+':'+pad(dt.getMinutes()):nowHM();
+  if(it.text){const r=importText('auto',it.text);return r.saved?'saved':r.queued?'queued':'skip'}
+  const mo=parseMoney(it.amount);let m=String(it.merchant||'').trim().slice(0,40);
+  if(!(mo.amt>0)){if(!m){ac.inbox.tested=new Date().toISOString();return'test'}return'skip'}
+  const kind=mo.refund?'refund':'purchase';let amt=mo.amt,note='';
+  if(mo.cur!=='AED'){const fx=await fxToAED(mo.cur,mo.amt);if(!fx){enqueue('wallet','',{amt:mo.amt,cur:mo.cur,m,date,kind,notes:['foreign']});return'queued'}
+    amt=fx.aed;note=`${mo.cur} ${NFC.format(mo.amt)} @ ${fx.rate}`}
+  if(findDups(amt,date,m).length){enqueue('wallet','',{amt,cur:'AED',m,date,kind,notes:[]});return'queued'}
+  const mmAll=merchants(),k=Object.keys(mmAll).find(x=>x.toLowerCase()===m.toLowerCase());if(k)m=k;const mm=k?mmAll[k]:null,bid=resolveBrandExact(m);
+  const d=addExp({id:'ib_'+String(it.id).replace(/[^\w-]/g,'').slice(0,40),amt,kind:kind==='refund'?'refund':undefined,status:kind==='refund'?'done':undefined,m:bid?BRAND[bid].name:m,brand:bid||'',
+    cat:bid?BRAND[bid].cat:(mm?mm.cat:'other'),date,time,note,src:'auto',created:nowMs(),todo:!bid&&!mm});
+  if(!d)return'skip';docs.add(d);ac.last=new Date().toISOString();return'saved'}
+async function inboxPull(manual){const ib=inboxCfg();if(!ib||inboxBusy||syncState==='wait'||(S.settings.autoCfg.off&&!manual))return null;inboxBusy=true;
+  const out={saved:0,queued:0,test:0,err:''};
+  try{const ctl=new AbortController(),tm=setTimeout(()=>ctl.abort(),8000);
+    const res=await fetch(ib.url+'/list?k='+ib.key,{signal:ctl.signal,cache:'no-store'});clearTimeout(tm);if(!res.ok)throw new Error(res.status===403?'key':'http');
+    const j=await res.json();const items=(j&&j.items||[]).sort((a,b)=>String(a.at).localeCompare(String(b.at)));
+    let seen=[];try{seen=JSON.parse(localStorage.getItem(INBOX_SEEN)||'[]')}catch(_){}
+    const docs=new Set(),ids=[];
+    for(const it of items){if(!it||!it.id)continue;ids.push(it.id);if(seen.includes(it.id))continue;const r=await inboxItem(it,docs);if(r in out)out[r]++;seen.push(it.id)}
+    ib.checked=new Date().toISOString();persist([...docs,'settings']);try{localStorage.setItem(INBOX_SEEN,JSON.stringify(seen.slice(-300)))}catch(_){}
+    if(ids.length)fetch(ib.url+'/ack?k='+ib.key,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({ids})}).catch(()=>{});
+  }catch(e){out.err=e&&e.message==='key'?'key':'net'}finally{inboxBusy=false}
+  if(out.saved||out.queued){renderAll();toast(out.saved&&!out.queued?L(`${out.saved} Apple Pay payment${out.saved>1?'s':''} added.`,`انضاف ${out.saved} من مدفوعات أبل باي.`)
+    :L(`${out.saved} added, ${out.queued} to review.`,`انضاف ${out.saved}، و${out.queued} للمراجعة.`))}
+  else if(out.test&&!out.saved)toast(L('Inbox test received ✓ — nothing was saved.','وصل اختبار الصندوق ✓ — ما انحفظ شي.'));
+  return out}
+function inboxSheet(){const ib=inboxCfg()||{},link=ib.url?`${ib.url}/add?k=${ib.key}`:'';
+  const st=!ib.url?L('Not set up yet','ما انربط للحين'):ib.tested&&!(S.settings.autoCfg||{}).last?L('Test received — waiting for a real payment','وصل الاختبار — ننتظر عملية حقيقية'):(S.settings.autoCfg||{}).last?L(`Working — last payment ${fmtDate(S.settings.autoCfg.last.slice(0,10))}`,`شغال — آخر عملية ${fmtDate(S.settings.autoCfg.last.slice(0,10))}`):L('Saved — run the test in Shortcuts','انحفظ — جرب الاختبار في الاختصارات');
+  const steps=[['Open Shortcuts → Automation → + → Transaction. Pick your cards and choose “Run Immediately”.','افتح الاختصارات ← الأتمتة ← + ← المعاملة. اختار بطاقاتك و"تشغيل فوراً".'],
+    ['Add the action “Get Contents of URL”. Paste the link below as the URL.','أضف إجراء "الحصول على محتويات URL". الصق الرابط تحت مكان الرابط.'],
+    ['Tap the arrow (Show More): Method = POST, Request Body = JSON.','اضغط السهم (عرض المزيد): الطريقة = POST، نص الطلب = JSON.'],
+    ['Add field “amount” (Text) = Shortcut Input → Amount. Add field “merchant” (Text) = Shortcut Input → Merchant.','أضف حقل "amount" (نص) = مدخل الاختصار ← المبلغ. وحقل "merchant" (نص) = مدخل الاختصار ← التاجر.'],
+    ['Test: tap ▶ in the automation, then open Wafr. You should see “Inbox test received”.','جرب: اضغط ▶ في الأتمتة، وبعدين افتح وفر. بيطلع لك "وصل اختبار الصندوق".']];
+  openSheet(L('Apple Pay → Home Screen app','أبل باي ← تطبيق الشاشة الرئيسية'),`<div class="sh-scroll"><p class="fhelp" style="margin:0 0 12px">${L('Status','الحالة')}: <b>${st}</b></p>
+    <p class="fhelp">${L('Each Apple Pay payment goes to your own small inbox online. When you open Wafr, it collects them. Payments in other currencies are changed to AED.','كل دفعة أبل باي تروح لصندوقك الخاص أونلاين. لما تفتح وفر يجمعها. المدفوعات بعملات ثانية تتحول للدرهم.')}</p>
+    <div class="field"><label class="flabel" for="ibUrl">${L('Your inbox address','عنوان صندوقك')}</label><input class="input" id="ibUrl" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="https://wafr-inbox.NAME.workers.dev" value="${esc(ib.url||'')}"></div>
+    <button class="btn btn-sec" data-a="ibSave">${L('Save & check','احفظ وجرب')}</button>
+    ${link?`<h3 class="h3" style="margin-top:18px">${L('Shortcut steps','خطوات الاختصار')}</h3><ol class="fhelp">${steps.map(x=>`<li style="margin-bottom:8px">${L(...x)}</li>`).join('')}</ol>
+      <code class="url">${esc(link)}</code><button class="btn btn-sec" data-a="ibCopy">${ic('copy')}${L('Copy link','انسخ الرابط')}</button>
+      <p class="fine" style="margin-top:12px">${L('Keep this link private — anyone with it can add payments to your inbox.','خل الرابط خاص — أي حد عنده يقدر يضيف مدفوعات لصندوقك.')}</p>`:''}</div>
+    <div class="sh-actions">${ib.url?`<button class="btn btn-ghost-danger" data-a="ibOff">${L('Remove inbox','شيل الصندوق')}</button>`:''}<span class="grow"></span><button class="btn btn-pri" data-a="close">${L('Done','تم')}</button></div>`)}
+Object.assign(A,{
+  inbox:()=>inboxSheet(),
+  ibSave:async()=>{let u=($('#ibUrl').value||'').trim().replace(/\/+$/,'');if(u&&!/^https?:\/\//i.test(u))u='https://'+u;
+    if(!/^https:\/\/[\w.-]+(:\d+)?(\/[\w.-]*)*$/i.test(u)){toast(L('Enter the https:// address of your inbox.','دخل عنوان الصندوق اللي يبدا بـ https://'));return}
+    try{const r=await fetch(u+'/',{cache:'no-store'});const t=await r.text();if(!/Wafr inbox/i.test(t))throw 0}catch(_){toast(L('Can’t reach the inbox. Check the address.','ما قدرنا نوصل للصندوق. راجع العنوان.'));return}
+    const ac=S.settings.autoCfg=S.settings.autoCfg||{};const old=ac.inbox||{};
+    ac.inbox={...old,url:u,key:old.key||[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('')};persist(['settings']);toast(L('Inbox connected ✓','انربط الصندوق ✓'));inboxSheet()},
+  ibCopy:()=>{const ib=inboxCfg();if(!ib)return;const v=`${ib.url}/add?k=${ib.key}`;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast(t('copied'))).catch(()=>toast(v))},
+  ibOff:()=>{const ac=S.settings.autoCfg||{};delete ac.inbox;persist(['settings']);closeSheet();toast(L('Inbox removed. Delete the automation in Shortcuts too.','انشال الصندوق. احذف الأتمتة من الاختصارات بعد.'))}
+});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>inboxPull(),400)});
 const seenImg=new Set();
 
 Object.assign(A,{
@@ -3517,7 +3585,7 @@ const FLOWS={
 };
 function autoStatus(){const a=S.settings.autoCfg||{};return a.off?L('Off','مطفي'):a.last?L(`Working — last purchase ${fmtDate(a.last.slice(0,10))}`,`شغال — آخر عملية ${fmtDate(a.last.slice(0,10))}`):a.tested?L('Link tested — waiting for a real purchase','الرابط تجرب — ننتظر عملية حقيقية'):L('Not set up yet','ما انربط للحين')}
 function autoSheet3(){const f=AUTO.flow;
-  if(!f){openSheet(L('Add expenses faster','أضف مصاريفك أسرع'),`<div class="sh-scroll"><p class="fhelp" style="margin:0 0 12px">${L('Apple Pay status','حالة أبل باي')}: <b>${autoStatus()}</b></p><ul class="list clean">${['siri','pay','sms','paste'].map(k=>`<li><button class="row" data-a="autoPick" data-f="${k}"><span class="tile">${ic(k==='siri'?'send':k==='pay'?'wallet':k==='sms'?'receipt':'copy')}</span><span class="main"><b>${L(...FLOWS[k].t)}</b><span>${k==='paste'?L('Manual entry','إدخال يدوي'):L('iPhone · uses the Shortcuts app','آيفون · يستخدم تطبيق الاختصارات')}</span></span>${ic('r','flip chev')}</button></li>`).join('')}</ul>
+  if(!f){openSheet(L('Add expenses faster','أضف مصاريفك أسرع'),`<div class="sh-scroll"><p class="fhelp" style="margin:0 0 12px">${L('Apple Pay status','حالة أبل باي')}: <b>${autoStatus()}</b></p><ul class="list clean"><li><button class="row" data-a="inbox"><span class="tile">${ic('wallet')}</span><span class="main"><b>${L('Apple Pay → Home Screen app','أبل باي ← تطبيق الشاشة الرئيسية')}</b><span>${L('Automatic · uses your free Cloudflare inbox','تلقائي · يستخدم صندوقك المجاني في Cloudflare')}</span></span>${ic('r','flip chev')}</button></li>${['siri','pay','sms','paste'].map(k=>`<li><button class="row" data-a="autoPick" data-f="${k}"><span class="tile">${ic(k==='siri'?'send':k==='pay'?'wallet':k==='sms'?'receipt':'copy')}</span><span class="main"><b>${L(...FLOWS[k].t)}</b><span>${k==='paste'?L('Manual entry','إدخال يدوي'):L('iPhone · uses the Shortcuts app','آيفون · يستخدم تطبيق الاختصارات')}</span></span>${ic('r','flip chev')}</button></li>`).join('')}</ul>
     <p class="fine" style="margin-top:12px">${L('Wafr is a web app, so it can’t install shortcuts or read your bank by itself. Android can’t share bank SMS with a website — use Paste.','وفر تطبيق ويب، فما يقدر يركب اختصارات أو يقرا البنك بروحه. أندرويد ما يقدر يشارك رسايل البنك مع موقع — استخدم اللصق.')}</p></div>
     <div class="sh-actions">${(S.settings.autoCfg||{}).off?`<button class="btn btn-sec" data-a="autoOn">${L('Turn Apple Pay capture on','شغل التسجيل التلقائي')}</button>`:`<button class="btn btn-ghost-danger" data-a="autoOff">${L('Turn Apple Pay capture off','طفي التسجيل التلقائي')}</button>`}<span class="grow"></span><button class="btn btn-pri" data-a="close">${L('Done','تم')}</button></div>`);return}
   const F=FLOWS[f];
@@ -3678,6 +3746,7 @@ else if(h0.startsWith('jps-'))setTimeout(route,0);
 else if(fromHash(h0))expenseSheet(null,fromHash(h0));
 initCloud();
 initAI();
+setTimeout(()=>inboxPull(),1500);
 </script>
 <script>if('serviceWorker' in navigator&&/^https:/.test(location.protocol))addEventListener('load',()=>navigator.serviceWorker.register('sw.js').catch(()=>{}));</script>
 </body>
