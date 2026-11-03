@@ -1298,7 +1298,7 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 }
 .ch-amt.over bdi{color:#FF8A80}.ch-amt.over .ch-of{color:rgba(255,255,255,.65)}
 .sheet .sh-scroll{overscroll-behavior-y:contain}
-.nd-list>li{padding:12px 0;border-bottom:1px solid var(--line2)}.nd-top{display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer}
+.nd-list>li{padding:10px 0;border-bottom:1px solid var(--line2)}.nd-top{display:flex;align-items:center;gap:12px;cursor:pointer}.nd-body{margin-top:8px}
 .nd-top input{width:22px;height:22px;accent-color:#E9CF96;flex:none}.nd-top .main b{display:block}.nd-top .main small{color:var(--tx2)}
 .nd-cta{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:14px 16px;border-radius:18px;border:1px dashed var(--panel-line,rgba(127,127,127,.3));background:var(--panel);color:var(--tx);font:inherit;cursor:pointer}
 .nd-cta b{display:block}.nd-cta small{color:var(--tx2)}.nd-cta .chev{margin-inline-start:auto}
@@ -1353,6 +1353,7 @@ user:'<circle cx="12" cy="8" r="4"/><path d="M4 21a8 8 0 0 1 16 0"/>',
 food:'<path d="M3 2v7a2 2 0 0 0 2 2h4a2 2 0 0 0 2-2V2M7 2v20M21 15V2a5 5 0 0 0-5 5v6a2 2 0 0 0 2 2h3zm0 0v7"/>',
 cart:'<circle cx="8" cy="21" r="1"/><circle cx="19" cy="21" r="1"/><path d="M2 2h2.5l2.6 12.4a2 2 0 0 0 2 1.6h9.6a2 2 0 0 0 2-1.6L22 7H5.1"/>',
 fuel:'<path d="M3 22h12M4 9h10M14 22V4a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v18M14 13h2a2 2 0 0 1 2 2v2a2 2 0 0 0 4 0V9.8a2 2 0 0 0-.6-1.4L18 5"/>',
+car:'<path d="M5 16V12l2-5h10l2 5v4z"/><path d="M3 16h18v2H3z"/><circle cx="7.5" cy="18.5" r="1.5"/><circle cx="16.5" cy="18.5" r="1.5"/>',
 bag:'<path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4z"/><path d="M3 6h18M16 10a4 4 0 0 1-8 0"/>',
 receipt:'<path d="M4 2v20l2-1 2 1 2-1 2 1 2-1 2 1 2-1 2 1V2l-2 1-2-1-2 1-2-1-2 1-2-1-2 1z"/><path d="M8 8h8M8 12h8M8 16h5"/>',
 game:'<rect x="2" y="6" width="20" height="12" rx="4"/><path d="M6 12h4M8 10v4M15 13h.01M18 11h.01"/>',
@@ -1903,10 +1904,17 @@ const resLeft=r=>Math.max(0,unfils(fils(r.amt)-fils(resPaid(r.id))));
 /* committed money: bills, installments, planned one-offs, refunds and one-off purchases are spread, not charged to today's allowance */
 const isSpread=e=>!!(e.inst||e.sub||e.res||e.oneoff||e.kind==='refund'||potOf(e));
 /* Monthly needs (pots): money set aside each pay period for food / petrol / groceries; their spending comes out of the pot, not today */
-const POT_TYPES={food:{cat:'food',icon:'food',en:'Food & coffee',ar:'أكل وقهوة',help:['Restaurants, cafés, Talabat…','مطاعم، كافيهات، طلبات…']},fuel:{cat:'transport',icon:'fuel',en:'Petrol',ar:'بترول',help:['ADNOC, ENOC, Emarat…','أدنوك، اينوك، امارات…']},groceries:{cat:'groceries',icon:'cart',en:'Groceries',ar:'مقاضي',help:['Carrefour, Lulu, Spinneys…','كارفور، لولو، سبينيز…']}};
+const POT_TYPES={food:{cat:'food',icon:'food',en:'Food & coffee',ar:'أكل وقهوة',help:['Restaurants, cafés, Talabat…','مطاعم، كافيهات، طلبات…']},fuel:{cat:'transport',icon:'fuel',en:'Petrol',ar:'بترول',help:['ADNOC, ENOC, Emarat…','أدنوك، اينوك، امارات…']},groceries:{cat:'groceries',icon:'cart',en:'Groceries',ar:'مقاضي',help:['Carrefour, Lulu, Spinneys…','كارفور، لولو، سبينيز…']},
+  shopping:{cat:'shopping',icon:'bag',en:'Shopping',ar:'تسوق',help:['Clothes, Amazon, noon, gadgets…','ملابس، أمازون، نون، أجهزة…']},
+  fun:{cat:'fun',icon:'game',en:'Entertainment',ar:'ترفيه',help:['Cinema, games, outings…','سينما، ألعاب، طلعات…']},
+  transport:{cat:'transport',icon:'car',en:'Taxi & transport',ar:'تاكسي ومواصلات',help:['Careem, Uber, Salik, metro… (not petrol)','كريم، أوبر، سالك، مترو… (بدون البترول)']},
+  health:{cat:'health',icon:'heart',en:'Health',ar:'صحة',help:['Pharmacy, clinic, gym…','صيدلية، عيادة، نادي…']},
+  family:{cat:'family',icon:'users',en:'Family',ar:'العائلة',help:['Kids, home, family help…','العيال، البيت، مساعدة الأهل…']}};
+const POT_ORDER=['food','fuel','groceries','shopping','fun','transport','health','family'];
 function potOf(e,st){st=st||S.settings;const P=st&&st.pots;if(!P||!P.length||!e||e.kind||e.sub||e.inst||e.res||e.nopot)return null;
   try{const fuel=P.find(x=>x.type==='fuel'&&+x.amt>0);if(fuel&&(isFuelName(e.m)||(e.cat==='transport'&&isFuelName(e.note))))return fuel;
-    return P.find(x=>x.type!=='fuel'&&+x.amt>0&&POT_TYPES[x.type]&&e.cat===POT_TYPES[x.type].cat)||null}catch(_){return null}}
+    const isF=isFuelName(e.m)||(e.cat==='transport'&&isFuelName(e.note));
+    return P.find(x=>x.type!=='fuel'&&+x.amt>0&&POT_TYPES[x.type]&&e.cat===POT_TYPES[x.type].cat&&!(x.type==='transport'&&isF&&fuel))||null}catch(_){return null}}
 function calc(off,stOverride){
   const st=stOverride||S.settings,td=today(),p=periodFor(td,off,st);
   const N=diffD(p.start,p.end)+1;
@@ -3346,14 +3354,15 @@ function potSuggest(type){const st=S.settings,fake={pots:[{id:'x',type,amt:1}]};
 function needsSheet(){const st=S.settings,cur=st.pots||[];
   const row=type=>{const pt=cur.find(x=>x.type===type),on=!!(pt&&+pt.amt>0),sug=potSuggest(type),T=POT_TYPES[type];
     return`<li class="nd-row"><label class="nd-top"><input type="checkbox" class="nd-on" data-t="${type}" ${on?'checked':''}><span class="tile">${ic(T.icon)}</span><span class="main"><b>${L(T.en,T.ar)}</b><small>${L(...T.help)}</small></span></label>
-    <div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num nd-amt" data-t="${type}" inputmode="decimal" placeholder="${sug||0}" value="${on?pt.amt:''}" autocomplete="off"></div>
-    ${sug?`<p class="fine" style="margin:4px 0 0">${L(`You usually spend ≈ ${aedT(sug)} a pay period.`,`عادة تصرف ≈ ${aedT(sug)} بالفترة.`)} <button type="button" class="btn-text" data-a="ndUse" data-t="${type}" data-v="${sug}">${L('Use this','استخدمه')}</button></p>`:''}</li>`};
+    <div class="nd-body" ${on?'':'hidden'}><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num nd-amt" data-t="${type}" inputmode="decimal" placeholder="${sug||0}" value="${on?pt.amt:''}" autocomplete="off"></div>
+    ${sug?`<p class="fine" style="margin:4px 0 0">${L(`You usually spend ≈ ${aedT(sug)} a pay period.`,`عادة تصرف ≈ ${aedT(sug)} بالفترة.`)} <button type="button" class="btn-text" data-a="ndUse" data-t="${type}" data-v="${sug}">${L('Use this','استخدمه')}</button></p>`:''}</div></li>`};
   openSheet(L('Monthly needs','الاحتياجات الشهرية'),`<div class="sh-scroll"><p class="fhelp" style="margin:0 0 12px">${L('Set money aside each pay period for things you always buy. Wafr takes them from here — not from today — and tells you what’s left.','خل فلوس على جنب كل فترة للأشياء اللي دايم تشتريها. وفر ياخذها من هني — مب من مصروف اليوم — ويقولك كم باقي.')}</p>
-    <ul class="list clean nd-list">${['food','fuel','groceries'].map(row).join('')}</ul></div>
+    <ul class="list clean nd-list">${POT_ORDER.map(row).join('')}</ul></div>
     <div class="sh-actions"><span class="grow"></span><button class="btn btn-pri" data-a="ndSave">${L('Save','حفظ')}</button></div>`)}
+document.addEventListener('change',e=>{if(e.target.classList&&e.target.classList.contains('nd-on')){const li=e.target.closest('li'),bd=li&&li.querySelector('.nd-body');if(bd){bd.hidden=!e.target.checked;if(e.target.checked){const i=bd.querySelector('.nd-amt');if(i&&!i.value)setTimeout(()=>i.focus(),50)}}}});
 document.addEventListener('input',e=>{if(e.target.classList&&e.target.classList.contains('nd-amt')){const c=document.querySelector(`.nd-on[data-t="${e.target.dataset.t}"]`);if(c)c.checked=parseAmt(e.target.value)>0}});
 function needsHome(r){const st=S.settings;if(!r.cur)return'';const rows=r.potRows||[];
-  if(!rows.length)return st.potsHide?'':`<section class="calm-sec nd-home"><button class="nd-cta" data-a="needs">${ic('target')}<span><b>${L('Set money aside for food & petrol','خل فلوس على جنب للأكل والبترول')}</b><small>${L('So a fill-up or a Talabat order never breaks your day','عشان تعبئة بترول أو طلب طلبات ما يخرب يومك')}</small></span>${ic('r','flip chev')}</button></section>`;
+  if(!rows.length)return st.potsHide?'':`<section class="calm-sec nd-home"><button class="nd-cta" data-a="needs">${ic('target')}<span><b>${L('Set money aside for food, petrol & more','خل فلوس على جنب للأكل والبترول وغيرها')}</b><small>${L('So a fill-up or a Talabat order never breaks your day','عشان تعبئة بترول أو طلب طلبات ما يخرب يومك')}</small></span>${ic('r','flip chev')}</button></section>`;
   return`<section class="calm-sec nd-home" aria-labelledby="h-nd"><div class="cs-h"><h2 id="h-nd">${L('Monthly needs','الاحتياجات الشهرية')}</h2><button class="link btn-text" data-a="needs">${L('Edit','تعديل')}</button></div>
   <ul class="nd-bars">${rows.map(x=>{const pct=Math.min(100,x.spent/Math.max(1,+x.pot.amt)*100),over=x.left<0;return`<li><span class="tile">${ic(POT_TYPES[x.pot.type].icon)}</span><span class="nd-m"><span class="nd-t"><b>${potName(x.pot)}</b><span class="${over?'over':''}"><bdi>${over?L(`${aedT(-x.left)} over`,`فوق بـ ${aedT(-x.left)}`):L(`${aedT(x.left)} left`,`باقي ${aedT(x.left)}`)}</bdi> <small>/ ${aedT(x.pot.amt)}</small></span></span><span class="nd-bar"><i class="${over?'over':''}" style="width:${pct}%"></i></span></span></li>`}).join('')}</ul></section>`}
 Object.assign(A,{
