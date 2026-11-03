@@ -1411,6 +1411,20 @@ html:not(.light) .mo-prof{background:#164B40}
 @media (max-width:719px){.sh-actions>.btn-pri:last-child{flex:1 1 auto}.sh-actions>.grow:has(+ .btn-pri:last-child){display:none}}
 .sheet{background:var(--card)}
 html.light .sheet{background:#FFFFFF}
+
+/* ----- larger text sizes & narrow phones: let rows wrap instead of overflowing ----- */
+.rgrid>*{min-width:0}.rcats li{grid-template-columns:36px minmax(0,1fr) auto}.rc-main{min-width:0}.rc-top{flex-wrap:wrap;column-gap:8px}.rc-top b{min-width:0;overflow-wrap:anywhere}
+.nd-bars li{min-width:0}.nd-t{flex-wrap:wrap;column-gap:8px}.nd-t b{white-space:normal}.nd-t>span{white-space:normal}
+.tl-row{min-width:0}.tl-row .main{min-width:0}.tl-row .main b,.tl-row .main span{overflow-wrap:anywhere}.tl{min-width:0}.tl li{min-width:0}
+.sb-tiles{grid-template-columns:minmax(0,1fr) minmax(0,1fr)}.sb-tile b{font-size:clamp(17px,5vw,22px)}
+.shead2{flex-wrap:wrap}.shead2 h2{min-width:0}
+.es-break{flex-wrap:wrap}.es-legend{min-width:200px}.es-legend li{grid-template-columns:10px minmax(0,1fr) auto auto}
+.tm .tm-row .tm-sub{white-space:normal}
+.hm-tile b{white-space:normal;overflow-wrap:anywhere}
+html.tz .hm-tiles{grid-template-columns:1fr}
+#main h1{overflow-wrap:anywhere;hyphens:auto;min-width:0}#main h1+*{min-width:0}html.tz #main .pagewrap>div:first-child h1,html.tz #main>div:first-child h1{font-size:clamp(24px,7.4vw,34px)}
+.nd-t>span{display:inline-flex;flex-wrap:wrap;column-gap:4px;justify-content:flex-end;max-width:100%}
+.calm-hero :focus-visible,.mo-prof :focus-visible{outline-color:#A8D5BA!important}
 </style>
 </head>
 <body>

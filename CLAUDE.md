@@ -4,7 +4,7 @@ Wafr (وفر, formerly "Wafra") is a personal daily-budget app for the UAE (AED)
 Owner: Hamad Aljneibi (GitHub 7md2007). Prefers simple English, short answers, step-by-step.
 
 ## What it answers
-"What can I spend today while protecting upcoming bills?" Home shows **Spent today: AED spent / plan** (e.g. 35 / 39) with "AED X left today",
+"What can I spend today while protecting upcoming bills?" Home shows **Available to spend today: AED X** with "Spent today AED spent / plan" under it,
 a bar that fills as you spend, "Next payday in X days", one big **Add expense** button.
 
 ## Where the app lives today
@@ -58,8 +58,12 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
 - AI chat proposes expenses as cards; nothing saved until the user taps Add. Daily AI limits in `AI_LIMITS`.
 - UI modules were appended in order inside the single file (search for comment banners "Money engine UI", "Transactions", "Import & trust",
   "Calm redesign", "Round 3", "Apple-style interaction layer", "AI outside Claude"). Later modules override earlier views (e.g. `VIEWS.home=homeV3`).
-- Design: navy + gold, falcon card image + Dubai skyline header (owner chose these), calm "today-first" layout, springy draggable sheets on phones,
-  reduced-motion / reduced-transparency / increased-contrast support, in-app text size.
+- Design (Nov 2026): **Emerald & Ivory** (owner's choice, replaced navy + gold). Final token layer at the end of the main <style>
+  (light: ivory #F7F5EE / white cards / hero #103D35 / action #24745F; dark: #081C19 / #102B26 / hero #164B40 / action #A8D5BA),
+  contrast-checked to WCAG AA. Falcon card + skyline JPEGs recoloured to emerald with a mint falcon (no gold). Fonts Inter + IBM Plex
+  Sans Arabic are bundled in `fonts/` (OFL licences included) — no Google Fonts. Home hero: "Available to spend today" big,
+  "Spent today X / Y" + bar, inline "How it's calculated"; More is grouped (My finances, Appearance, Smart features, Privacy & data, Help).
+  Before-redesign copy: branch `old-version-v2`. Springy sheets, reduced-motion, in-app text size (1 / 1.15 / 1.3) all supported.
 
 ## Tests
 `node tests/finance.test.js` (Playwright; needs `playwright` installed, open index.html). 42 tests must pass:
