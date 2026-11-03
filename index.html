@@ -4381,8 +4381,8 @@ function moBar(el,key){if(!el)return;const to=parseFloat(el.style.width)||0,from
 const _renderAllMO=renderAll;
 renderAll=function(){const prev=MO.view;_renderAllMO();MO.view=S.view;const m=$('#main');if(!m)return;
   if(MO.skip){MO.skip=false}else if(!RM()&&prev!==null&&prev!==S.view){
-    m.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:360,easing:E_OUT});
-    [...m.querySelectorAll('.calm-hero,.calm-sec,.list.clean>li,.list>li,.rcats>li,.rtotal,.card')].slice(0,12).forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:420,delay:50+i*32,easing:E_OUT,fill:'backwards'}));
+    /* light page change: one short opacity fade (no slide, no per-row stagger — those lagged on iPhone) */
+    m.animate([{opacity:.6},{opacity:1}],{duration:140,easing:'ease-out'});
     const pill=$('#bnav a[aria-current=page] .pill');if(pill)pill.animate([{transform:'scale(.82)'},{transform:'scale(1)'}],{duration:480,easing:E_SPRING})}
   if(S.view==='home'){const changed=MO.num.home!=null;moCount(m.querySelector('.ch-amt bdi'),'home');moBar(m.querySelector('.tm-bar i'),'home');
     const nowAmt=MO.num.home;if(changed&&!RM()&&MO.lastHome!=null&&MO.lastHome!==nowAmt){const h=m.querySelector('.calm-hero');if(h)h.animate([{transform:'scale(1)'},{transform:'scale(.985)'},{transform:'scale(1)'}],{duration:420,easing:E_SPRING})}MO.lastHome=nowAmt}

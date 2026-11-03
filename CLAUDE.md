@@ -52,7 +52,7 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
   picker (`expData()`, `expRangeBar()`: Pay period via `calc(S.off)` + `prev/next`; Today/Week/Month/3 months/Year/Custom via
   `rangeFor()` + `rngPrev/rngNext`), summary + horizontal category bars (`catBars()`), search/filter, owed, needs-details. `#insights`
   and the More → Spending row redirect to `#expenses`. Old page methods (VIEWS home/subs/insights literals, `spendingV3`) removed. Motion polish module (before startup `renderAll()`):
-  page glide + staggered rows, tab bounce, counting hero/spent numbers (`moCount`), springy bars (`moBar`); all off with Reduce Motion.
+  quick 140ms opacity fade on page change (slide + row stagger removed: laggy on iPhone), tab bounce, counting hero/spent numbers (`moCount`), springy bars (`moBar`); all off with Reduce Motion.
 - Monthly needs (pots, Nov 2026): `settings.pots=[{id,type,amt}]` (types in `POT_TYPES`: food, fuel, groceries, shopping, fun, transport, health, family) per pay period. `potOf(e)` (fuel by name via
   `isFuelName`, others by category); pot spending is spread (not today) and the unspent rest is reserved in `calc` (`potRows`, `potRes`).
   Overspending a pot lowers the daily amount. UI: `needsSheet()` (suggests ≈ last 3 periods), `needsHome()` bars on Home, toast after save.
