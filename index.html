@@ -1272,6 +1272,18 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 #msSave{width:100%;margin:8px 0 10px;accent-color:#23874F;height:28px}
 .ms-bar{display:flex;height:34px;border-radius:12px;overflow:hidden}.ms-bar div{display:flex;gap:4px;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;min-width:0}.ms-bar .sp{background:#1D4E9E}.ms-bar .sv{background:#23874F}
 .ms-aside{margin:10px 0 0;padding-inline-start:18px;font-size:14px;line-height:1.5;color:var(--tx2)}.ms-aside b{color:var(--tx)}
+@media (prefers-reduced-motion: no-preference){
+#toast.show{animation:wfPop .5s cubic-bezier(.34,1.56,.64,1)}
+@keyframes wfPop{0%{scale:.86;opacity:0}100%{scale:1;opacity:1}}
+.ms-d.sel,.ms-chip.sel{animation:wfTap .42s cubic-bezier(.34,1.56,.64,1)}
+@keyframes wfTap{0%{scale:.86}100%{scale:1}}
+.nudge,.ms-ed,.aff-res{animation:wfRise .45s cubic-bezier(.22,1,.36,1)}
+@keyframes wfRise{0%{opacity:0;translate:0 8px}100%{opacity:1;translate:0 0}}
+.tm-sub.down,.tm-sub.up{animation:wfRise .5s cubic-bezier(.22,1,.36,1) .15s backwards}
+.ms-d,.ms-chip{transition:scale .18s cubic-bezier(.22,1,.36,1),background-color .2s}
+.ms-d:active,.ms-chip:active{scale:.93}
+.tm-bar i{transition:width .7s cubic-bezier(.22,1,.36,1)}
+}
 </style>
 </head>
 <body>
@@ -2046,7 +2058,7 @@ function applyTheme(){
   const m=document.querySelector('meta[name=theme-color]');if(m)m.content=light?'#F5F6F8':'#080F1C';
 }
 const NAV=[['home','home'],['expenses','list'],['subs','repeat'],['installments','layers'],['insights','chart'],['ask','spark'],['more','more']];
-const BNAV=[['home','home'],['expenses','list'],['insights','chart'],['more','more']];
+const BNAV=[['home','home'],['expenses','list'],['subs','repeat'],['more','more']];
 function syncHTML(){const on=syncState==='on';return`<span class="sync ${on?'on':''}" title="${on?t('syncOn'):syncState==='wait'?t('syncWait'):t('syncOff')}"><i class="syncdot"></i><span>${on?t('syncOn'):syncState==='wait'?t('syncWait'):t('syncOff')}</span></span>`}
 function renderNav(){
   const v=S.view,cur=x=>x===v?'aria-current="page"':'';
@@ -2054,7 +2066,7 @@ function renderNav(){
   ${S.settings?`<button class="btn btn-pri add" data-a="jp" aria-label="${t('addExpense')}">${ic('plus')}<span>${t('addExpense')}</span></button>`:''}
   <nav aria-label="${t('openMenu')}">${NAV.filter(([k])=>k!=='ask'||AI).map(([k,i])=>`<a class="nl" href="#${k}" ${cur(k)}>${ic(i)}<span>${k==='more'?t('settings'):t(k)}</span></a>`).join('')}</nav>
   <div class="side-foot">${syncHTML()}</div>`;
-  const bcur=k=>(k===v||(k==='more'&&(v==='subs'||v==='ask'||v==='installments')))?'aria-current="page"':'';
+  const bcur=k=>(k===v||(k==='more'&&(v==='insights'||v==='ask'||v==='installments')))?'aria-current="page"':'';
   $('#bnav').setAttribute('aria-label',t('openMenu'));
   $('#bnav').innerHTML=BNAV.map(([k,i])=>`<a href="#${k}" ${bcur(k)}><span class="pill">${ic(i)}</span>${k==='insights'?t('navOverview'):t(k)}</a>`).join('');
   $('#mbar').innerHTML=`${MARK(32)}<span translate="no">Wafr</span>`;
@@ -2232,7 +2244,7 @@ more(){
   const seg=(k,opts,label)=>`<div class="seg" role="radiogroup" aria-label="${label}">${opts.map(([v,l,i])=>`<button role="radio" aria-checked="${st[k]===v}" data-a="setopt" data-k="${k}" data-val="${v}">${i&&st[k]===v?ic('check'):''}${l}</button>`).join('')}</div>`;
   const link=(href,icon,c,title,val)=>`<li><a class="srow" href="${href}"><span class="tile" style="--c:${c}">${ic(icon)}</span><span class="main"><b>${title}</b>${val?`<span>${val}</span>`:''}</span>${ic('r','flip chev')}</a></li>`;
   return pageHead(t('settings'))+`<div class="settings">
-  <section class="mobile-only"><ul class="list card">${link('#subs','repeat','#0B7FA6',t('subs'),S.subs.length?(S.subs.length===1&&lang()==='en'?'1 regular bill':t('subsCount',S.subs.length)):'')}${link('#installments','layers','#3F5FD0',t('installments'),t('instSub'))}${AI?link('#ask','spark','#B57A00',t('ask'),''):''}</ul></section>
+  <section class="mobile-only"><ul class="list card">${link('#insights','chart','#7E4FCC',t('navOverview'),L('What you spent in any time range','كم صرفت في أي فترة'))}${link('#installments','layers','#3F5FD0',t('installments'),t('instSub'))}${AI?link('#ask','spark','#B57A00',t('ask'),''):''}</ul></section>
   <section aria-labelledby="s-prof"><div class="sec-h"><h2 id="s-prof">${t('profileBudget')}</h2><button class="btn btn-pri" data-a="editBudget">${ic('edit')}${t('editBudget')}</button></div><div class="card">
     <ul class="list">
       <li><div class="srow"><span class="main"><b>${t('name')}</b></span><span class="val">${esc(st.name||'—')}</span></div></li>
@@ -3902,6 +3914,22 @@ Object.assign(A,{pasteSms:async()=>{const f=$('#expform');if(!f)return;const d=f
 /* ---------- boot ---------- */
 lsLoad();
 const h0=location.hash.slice(1);if(VIEWS[h0])S.view=h0;
+/* ===== Motion polish: page glide + staggered rows, tab bounce, counting numbers, springy bars (off with Reduce Motion) ===== */
+const MO={view:null,num:{},bar:{}};const E_OUT='cubic-bezier(.22,1,.36,1)',E_SPRING='cubic-bezier(.34,1.56,.64,1)';
+function moCount(el,key){if(!el)return;const tn=[...el.childNodes].find(n=>n.nodeType===3&&/\d/.test(n.textContent));if(!tn)return;
+  const to=parseFloat(tn.textContent.replace(/[^\d.\-]/g,''));if(!isFinite(to))return;const from=MO.num[key];MO.num[key]=to;if(from==null||from===to||RM())return;
+  const t0=performance.now(),dur=Math.min(900,350+Math.abs(to-from)*2);const step=now=>{const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);tn.textContent=fmtN(from+(to-from)*e);if(k<1&&tn.isConnected)requestAnimationFrame(step)};requestAnimationFrame(step)}
+function moBar(el,key){if(!el)return;const to=parseFloat(el.style.width)||0,from=MO.bar[key];MO.bar[key]=to;if(RM()||from===to)return;
+  el.animate([{width:(from==null?0:from)+'%'},{width:to+'%'}],{duration:from==null?900:700,easing:E_OUT})}
+const _renderAllMO=renderAll;
+renderAll=function(){const prev=MO.view;_renderAllMO();MO.view=S.view;const m=$('#main');if(!m)return;
+  if(!RM()&&prev!==null&&prev!==S.view){
+    m.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:360,easing:E_OUT});
+    [...m.querySelectorAll('.calm-hero,.calm-sec,.list.clean>li,.list>li,.rcats>li,.rtotal,.card')].slice(0,12).forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:420,delay:50+i*32,easing:E_OUT,fill:'backwards'}));
+    const pill=$('#bnav a[aria-current=page] .pill');if(pill)pill.animate([{transform:'scale(.82)'},{transform:'scale(1)'}],{duration:480,easing:E_SPRING})}
+  if(S.view==='home'){const changed=MO.num.home!=null;moCount(m.querySelector('.ch-amt bdi'),'home');moBar(m.querySelector('.tm-bar i'),'home');
+    const nowAmt=MO.num.home;if(changed&&!RM()&&MO.lastHome!=null&&MO.lastHome!==nowAmt){const h=m.querySelector('.calm-hero');if(h)h.animate([{transform:'scale(1)'},{transform:'scale(.985)'},{transform:'scale(1)'}],{duration:420,easing:E_SPRING})}MO.lastHome=nowAmt}
+  if(S.view==='insights')moCount(m.querySelector('.rt-amt bdi'),'spent:'+S.rng.k+':'+S.rng.off)};
 if(S.settings)processSubs();
 renderAll();
 if(!S.settings)setTimeout(()=>{if(!S.settings&&!S.pendingAuto)welcomeSheet()},1200);
