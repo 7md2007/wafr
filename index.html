@@ -1425,6 +1425,65 @@ html.tz .hm-tiles{grid-template-columns:1fr}
 #main h1{overflow-wrap:anywhere;hyphens:auto;min-width:0}#main h1+*{min-width:0}html.tz #main .pagewrap>div:first-child h1,html.tz #main>div:first-child h1{font-size:clamp(24px,7.4vw,34px)}
 .nd-t>span{display:inline-flex;flex-wrap:wrap;column-gap:4px;justify-content:flex-end;max-width:100%}
 .calm-hero :focus-visible,.mo-prof :focus-visible{outline-color:#A8D5BA!important}
+
+/* ===================================================================
+   Wafra — Midnight Emerald (dark) + Emerald & Ivory (light). Final layer.
+   Dark is neutral charcoal; emerald only for actions, progress, selection and the hero.
+   =================================================================== */
+:root{
+  --bg:#0C1114;--bg2:#12191C;--card:#171F23;--elev:#20322F;--panel:#171F23;--panel-line:#30403F;--surface-2:#1C2629;
+  --tx:#F5F7F6;--tx2:#A9B6B4;--tx3:#A9B6B4;
+  --acc:#7AD0AE;--acc-ink:#0C1114;--acc-text:#7AD0AE;--acc-soft:rgba(122,208,174,.13);--acc-hover:#93DCBF;--focus:#7AD0AE;
+  --line:#5B6E6C;--line2:#263233;
+  --ok:#6FD39F;--warn:#F2C35B;--err:#FF9B8F;
+  --hero1:#143A32;--hero2:#143A32;--hero-tx:#FFFFFF;--hero-tx2:#CFE3DA;--hero-track:rgba(255,255,255,.14);--hero-fill:#7AD0AE;
+  --gold:#7AD0AE;--sky:#7AD0AE;--falcon:#7AD0AE;
+  --nav:rgba(12,17,20,.92);--nav-solid:#0C1114;--scrim:rgba(0,0,0,.6);
+  --shadow:none;--shadow-pop:0 18px 40px rgba(0,0,0,.5);
+  --hero-bg:#143A32;--falcon-img:url(data:image/png;base64,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);
+}
+html.light{--hero-bg:#103D35;--hero-tx2:#D3E9DD;--hero-fill:#A8D5BA;--hero-track:rgba(255,255,255,.18);--surface-2:#EDF4EC;--line2:#E3EAE2}
+/* no skyline / photo: calm, flat surfaces */
+body.v-home .coast{display:none!important}
+body.v-home .mbar span[translate],body.v-home .greet{color:var(--tx)!important}
+body.v-home .home-head .psub{color:var(--tx2)!important}
+section.hero.photo.calm-hero,html:not(.light) section.hero.photo.calm-hero{background:var(--hero-bg)!important;box-shadow:none!important;border-radius:24px!important}
+section.hero.photo.calm-hero .hero-bg{background:var(--falcon-img) no-repeat!important;background-size:64px auto!important;background-position:right 16px top 14px!important;opacity:.55;-webkit-mask-image:none!important;mask-image:none!important}
+html[dir=rtl] section.hero.photo.calm-hero .hero-bg{background-position:right 16px top 14px!important;transform:scaleX(-1)}
+
+/* ----- Home v3: compact hierarchy ----- */
+.home-head.hh2{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin:2px 0 14px}
+.hh2 .hh-l{min-width:0}.hh2 .greet{font-size:24px!important;line-height:1.2;margin:0}.hh2 .psub{font-size:14px;margin:4px 0 0}
+.hh2 .badge{flex:none;margin-top:4px}
+html:not(.light) .badge.ok{background:rgba(122,208,174,.14);color:#9FDFC4}
+section.hero2{padding:18px 18px 16px!important;border-radius:24px!important}
+.hero2 .ch-in{padding:0!important}
+.hero2 .ch-lab{font-size:15px!important;margin:0!important;color:var(--hero-tx2)!important}
+.hero2 .ch-amt{margin:2px 0 8px!important;line-height:1.05}
+.hero2 .tm{margin:0 0 14px}.hero2 .tm-bar{height:8px}.hero2 .tm-lab{margin-top:8px;font-size:14px}
+.hero2 .btn.big{min-height:50px;width:100%;margin:0}
+.glance{display:grid;grid-template-columns:1fr 1fr 1.25fr;gap:0;margin:12px 0 0;background:var(--panel);border:1px solid var(--panel-line);border-radius:18px;overflow:hidden}
+.glance .gl{display:flex;flex-direction:column;gap:2px;padding:11px 12px;min-width:0;text-align:start;font:inherit;color:var(--tx);background:none;border:0}
+.glance .gl+.gl{border-inline-start:1px solid var(--line2)}
+.glance small{font-size:12px;color:var(--tx2);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.glance b{font-size:15px;font-weight:700;white-space:nowrap}.glance em{font-style:normal;font-size:12px;color:var(--tx2)}
+.glance b.down{color:var(--err)}.glance b.up{color:var(--ok)}
+.glance .gl-btn{cursor:pointer;background:var(--acc-soft)}.glance .gl-btn b{color:var(--acc-text);display:inline-flex;align-items:center;gap:2px;white-space:normal}
+.glance .gl-btn b svg.i{width:16px;height:16px}
+.glance .gl-btn:active{background:var(--acc-soft);filter:brightness(1.08)}
+.streak-row{margin:10px 2px 0}.streak-row .tm-streak{margin:0;color:var(--acc-text);font-size:14px}
+.calc-card{margin:10px 0 0!important;border:1px solid var(--panel-line)!important;border-radius:18px;background:var(--panel);padding:0 14px}
+.calc-card summary{color:var(--tx)!important;font-size:15px}
+.calc-card dl div{color:var(--tx2)!important}.calc-card dl .tot{color:var(--tx)!important;border-top-color:var(--line2)!important}
+.calc-card .ch-more{color:var(--acc-text)!important;margin:0 0 12px}
+.hm-tiles{margin-top:12px}
+@media (max-width:359px){.glance{grid-template-columns:1fr 1fr}.glance .gl-btn{grid-column:1/-1;border-inline-start:0!important;border-top:1px solid var(--line2)}}
+html.tz .glance{grid-template-columns:1fr 1fr}html.tz .glance .gl-btn{grid-column:1/-1;border-inline-start:0!important;border-top:1px solid var(--line2)}
+.home-head.hh2{display:flex!important;flex-direction:row!important;align-items:flex-start!important;justify-content:space-between!important}
+.glance .gl-btn b{font-size:14px}
+.home-head.hh2{flex-wrap:nowrap!important}.hh2 .hh-l{flex:1 1 auto;width:auto!important}
+.hh-sub{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:4px}.hh-sub .psub{margin:0!important}.hh2 .hh-l{width:100%!important}
+.hh-sub .psub{flex:0 1 auto!important;width:auto!important;min-width:0}.hh-sub .badge{margin:0!important}
 </style>
 </head>
 <body>
@@ -2259,7 +2318,7 @@ const freqTxt=n=>({1:t('monthly'),3:t('every3'),6:t('every6'),12:t('yearly')}[n]
 const perTxt=n=>({1:t('perMo'),3:t('per3'),6:t('per6'),12:t('perYr')}[n]||t('perMo'));
 function whenTxt(d){const n=diffD(today(),d);return n===0?t('today'):n===1?t('tomorrow'):t('inDays',n)}
 function subRow(s,date){date=date||s.next;return`<li><button class="row" data-a="editSub" data-id="${s.id}" aria-label="${esc(s.name)}, ${aedT(s.amt)} ${perTxt(+s.every)}">${s.brand&&BRAND[s.brand]?brandLogo(s.brand):tile(s.cat||'subs')}<span class="main"><b>${esc(s.name)}</b><span>${fmtDate(date)} · ${whenTxt(date)}</span></span><span class="end"><span class="amt">${mon(s.amt,1)}</span><span class="freq">${freqTxt(+s.every)}</span></span></button></li>`}
-const greet=()=>S.settings.name?t('hiName',esc(S.settings.name)):t('hi0');
+const greet=()=>S.settings.name?t('hiName','<bdi>'+esc(S.settings.name)+'</bdi>'):t('hi0');
 const dateLine=()=>new Date().toLocaleDateString(loc(),{weekday:'long',day:'numeric',month:'long'});
 
 /* ---------- views ---------- */
@@ -3755,7 +3814,7 @@ function todayMeter(r){
   const label=r.realShort>0?L(`Short by ${aedT(r.realShort)} until payday`,`ناقصك ${aedT(r.realShort)} لين الراتب`)
     :r.todayLeft<0?L(`Spent today ${aedT(spent)} / ${aedT(daily)} · ${aedT(-r.todayLeft)} over`,`صرفت اليوم ${aedT(spent)} / ${aedT(daily)} · فوق بـ ${aedT(-r.todayLeft)}`)
     :L(`Spent today ${aedT(spent)} / ${aedT(daily)}`,`صرفت اليوم ${aedT(spent)} / ${aedT(daily)}`);
-  const showT=r.realShort<=0&&r.daysLeft>1&&daily>0,dR=Math.round(daily),nR=Math.round(r.nextDaily),dir=nR<dR?'down':nR>dR?'up':'';
+  const showT=false,dR=Math.round(daily),nR=Math.round(r.nextDaily),dir=nR<dR?'down':nR>dR?'up':'';
   const sub=showT?L(`Tomorrow: ${aedT(nR)}`,`بكرة: ${aedT(nR)}`)+(dir?` <span aria-hidden="true">${dir==='down'?'▼':'▲'}</span>`:''):'';
   return`<div class="tm" role="img" aria-label="${esc(label+(sub?'. '+L(`Tomorrow: ${aedT(nR)}`,`بكرة: ${aedT(nR)}`):''))}"><div class="tm-bar"><i style="width:${pct}%"></i></div><p class="tm-lab tm-row"><span class="tm-l">${r.todayLeft<0||r.realShort>0?ic('alert'):''}<span>${label}</span></span>${sub?`<span class="tm-sub ${dir}">${sub}</span>`:''}</p></div>`}
 function homeV2(){
@@ -3765,24 +3824,25 @@ function homeV2(){
   const status=r.realShort>0||r.shortfall>0?['bad','alert',L('Short before payday','ناقص قبل الراتب')]:over?['warn','alert',L('Over today’s plan','فوق خطة اليوم')]:['ok','check',L('On track','ماشي صح')];
   const warn=r.realShort>0||r.shortfall>0?`<p class="hero-warn">${ic('info')}<span>${L('Bills stay set aside. Review your expenses or planned costs.','الفواتير تبقى محجوزة. راجع مصاريفك أو المصاريف المخططة.')}</span></p>`
     :r.overdueAmt>0?`<p class="hero-warn">${ic('alert')}<span>${L(`${aedT(r.overdueAmt)} in overdue payments is set aside.`,`${aedT(r.overdueAmt)} دفعات متأخرة محجوزة.`)}</span></p>`:'';
-  const head=`<div class="home-head calm"><div><h1 class="greet">${greet()}</h1><p class="psub">${dateLine()}</p>
-    <p class="hh-period"><span>${L('Pay period','فترة الراتب')} · <bdi>${fmtDate(r.p.start)} – ${fmtDate(r.p.end)}</bdi></span><span class="badge ${status[0]}">${ic(status[1])}${status[2]}</span></p></div></div>`;
+  const head=`<div class="home-head calm hh2"><div class="hh-l"><h1 class="greet">${greet()}</h1><div class="hh-sub"><p class="psub">${P(today()).toLocaleDateString(loc(),{weekday:'short',day:'numeric',month:'short'})} · <bdi>${fmtDate(r.p.start)} – ${fmtDate(r.p.end)}</bdi></p><span class="badge ${status[0]}">${ic(status[1])}${status[2]}</span></div></div></div>`;
   const row=(a,b,cls='')=>`<div class="${cls}"><dt>${a}</dt><dd><bdi>${b}</bdi></dd></div>`;
   const calcBox=`<details class="ch-calc"><summary>${L('How it’s calculated','كيف ينحسب')}${ic('down')}</summary><dl>
     ${row(L('Income this period','الدخل لهالفترة'),aedT(r.income))}${r.save?row(L('Planned savings','الادخار المخطط'),'− '+aedT(r.save)):''}${r.extra?row(L('Extra money in','فلوس إضافية'),'+ '+aedT(r.extra)):''}
     ${row(L('Spent before today','المصروف قبل اليوم'),'− '+aedT(r.before))}${r.reserved?row(L('Set aside: bills, plans & needs','محجوز: فواتير وخطط واحتياجات'),'− '+aedT(r.reserved)):''}
     ${row(L(`Left ÷ ${r.daysLeft} day${r.daysLeft>1?'s':''}`,`الباقي ÷ ${r.daysLeft} يوم`),aedT(Math.max(0,r.daily)),'tot')}</dl>
     <button class="ch-more" data-a="details">${L('Full breakdown','التفاصيل كاملة')}${ic('r','flip')}</button></details>`;
-  const hero=`<section class="hero photo calm-hero" aria-labelledby="h-today"><span class="hero-bg" aria-hidden="true"></span>
+  const hero=`<section class="hero photo calm-hero hero2" aria-labelledby="h-today"><span class="hero-bg" aria-hidden="true"></span>
     <div class="ch-in"><h2 id="h-today" class="ch-lab">${L('Available to spend today','تقدر تصرف اليوم')}</h2>
     <p class="ch-amt num"><span class="c">AED</span><bdi>${fmtN(amt)}</bdi></p>
-    <p class="ch-sub">${L('After bills, monthly needs and savings','بعد الفواتير والاحتياجات والادخار')}</p>
-    ${todayMeter(r)}${streakHTML()}
-    <p class="ch-pay">${ic('cal')}<span>${payIn<=0?L('Payday is today','الراتب اليوم'):payIn===1?L('Next payday tomorrow','الراتب باچر'):L(`Next payday in ${payIn} days`,`الراتب الجاي بعد ${payIn} يوم`)} · ${fmtDate(payDate)}</span></p>
-    ${warn}
-    <button class="btn btn-gold big" data-a="jp">${ic('plus')}${t('addExpense')}</button>
-    ${calcBox}
-    <div class="ch-links"><button class="ch-more" data-a="afford">${L('Can I afford it?','أقدر أشتريه؟')}${ic('r','flip')}</button></div></div></section>`;
+    ${todayMeter(r)}${warn}
+    <button class="btn btn-gold big" data-a="jp">${ic('plus')}${t('addExpense')}</button></div></section>`;
+  const tmr=r.realShort<=0&&r.daysLeft>1&&r.daily>0?Math.round(r.nextDaily):null,tdir=tmr==null?'':tmr<Math.round(r.daily)?'down':tmr>Math.round(r.daily)?'up':'';
+  const glance=`<section class="glance" aria-label="${L('At a glance','بلمحة')}">
+    <div class="gl"><small>${L('Tomorrow','بكرة')}</small><b class="${tdir}"><bdi>${tmr==null?'—':aedT(tmr)}</bdi>${tdir?` <span aria-hidden="true">${tdir==='down'?'▼':'▲'}</span>`:''}</b></div>
+    <div class="gl"><small>${L('Next payday','الراتب الجاي')}</small><b>${payIn<=0?L('Today','اليوم'):payIn===1?L('Tomorrow','باچر'):L(`${payIn} days`,`${payIn} يوم`)}</b><em>${fmtDate(payDate)}</em></div>
+    <button class="gl gl-btn" data-a="afford"><small>${L('Thinking of buying?','تفكر تشتري؟')}</small><b>${L('Can I afford it','أقدر أشتريه')} ${ic('r','flip')}</b></button></section>
+  ${streakHTML()?`<div class="streak-row">${streakHTML()}</div>`:''}
+  ${calcBox.replace('class="ch-calc"','class="ch-calc calc-card"')}`;
   const spentP=sum(r.list.filter(e=>!e.kind)),daysLeft=r.daysLeft;
   const tiles=`<section class="hm-tiles" aria-label="${L('This pay period','هالفترة')}">
     <a class="hm-tile" href="#expenses"><span class="tile">${ic('chart')}</span><span><small>${L('Spent this period','المصروف هالفترة')}</small><b><bdi>${aedT(spentP)}</bdi></b><em>${L(`${daysLeft} day${daysLeft>1?'s':''} left`,`باقي ${daysLeft} يوم`)}</em></span></a>
@@ -3794,7 +3854,7 @@ function homeV2(){
   const recent=`<section class="calm-sec c-rec" aria-labelledby="h-rec"><div class="cs-h"><h2 id="h-rec">${t('recentExp')}</h2>${r.list.length?`<a class="link" href="#expenses">${t('viewAll')}</a>`:''}</div>
     ${r.list.length?`<ul class="list clean">${r.list.slice(0,4).map(expRow).join('')}</ul>`:`<p class="panel-empty">${L('Nothing yet. Tap “Add expense” after you pay for something.','ما في شي للحين. اضغط «أضف مصروف» بعد ما تدفع.')}</p>`}</section>`;
   notePlan(r);
-  return head+reviewNudge()+moneyNotes(r)+checkinCard(r)+wishNudge()+`<div class="calm">${hero}${tiles}${needsHome(r)}${bills}${insight}${recent}</div>`;
+  return head+reviewNudge()+moneyNotes(r)+checkinCard(r)+wishNudge()+`<div class="calm">${hero}${glance}${tiles}${needsHome(r)}${bills}${insight}${recent}</div>`;
 }
 function detailsSheet(){const r=calc(0),st=S.settings,row=(a,b,c='')=>`<div class="${c}"><dt>${a}</dt><dd><bdi>${b}</bdi></dd></div>`;
   openSheet(L('How today’s amount is calculated','كيف ينحسب مبلغ اليوم'),`<div class="sh-scroll">
