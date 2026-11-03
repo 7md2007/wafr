@@ -44,6 +44,10 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
 - Spending brakes (Nov 2026): `affordSheet()` (price → days of spending + tomorrow's amount via `simulateBuy()`), 2-day wish list
   (`settings.wish`, `wishNudge()`), big-purchase question after saving (`bigBuySheet()`: spread = `oneoff`, from savings = ledger `extra`),
   streak (`streakDays()`, day plans in localStorage `wafr.dayPlans`), home shows `left / plan` and coloured "Tomorrow" line.
+- "Your money" screen (Nov 2026, replaces Edit budget + advanced income/period settings): `moneySheet()` — calendar of paydays,
+  savings slider, live daily amount. Saves incomeMode `salary`, periodMode month/custom with `startDay = bestAnchor()` (payday that keeps
+  cash positive longest) so money is spread evenly. With >1 salary (non-payday mode) `periodIncome` counts each salary occurrence
+  (confirmation with `exp === occurrence date` replaces it) and `salaryTarget` matches the nearest salary. Old version: branch `old-version-v1`.
 - AI chat proposes expenses as cards; nothing saved until the user taps Add. Daily AI limits in `AI_LIMITS`.
 - UI modules were appended in order inside the single file (search for comment banners "Money engine UI", "Transactions", "Import & trust",
   "Calm redesign", "Round 3", "Apple-style interaction layer", "AI outside Claude"). Later modules override earlier views (e.g. `VIEWS.home=homeV3`).

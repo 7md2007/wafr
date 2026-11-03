@@ -1257,6 +1257,21 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 .rsel select{-webkit-appearance:none;appearance:none;border:0;background:transparent;color:var(--tx2);font:inherit;font-size:15px;font-weight:600;padding:2px 22px 2px 4px;text-align:center;cursor:pointer;max-width:100%}
 .rsel::after{content:'';position:absolute;inset-inline-end:6px;top:50%;width:7px;height:7px;border-right:2px solid var(--tx2,#888);border-bottom:2px solid var(--tx2,#888);transform:translateY(-70%) rotate(45deg);pointer-events:none}
 .rsel-row{display:flex;justify-content:center;margin:0 0 6px}.rlab{display:flex;flex-direction:column;align-items:center}
+.ms-top{background:linear-gradient(#0B1E44,#13306A);color:#fff;border-radius:18px;padding:16px 18px;margin:0 0 12px}.ms-top p{margin:0;opacity:.8;font-size:15px}.ms-top b{font-size:34px;display:block;margin-top:2px}.ms-top small{font-size:16px;opacity:.7}
+.ms-card{background:var(--panel,#fff);border:1px solid var(--panel-line,rgba(127,127,127,.18));border-radius:18px;padding:14px;margin:0 0 12px}
+.ms-h{display:flex;justify-content:space-between;align-items:center;font-weight:700;margin:0 0 10px}.ms-h span{font-size:13px;font-weight:500;color:var(--tx2)}
+.ms-cal{display:grid;grid-template-columns:repeat(7,1fr);gap:6px}
+.ms-d{height:38px;border-radius:10px;border:0;background:rgba(127,127,127,.1);color:var(--tx2);font:inherit;font-size:14px;cursor:pointer}
+.ms-d.pay{background:#E9CF96;color:#0B2A5B;font-weight:800}.ms-d.sel{outline:2px solid var(--tx,#13306A);outline-offset:1px}
+.ms-chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+.ms-chip{display:flex;align-items:center;gap:8px;border:0;background:rgba(233,207,150,.22);border-radius:12px;padding:7px 10px;font:inherit;color:var(--tx);text-align:start;cursor:pointer}
+.ms-chip.sel{outline:2px solid #E9CF96}.ms-chip i{font-style:normal;width:28px;height:28px;border-radius:8px;background:#E9CF96;color:#0B2A5B;font-weight:800;display:flex;align-items:center;justify-content:center;font-size:13px}
+.ms-chip b{display:block;font-size:14px}.ms-chip small{color:var(--tx2);font-size:13px}
+.ms-ed{margin-top:12px;border-top:1px solid var(--panel-line,rgba(127,127,127,.18));padding-top:12px}.ms-edh{margin:0 0 8px;font-weight:700}
+.ms-edrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}.ms-edact{display:flex;justify-content:space-between;align-items:center;margin-top:8px}.btn-text.danger{color:#C93C3C}
+#msSave{width:100%;margin:8px 0 10px;accent-color:#23874F;height:28px}
+.ms-bar{display:flex;height:34px;border-radius:12px;overflow:hidden}.ms-bar div{display:flex;gap:4px;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#fff;white-space:nowrap;overflow:hidden;min-width:0}.ms-bar .sp{background:#1D4E9E}.ms-bar .sv{background:#23874F}
+.ms-aside{margin:10px 0 0;padding-inline-start:18px;font-size:14px;line-height:1.5;color:var(--tx2)}.ms-aside b{color:var(--tx)}
 </style>
 </head>
 <body>
@@ -1784,6 +1799,8 @@ const fsum=a=>unfils(a.reduce((s,x)=>s+fils(x.amt),0));
 /* planned income for a period. Confirmed salary replaces the expected amount; irregular = confirmed transfers/earnings only */
 function periodIncome(p,st){st=st||S.settings;
   if(st.incomeMode==='irregular')return fsum(ledgerIn(p,['transfer','earning']));
+  if(st.incomeMode==='salary'&&activeSalaries(st).length>1&&p.mode!=='payday'){
+    const occ=salaryInPeriod(p,st),L0=S.ledger||[];return unfils(occ.reduce((s,o)=>{const c=L0.filter(x=>x.type==='salary'&&x.exp===o.date);return s+(c.length?c.reduce((a,x)=>a+fils(x.amt),0):fils(o.s.amt))},0))}
   const conf=ledgerIn(p,['salary']);if(conf.length)return fsum(conf);
   if(st.incomeMode==='salary'&&activeSalaries(st).length)return unfils(salaryInPeriod(p,st).reduce((s,o)=>s+fils(o.s.amt),0));
   return +st.income||0}
@@ -2227,7 +2244,7 @@ more(){
       <li><button class="srow" data-a="checkin"><span class="tile">${ic('clock')}</span><span class="main"><b>${L('Evening check-in','مراجعة المسا')}</b><span>${st.checkin&&st.checkin.on?L(`On · ${st.checkin.time}`,`شغال · ${st.checkin.time}`):L('Off','مطفي')}</span></span>${ic('r','flip chev')}</button></li>
       <li><div class="srow"><span class="main"><b>${t('limit')}</b><span>${lang()==='ar'?'لفترة الميزانية الحالية':'For the current budget period'}</span></span><span class="val num">${aedT(calc(0).limit)}</span></div></li>
     </ul></div></section>
-  <details class="adv" ${S.advOpen?'open':''}><summary><span><b>${t('advTitle')}</b><small>${t('advSub')}</small></span>${ic('down')}</summary><div class="adv-in">${incomeSection(st)}${periodSection(st)}</div></details>
+
   <section aria-labelledby="s-app"><h2 id="s-app">${t('appearLang')}</h2><div class="card"><ul class="list">
     <li><div class="srow wrap"><span class="main"><b>${t('theme')}</b></span>${seg('theme',[['light',t('light'),1],['dark',t('dark'),1],['auto',t('auto'),1]],t('theme'))}</div></li>
     ${textSizeRow()}
@@ -2876,6 +2893,8 @@ const invBound=x=>{const m=boundMap(S.settings);const k=Object.keys(m).find(e=>m
 function salaryTarget(d){
   const st=S.settings,cur=periodFor(d,0,st),next=addD(cur.end,1);
   const conf=e=>(S.ledger||[]).find(x=>x.type==='salary'&&x.exp===e);
+  if(activeSalaries(st).length>1&&cur.mode!=='payday'&&cur.mode!=='opening'){const occ=salaryOcc(addD(d,-20),addD(d,20),st);
+    if(occ.length){const o=occ.slice().sort((a,b)=>Math.abs(diffD(a.date,d))-Math.abs(diffD(b.date,d)))[0];return{exp:o.date,old:conf(o.date)}}}
   const curExp=invBound(cur.start);
   if(cur.mode==='opening'){const ne=invBound(next);return{exp:ne,old:conf(ne)}}
   if(d===cur.start||(!conf(curExp)&&diffD(cur.start,d)<=diffD(d,next)))return{exp:curExp,old:conf(curExp)};
@@ -3265,6 +3284,58 @@ async function fxToAED(cur,amt,aiAed){if(!(amt>0)||!/^[A-Z]{3}$/.test(cur))retur
     if(j&&j.result==='success'&&j.rates){c={day,rates:j.rates};try{localStorage.setItem(key,JSON.stringify(c))}catch(_){}}}catch(_){}}
   const per=c&&c.rates&&+c.rates[cur];if(per>0)return done(1/per);
   if(aiAed>0)return{...done(aiAed/amt),src:'ai'};return null}
+/* ===== "Your money": one visual screen for paydays + savings. Money is always spread evenly over the month:
+   the period starts on the payday that keeps cash positive longest, and every salary counts inside it. ===== */
+let MS=null;
+function bestAnchor(sal,save){const L1=sal.filter(x=>+x.amt>0);if(!L1.length)return 1;const tot=L1.reduce((a,x)=>a+ +x.amt,0),per=Math.max(0,tot-(+save||0))/30;
+  let best=null;[...new Set(L1.map(x=>+x.day))].forEach(a=>{let cash=0,min=Infinity;for(let t=0;t<30;t++){const day=((a-1+t)%30)+1;L1.forEach(x=>{if(Math.min(+x.day,30)===day)cash+= +x.amt});cash-=per;min=Math.min(min,cash)}
+    if(!best||min>best.min+0.001)best={a,min}});return best.a}
+function msPlan(){const sal=MS.sal.filter(x=>+x.amt>0).sort((a,b)=>a.day-b.day),tot=sal.reduce((a,x)=>a+ +x.amt,0),spend=Math.max(0,tot-MS.save),daily=spend*12/365;
+  const a=bestAnchor(sal,MS.save),ord=sal.slice().sort((x,y)=>((x.day-a+31)%31)-((y.day-a+31)%31));
+  const rows=ord.map((x,i)=>{const nx=ord[(i+1)%ord.length];let days=ord.length===1?30:((nx.day-x.day+31)%31)||30;const keep=daily*days;return{x,days,aside:+x.amt-keep}});
+  return{tot,spend,daily,anchor:a,rows}}
+function msHTML(){const P0=msPlan(),days=new Set(MS.sal.map(x=>+x.day));const sel=MS.edit;
+  const cal=Array.from({length:31},(_,k)=>k+1).map(d=>`<button type="button" class="ms-d ${days.has(d)?'pay':''} ${sel&&sel.day===d?'sel':''}" data-a="msDay" data-d="${d}" aria-label="${L(`Day ${d}`,`يوم ${d}`)}${days.has(d)?' · '+L('payday','يوم راتب'):''}">${d}</button>`).join('');
+  const chips=MS.sal.slice().sort((a,b)=>a.day-b.day).map(x=>`<button type="button" class="ms-chip ${sel&&sel.id===x.id?'sel':''}" data-a="msEdit" data-id="${x.id}"><i>${x.day}</i><span><b>${esc(x.name||L('Salary','راتب'))}</b><small>${+x.amt>0?aedT(x.amt):L('Add amount','أضف المبلغ')}</small></span></button>`).join('');
+  const ed=sel?(()=>{const x=MS.sal.find(y=>y.id===sel.id);return x?`<div class="ms-ed"><p class="ms-edh">${L(`Money on the ${ordinal(x.day)}`,`فلوس يوم ${x.day}`)}</p>
+    <div class="ms-edrow"><input class="input" id="msName" placeholder="${L('Name, e.g. Job','الاسم، مثلاً: الدوام')}" value="${esc(x.name||'')}" autocomplete="off"><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="msAmt" inputmode="decimal" placeholder="0" value="${x.amt||''}" autocomplete="off"></div></div>
+    <div class="ms-edact"><button type="button" class="btn-text danger" data-a="msDel">${L('Remove','شيل')}</button><button type="button" class="btn btn-sec sm" data-a="msOk">${L('OK','تمام')}</button></div></div>`:''})():'';
+  const max=Math.max(1000,Math.ceil(P0.tot/50)*50),pct=P0.tot>0?Math.min(100,MS.save/P0.tot*100):0;
+  const aside=P0.rows.filter(r=>r.aside>=50&&P0.rows.length>1).map(r=>`<li><b>${ordinal(r.x.day)}${r.x.name?' · '+esc(r.x.name):''}</b> ${L(`covers ${r.days} day${r.days>1?'s':''}, sets aside ≈ ${aedT(r.aside)}`,`يغطي ${r.days} يوم، ويخلي على جنب ≈ ${aedT(r.aside)}`)}</li>`).join('');
+  return`${S.settings.incomeMode==='irregular'?`<p class="fhelp" style="margin:0 0 10px">${L('Your income is set as “not fixed”. Add paydays below to switch to a fixed salary.','دخلك مضبوط «مب ثابت». أضف أيام الراتب تحت عشان تحوله لراتب ثابت.')}</p>`:''}<div class="ms-top"><p>${L('You can spend every day','تقدر تصرف كل يوم')}</p><b id="msDaily">≈ ${aedT(P0.daily)} <small>${L('/ day','/ اليوم')}</small></b></div>
+  <div class="ms-card"><p class="ms-h">${L('When money comes in','متى تجيك الفلوس')}<span>${L('tap a day','اضغط على يوم')}</span></p><div class="ms-cal">${cal}</div>
+    ${MS.sal.length?`<div class="ms-chips">${chips}</div>`:`<p class="fhelp" style="margin:10px 0 0">${L('Tap the day(s) you get paid.','اضغط على يوم (أو أيام) راتبك.')}</p>`}${ed}</div>
+  <div class="ms-card"><p class="ms-h">${L('Save each month','ادخر كل شهر')}<span>${L('drag','اسحب')}</span></p>
+    <input type="range" id="msSave" min="0" max="${max}" step="50" value="${Math.min(MS.save,max)}" aria-label="${L('Monthly savings','الادخار الشهري')}" style="--p:${pct}%">
+    <div class="ms-bar"><div class="sp" id="msSp" style="width:${100-pct}%">${L('Spend','صرف')} <bdi>${fmtN(P0.spend)}</bdi></div><div class="sv" id="msSv" style="width:${pct}%"><bdi>${fmtN(MS.save)}</bdi></div></div></div>
+  ${P0.rows.length>1?`<div class="ms-card"><p class="ms-h">${L('How Wafr spreads it','كيف وفر يوزعها')}<span>${L('automatic','تلقائي')}</span></p><p class="fhelp" style="margin:0">${L('Same amount every day. Money that comes close to the next payday is set aside for the long gaps.','نفس المبلغ كل يوم. الفلوس اللي تجي قريب من الراتب الثاني تنحفظ للأيام الطويلة.')}</p>${aside?`<ul class="ms-aside">${aside}</ul>`:''}</div>`:''}`}
+function msRefresh(keepFocus){const b=$('#msBody');if(!b)return;const f=document.activeElement&&document.activeElement.id;b.innerHTML=msHTML();if(keepFocus&&f){const e=$('#'+f);if(e){e.focus();if(e.setSelectionRange&&e.type!=='range'){const v=e.value;e.setSelectionRange(v.length,v.length)}}}}
+function msLive(){const P0=msPlan(),pct=P0.tot>0?Math.min(100,MS.save/P0.tot*100):0;const d=$('#msDaily');if(d)d.innerHTML=`≈ ${aedT(P0.daily)} <small>${L('/ day','/ اليوم')}</small>`;
+  const sp=$('#msSp'),sv=$('#msSv'),r=$('#msSave');if(sp){sp.style.width=(100-pct)+'%';sp.innerHTML=`${L('Spend','صرف')} <bdi>${fmtN(P0.spend)}</bdi>`}if(sv){sv.style.width=pct+'%';sv.innerHTML=`<bdi>${fmtN(MS.save)}</bdi>`}if(r)r.style.setProperty('--p',pct+'%')}
+function moneySheet(){const st=S.settings;
+  let sal=(st.salaries||[]).filter(x=>x.active!==false).map(x=>({...x}));
+  if(st.incomeMode==='irregular')sal=sal.length?sal:[];
+  else if(st.incomeMode!=='salary'||!sal.length){sal=+st.income>0?[{id:uid(),name:'',amt:+st.income,day:+st.startDay||1,active:true}]:[]}
+  MS={sal,save:+st.savings||0,edit:null,name:st.name||''};
+  openSheet(L('Your money','فلوسك'),`<div class="sh-scroll" id="msBody">${msHTML()}</div><div class="sh-actions"><button type="button" class="btn-text" data-a="msIrr">${L('My income isn’t fixed','دخلي مب ثابت')}</button><span class="grow"></span><button type="button" class="btn btn-pri" data-a="msDone">${L('Done','تم')}</button></div>`)}
+document.addEventListener('input',e=>{if(!MS)return;const id=e.target.id;
+  if(id==='msSave'){MS.save=+e.target.value||0;msLive()}
+  else if((id==='msAmt'||id==='msName')&&MS.edit){const x=MS.sal.find(y=>y.id===MS.edit.id);if(!x)return;if(id==='msAmt')x.amt=parseAmt(e.target.value)||0;else x.name=e.target.value.slice(0,30);msLive();
+    const c=document.querySelector(`.ms-chip[data-id="${x.id}"] span`);if(c)c.innerHTML=`<b>${esc(x.name||L('Salary','راتب'))}</b><small>${+x.amt>0?aedT(x.amt):L('Add amount','أضف المبلغ')}</small>`}});
+document.addEventListener('change',e=>{if(MS&&e.target.id==='msSave')msRefresh()});
+Object.assign(A,{
+  editBudget:()=>moneySheet(),
+  msDay:el=>{const d=+el.dataset.d,x=MS.sal.find(y=>+y.day===d);if(x)MS.edit={id:x.id,day:d};else{const n={id:uid(),name:'',amt:0,day:d,active:true};MS.sal.push(n);MS.edit={id:n.id,day:d}}msRefresh();setTimeout(()=>{const a=$('#msAmt');if(a&&!a.value)a.focus()},30)},
+  msEdit:el=>{const x=MS.sal.find(y=>y.id===el.dataset.id);if(!x)return;MS.edit={id:x.id,day:+x.day};msRefresh()},
+  msDel:()=>{if(!MS.edit)return;MS.sal=MS.sal.filter(y=>y.id!==MS.edit.id);MS.edit=null;msRefresh()},
+  msOk:()=>{MS.sal=MS.sal.filter(y=>+y.amt>0);MS.edit=null;msRefresh()},
+  msIrr:()=>{MS=null;closeSheet();setTimeout(()=>{if(A.incomeIrr)A.incomeIrr();else budgetSheet()},230)},
+  msDone:()=>{const st=S.settings,sal=MS.sal.filter(x=>+x.amt>0).map(x=>({id:x.id,name:(x.name||'').trim(),amt:Math.round(+x.amt*100)/100,day:Math.min(31,Math.max(1,+x.day)),active:true}));
+    if(!sal.length){toast(L('Tap the day you get paid and add the amount.','اضغط على يوم راتبك وأضف المبلغ.'));return}
+    const inactive=(st.salaries||[]).filter(x=>x.active===false);st.salaries=sal.concat(inactive);st.incomeMode='salary';st.savings=Math.max(0,MS.save);
+    const a=bestAnchor(sal,MS.save);st.startDay=a;st.periodMode=a===1?'month':'custom';st.income=unfils(sal.reduce((t,x)=>t+fils(x.amt),0));
+    MS=null;persist(['settings']);closeSheet();renderAll();toast(t('updated'))}
+});
 /* ===== Spending brakes: "Can I afford it?", days-of-spending, 48-hour wish list, big-purchase question, streak ===== */
 function simulateBuy(amt){const r0=calc(0);if(!(amt>0))return{r0,r1:r0};const id='__aff';addExp({id,amt,date:today(),time:nowHM(),cat:'other',created:nowMs()});let r1;try{r1=calc(0)}finally{removeExp(id)}return{r0,r1}}
 function daysTxt(amt,daily){if(!(daily>0))return'';const d=amt/daily;if(d<1)return L('less than a day of spending','أقل من يوم صرف');const n=d<10?Math.round(d*10)/10:Math.round(d);
