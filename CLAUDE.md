@@ -48,7 +48,10 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
   savings slider, live daily amount. Saves incomeMode `salary`, periodMode month/custom with `startDay = bestAnchor()` (payday that keeps
   cash positive longest) so money is spread evenly. With >1 salary (non-payday mode) `periodIncome` counts each salary occurrence
   (confirmation with `exp === occurrence date` replaces it) and `salaryTarget` matches the nearest salary. Old version: branch `old-version-v1`.
-- Bottom bar: Home · Expenses · Subscriptions · More (Spending is inside More). Motion polish module (before startup `renderAll()`):
+- Bottom bar: Home · Expenses · Subscriptions · More. **Spending is merged into Expenses** (Nov 2026): one page with a range
+  picker (`expData()`, `expRangeBar()`: Pay period via `calc(S.off)` + `prev/next`; Today/Week/Month/3 months/Year/Custom via
+  `rangeFor()` + `rngPrev/rngNext`), summary + horizontal category bars (`catBars()`), search/filter, owed, needs-details. `#insights`
+  and the More → Spending row redirect to `#expenses`. Old page methods (VIEWS home/subs/insights literals, `spendingV3`) removed. Motion polish module (before startup `renderAll()`):
   page glide + staggered rows, tab bounce, counting hero/spent numbers (`moCount`), springy bars (`moBar`); all off with Reduce Motion.
 - Monthly needs (pots, Nov 2026): `settings.pots=[{id,type,amt}]` (types in `POT_TYPES`: food, fuel, groceries, shopping, fun, transport, health, family) per pay period. `potOf(e)` (fuel by name via
   `isFuelName`, others by category); pot spending is spread (not today) and the unspent rest is reserved in `calc` (`potRows`, `potRes`).
@@ -65,7 +68,10 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
   Sans Arabic bundled in `fonts/` (OFL) — no Google Fonts. Home: compact header (greeting, date · period, status badge) → hero
   ("Available to spend today", "Spent today X / Y" bar, Add expense) → glance row (Tomorrow, Next payday, Can I afford it) → collapsible
   "How it's calculated" card → tiles → needs → coming up → insight → recent. More: profile card + grouped compact rows.
-  Before-redesign copies: branches `old-version-v2` (navy/gold), `old-version-v3` (first emerald pass).
+  **Design system** = last block of the main <style> ("WAFR DESIGN SYSTEM"): tokens `--c-*` (bg/surface/surface-2/elevated/text/
+  text-2/border/border-strong/accent/hero/track), type scale `--fs-*`, radii `--r-*`, spacing `--sp-*`; shared components (page header,
+  section header, card, stat card, list row, bars, buttons, chips, range bar). Legacy variable names map onto these tokens.
+  Before-redesign copies: branches `old-version-v2` (navy/gold), `old-version-v3` (first emerald), `old-version-v4` (before unification).
 
 ## Tests
 `node tests/finance.test.js` (Playwright; needs `playwright` installed, open index.html). 42 tests must pass:
