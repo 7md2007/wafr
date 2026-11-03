@@ -1241,6 +1241,9 @@ html.tz .sheet{max-height:calc(94dvh / var(--tz))}
 .toolbar.one .catsel .input{width:100%;padding-block:0;padding-inline:14px 36px;font-weight:600;text-overflow:ellipsis;line-height:52px;-webkit-appearance:none;appearance:none;background-image:none!important}
 .toolbar.one .catsel::after{content:'';position:absolute;inset-inline-end:14px;top:50%;width:8px;height:8px;border-right:2px solid var(--tx2,#888);border-bottom:2px solid var(--tx2,#888);transform:translateY(-70%) rotate(45deg);pointer-events:none}
 .toolbar.one:focus-within{outline:2px solid var(--focus,#5AA9E6);outline-offset:2px}
+.tm .tm-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 8px;font-size:15px}
+.tm .tm-l{display:inline-flex;align-items:center;gap:6px}.tm .tm-row .tm-sub{margin:0;font-size:1em;white-space:nowrap}
+.ch-links{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.ch-links .ch-more{margin:0}
 </style>
 </head>
 <body>
@@ -3437,11 +3440,11 @@ function todayMeter(r){
   const daily=Math.max(0,r.daily),spent=Math.max(0,r.spentToday),left=Math.max(0,r.todayLeft);
   const pct=daily>0?Math.max(0,Math.min(100,spent/daily*100)):(spent>0||r.realShort>0?100:0);
   const label=r.realShort>0?L(`Short by ${aedT(r.realShort)} until payday`,`ناقصك ${aedT(r.realShort)} لين الراتب`)
-    :r.todayLeft<0?L(`${aedT(-r.todayLeft)} over today’s plan`,`${aedT(-r.todayLeft)} فوق خطة اليوم`)
+    :r.todayLeft<0?L(`${aedT(-r.todayLeft)} over plan`,`${aedT(-r.todayLeft)} فوق الخطة`)
     :L(`${aedT(spent)} spent of ${aedT(daily)}`,`صرفت ${aedT(spent)} من ${aedT(daily)}`);
   const showT=r.realShort<=0&&r.daysLeft>1&&daily>0,dR=Math.round(daily),nR=Math.round(r.nextDaily),dir=nR<dR?'down':nR>dR?'up':'';
   const sub=showT?L(`Tomorrow: ${aedT(nR)}`,`بكرة: ${aedT(nR)}`)+(dir?` <span aria-hidden="true">${dir==='down'?'▼':'▲'}</span>`:''):'';
-  return`<div class="tm" role="img" aria-label="${esc(label+(sub?'. '+L(`Tomorrow: ${aedT(nR)}`,`بكرة: ${aedT(nR)}`):''))}"><div class="tm-bar"><i style="width:${pct}%"></i></div><p class="tm-lab">${r.todayLeft<0||r.realShort>0?ic('alert'):''}<span>${label}</span></p>${sub?`<p class="tm-lab tm-sub ${dir}"><span>${sub}</span></p>`:''}</div>`}
+  return`<div class="tm" role="img" aria-label="${esc(label+(sub?'. '+L(`Tomorrow: ${aedT(nR)}`,`بكرة: ${aedT(nR)}`):''))}"><div class="tm-bar"><i style="width:${pct}%"></i></div><p class="tm-lab tm-row"><span class="tm-l">${r.todayLeft<0||r.realShort>0?ic('alert'):''}<span>${label}</span></span>${sub?`<span class="tm-sub ${dir}">${sub}</span>`:''}</p></div>`}
 function homeV2(){
   const r=calc(0),st=S.settings,nextStart=addD(r.p.end,1),toPay=diffD(today(),nextStart),ns=nextSalary(st);
   const payDate=ns&&ns.date<=nextStart?ns.date:nextStart,payIn=diffD(today(),payDate);
@@ -3456,8 +3459,7 @@ function homeV2(){
     <p class="ch-pay">${ic('cal')}<span>${payIn<=0?L('Payday is today','الراتب اليوم'):payIn===1?L('Next payday tomorrow','الراتب باچر'):L(`Next payday in ${payIn} days`,`الراتب الجاي بعد ${payIn} يوم`)} · ${fmtDate(payDate)}</span></p>
     ${warn}
     <button class="btn btn-gold big" data-a="jp">${ic('plus')}${t('addExpense')}</button>
-    <button class="btn btn-ghost-light aff-btn" data-a="afford">${L('Can I afford it?','أقدر أشتريه؟')}</button>
-    <button class="ch-more" data-a="details">${L('How is this calculated?','كيف ينحسب هالمبلغ؟')}${ic('r','flip')}</button></div></section>`;
+    <div class="ch-links"><button class="ch-more" data-a="afford">${L('Can I afford it?','أقدر أشتريه؟')}</button><button class="ch-more" data-a="details">${L('How it works','كيف ينحسب')}${ic('r','flip')}</button></div></div></section>`;
   const up=upcomingItems(31);
   const bills=`<section class="calm-sec c-bills" aria-labelledby="h-bills"><div class="cs-h"><h2 id="h-bills">${L('Coming up','الجاي')}</h2>${up.length?`<a class="link" href="#subs">${t('viewAll')}</a>`:''}</div>${timelineHTML(up,4)}</section>`;
   const recent=`<section class="calm-sec" aria-labelledby="h-rec"><div class="cs-h"><h2 id="h-rec">${t('recentExp')}</h2>${r.list.length?`<a class="link" href="#expenses">${t('viewAll')}</a>`:''}</div>
