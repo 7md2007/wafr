@@ -3596,7 +3596,7 @@ function autoSheet3(){const f=AUTO.flow;
   openSheet(L(...F.t),`<div class="sh-scroll">${body}</div><div class="sh-actions"><button class="btn btn-sec" data-a="autoBack">${ic('l','flip')}${L('Back','رجوع')}</button><span class="grow"></span>${s<n?`<button class="btn btn-pri" data-a="autoNext">${s===0?L('Start','ابدأ'):L('Done, next','تم، التالي')}</button>`:`<button class="btn btn-pri" data-a="autoDone">${L('Finish','خلصت')}</button>`}</div>`);
 }
 Object.assign(A,{
-  automation:()=>autoSheet3(),
+  automation:()=>{AUTO.flow=null;AUTO.step=0;autoKeep();autoSheet3()},
   autoPick:el=>{AUTO.flow=el.dataset.f;AUTO.step=0;autoKeep();autoSheet3()},
   autoNext:()=>{AUTO.step++;autoKeep();autoSheet3()},
   autoBack:()=>{if(AUTO.step>0)AUTO.step--;else AUTO.flow=null;autoKeep();autoSheet3()},
