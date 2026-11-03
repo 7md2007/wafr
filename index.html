@@ -1225,6 +1225,8 @@ html.tz .sheet{max-height:calc(94dvh / var(--tz))}
   .overlay,.toast{transition:opacity .15s ease!important}.sheet{transform:none!important}
   .btn:active,.chip:active,.row:active,.srow:active,.tl-row:active,.ib:active,.fab:active{transform:none!important;filter:brightness(.92)}}
 @media (prefers-reduced-motion:reduce){*,*::before,*::after{transition-duration:0s!important;animation:none!important;scroll-behavior:auto!important}}
+
+.tm .tm-sub{opacity:.85;font-size:.92em;margin-top:4px}
 </style>
 </head>
 <body>
@@ -3371,7 +3373,12 @@ function todayMeter(r){
   const label=r.realShort>0?L(`Short by ${aedT(r.realShort)} until payday`,`ناقصك ${aedT(r.realShort)} لين الراتب`)
     :r.todayLeft<0?L(`${aedT(-r.todayLeft)} over today’s plan`,`${aedT(-r.todayLeft)} فوق خطة اليوم`)
     :L(`${aedT(spent)} spent of ${aedT(daily)}`,`صرفت ${aedT(spent)} من ${aedT(daily)}`);
-  return`<div class="tm" role="img" aria-label="${esc(label)}"><div class="tm-bar"><i style="width:${pct}%"></i></div><p class="tm-lab">${r.todayLeft<0||r.realShort>0?ic('alert'):''}<span>${label}</span></p></div>`}
+  const cut=r.todayLeft<0&&r.realShort<=0&&r.daysLeft>1?Math.max(0,daily-r.nextDaily):0;
+  const dR=Math.round(daily),nR=Math.round(r.nextDaily),cR=dR-nR;
+  const sub=!(cut>0)?'':cR>=1?L(`Your daily amount drops by ${aedT(cR)}: from ${aedT(dR)} to ${aedT(nR)} a day for the next ${r.daysLeft-1} days.`,
+    `مصروفك اليومي ينزل ${aedT(cR)}: من ${aedT(dR)} إلى ${aedT(nR)} باليوم للـ ${r.daysLeft-1} يوم الجاية.`)
+    :L(`Spread over the next ${r.daysLeft-1} days, your daily amount drops by less than AED 1.`,`موزعة على ${r.daysLeft-1} يوم الجاية، مصروفك اليومي ينزل أقل من درهم.`);
+  return`<div class="tm" role="img" aria-label="${esc(label+(sub?'. '+sub:''))}"><div class="tm-bar"><i style="width:${pct}%"></i></div><p class="tm-lab">${r.todayLeft<0||r.realShort>0?ic('alert'):''}<span>${label}</span></p>${sub?`<p class="tm-lab tm-sub"><span>${sub}</span></p>`:''}</div>`}
 function homeV2(){
   const r=calc(0),st=S.settings,nextStart=addD(r.p.end,1),toPay=diffD(today(),nextStart),ns=nextSalary(st);
   const payDate=ns&&ns.date<=nextStart?ns.date:nextStart,payIn=diffD(today(),payDate);
