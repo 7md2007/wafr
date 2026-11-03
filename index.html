@@ -1284,6 +1284,18 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 .ms-d:active,.ms-chip:active{scale:.93}
 .tm-bar i{transition:width .7s cubic-bezier(.22,1,.36,1)}
 }
+@media (max-width:719px){
+.convo{background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important;overflow:visible!important;max-width:none}
+.convo .chat{padding:4px 0 96px;min-height:0;gap:12px}
+.convo .welcome{margin:6px 0 0;padding:0;gap:14px}
+.convo .welcome p{font-size:17px;max-width:32ch}
+.convo .welcome .chips{display:flex;flex-direction:column;align-items:stretch;gap:8px;width:100%;margin-top:4px}
+.convo .welcome .chips .chip{justify-content:flex-start;text-align:start;white-space:normal;min-height:48px;padding:10px 16px;font-size:16px;border-radius:14px;width:100%}
+.convo .composer{position:fixed;left:0;right:0;z-index:30;bottom:calc(var(--bnav-h) + env(safe-area-inset-bottom));padding:10px 16px;gap:10px;
+  background:color-mix(in srgb,var(--bg) 88%,transparent);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4);border-top:1px solid var(--line2)}
+.convo .composer .input{min-height:48px;border-radius:24px;padding-inline:18px}
+.convo .composer .send{width:48px;height:48px;border-radius:50%}
+}
 </style>
 </head>
 <body>
@@ -2234,7 +2246,7 @@ insights(){
 ask(){
   if(!AI)return pageHead(t('ask'))+`<div class="card">${window.claude?emptyState(t('ask'),t('askUnavailable'),'',false):emptyState(t('ask'),L('Add your Anthropic API key to chat with Wafr, scan receipts and read bank messages.','أضف مفتاح Anthropic API عشان تكلم وفر، تقرا الإيصالات ورسايل البنك.'),`<button class="btn btn-pri" data-a="aiKey">${ic('spark')}${L('Turn on AI','شغل الذكاء')}</button>`,false)}</div>`;
   const msgs=S.chat.map((m,i)=>m.role==='user'?`<div class="msg u">${esc(m.content)}</div>`:`<div class="msg a"><div class="mtext">${m.content?md(m.content):m.err?'':`<span class="thinking">${t('thinking')}</span>`}</div>${m.err?`<div class="errline">${ic('alert')}<span>${m.err}</span><button class="btn-text" data-a="retryChat">${t('retry')}</button></div>`:''}${propCard(m,i)}${(m.adds||[]).map(id=>{const e=findExp(id);return e?`<div class="added">${etile(e)}<span class="main"><b>${t('added')} ${aedT(e.amt)}</b>${e.m?' · '+esc(e.m):''} · ${catName(e.cat)}</span><button class="btn-text" data-a="editExp" data-id="${id}">${t('edit').split(' ')[0]}</button><button class="btn-text" data-a="undoAdd" data-id="${id}">${t('undo')}</button></div>`:''}).join('')}</div>`).join('');
-  const welcome=`<div class="welcome">${MARK(64)}<h2>${t('ask')}</h2><p>${t('aiIntro')}</p><div class="chips">${['q1','q2','q3','q4'].map(q=>`<button class="chip" data-a="askq" data-q="${esc(t(q))}">${t(q)}</button>`).join('')}</div></div>`;
+  const welcome=`<div class="welcome">${MARK(48)}<p>${t('aiIntro')}</p><div class="chips">${['q1','q2','q3','q4'].map(q=>`<button class="chip" data-a="askq" data-q="${esc(t(q))}">${t(q)}</button>`).join('')}</div></div>`;
   return pageHead(t('ask'),t('askSub'),S.chat.length?`<button class="btn btn-sec" data-a="clearChat">${t('clear')}</button>`:'')+`
   <section class="card convo" aria-label="${t('ask')}"><div class="chat" id="chat" aria-live="polite">${msgs||welcome}</div>
   <form class="composer" id="chatform"><label class="sr" for="chatin">${t('message')}</label><input class="input" id="chatin" name="chatin" placeholder="${t('askPh')}" autocomplete="off"><button class="send ${chatCtl?'stop':''}" id="chatsend" type="submit" aria-label="${chatCtl?t('stop'):t('send')}">${chatCtl?ic('stop'):ic('send','flip')}</button></form></section>`;
