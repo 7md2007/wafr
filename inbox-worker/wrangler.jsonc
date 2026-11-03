@@ -1,0 +1,9 @@
+// Settings of the live Cloudflare Worker (created in the dashboard on Nov 3, 2026).
+{
+  "name": "wafr-inbox",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-03",
+  "kv_namespaces": [
+    { "binding": "INBOX", "id": "a69920b2b8a449bd803b4871a0a29047" }
+  ]
+}
