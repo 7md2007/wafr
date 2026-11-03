@@ -1296,6 +1296,7 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 .convo .composer .input{min-height:48px;border-radius:24px;padding-inline:18px}
 .convo .composer .send{width:48px;height:48px;border-radius:50%}
 }
+.ch-amt.over bdi{color:#FF8A80}.ch-amt.over .ch-of{color:rgba(255,255,255,.65)}
 </style>
 </head>
 <body>
@@ -3550,7 +3551,7 @@ function todayMeter(r){
   const pct=daily>0?Math.max(0,Math.min(100,spent/daily*100)):(spent>0||r.realShort>0?100:0);
   const label=r.realShort>0?L(`Short by ${aedT(r.realShort)} until payday`,`ناقصك ${aedT(r.realShort)} لين الراتب`)
     :r.todayLeft<0?L(`${aedT(-r.todayLeft)} over plan`,`${aedT(-r.todayLeft)} فوق الخطة`)
-    :L(`${aedT(spent)} spent of ${aedT(daily)}`,`صرفت ${aedT(spent)} من ${aedT(daily)}`);
+    :L(`${aedT(left)} left today`,`باقي ${aedT(left)} اليوم`);
   const showT=r.realShort<=0&&r.daysLeft>1&&daily>0,dR=Math.round(daily),nR=Math.round(r.nextDaily),dir=nR<dR?'down':nR>dR?'up':'';
   const sub=showT?L(`Tomorrow: ${aedT(nR)}`,`بكرة: ${aedT(nR)}`)+(dir?` <span aria-hidden="true">${dir==='down'?'▼':'▲'}</span>`:''):'';
   return`<div class="tm" role="img" aria-label="${esc(label+(sub?'. '+L(`Tomorrow: ${aedT(nR)}`,`بكرة: ${aedT(nR)}`):''))}"><div class="tm-bar"><i style="width:${pct}%"></i></div><p class="tm-lab tm-row"><span class="tm-l">${r.todayLeft<0||r.realShort>0?ic('alert'):''}<span>${label}</span></span>${sub?`<span class="tm-sub ${dir}">${sub}</span>`:''}</p></div>`}
@@ -3562,8 +3563,8 @@ function homeV2(){
     :r.overdueAmt>0?`<p class="hero-warn">${ic('alert')}<span>${L(`${aedT(r.overdueAmt)} in overdue payments is set aside.`,`${aedT(r.overdueAmt)} دفعات متأخرة محجوزة.`)}</span></p>`:'';
   const head=`<div class="home-head calm"><div><h1 class="greet">${greet()}</h1><p class="psub">${dateLine()}</p></div></div>`;
   const hero=`<section class="hero photo calm-hero" aria-labelledby="h-today"><span class="hero-bg" aria-hidden="true"></span>
-    <div class="ch-in"><h2 id="h-today" class="ch-lab">${L('Available today','المتاح اليوم')}</h2>
-    <p class="ch-amt num"><span class="c">AED</span><bdi>${fmtN(amt)}${r.daily>0&&r.realShort<=0?`<span class="ch-of"> / ${fmtN(Math.round(r.daily))}</span>`:''}</bdi></p>
+    <div class="ch-in"><h2 id="h-today" class="ch-lab">${L('Spent today','صرفت اليوم')}</h2>
+    <p class="ch-amt num ${r.daily>0&&r.spentToday>r.daily+0.005?'over':''}"><span class="c">AED</span><bdi>${fmtN(Math.max(0,r.spentToday))}${r.daily>0&&r.realShort<=0?`<span class="ch-of"> / ${fmtN(Math.round(r.daily))}</span>`:''}</bdi></p>
     ${todayMeter(r)}${streakHTML()}
     <p class="ch-pay">${ic('cal')}<span>${payIn<=0?L('Payday is today','الراتب اليوم'):payIn===1?L('Next payday tomorrow','الراتب باچر'):L(`Next payday in ${payIn} days`,`الراتب الجاي بعد ${payIn} يوم`)} · ${fmtDate(payDate)}</span></p>
     ${warn}

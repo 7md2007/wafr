@@ -4,7 +4,7 @@ Wafr (وفر, formerly "Wafra") is a personal daily-budget app for the UAE (AED)
 Owner: Hamad Aljneibi (GitHub 7md2007). Prefers simple English, short answers, step-by-step.
 
 ## What it answers
-"What can I spend today while protecting upcoming bills?" Home shows **Available today: AED X**,
+"What can I spend today while protecting upcoming bills?" Home shows **Spent today: AED spent / plan** (e.g. 35 / 39) with "AED X left today",
 a bar that fills as you spend, "Next payday in X days", one big **Add expense** button.
 
 ## Where the app lives today
