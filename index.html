@@ -3296,7 +3296,7 @@ Object.assign(A,{
     try{const r=await fetch(u+'/',{cache:'no-store'});const t=await r.text();if(!/Wafr inbox/i.test(t))throw 0}catch(_){toast(L('Can’t reach the inbox. Check the address.','ما قدرنا نوصل للصندوق. راجع العنوان.'));return}
     const ac=S.settings.autoCfg=S.settings.autoCfg||{};const old=ac.inbox||{};
     ac.inbox={...old,url:u,key:old.key||[...crypto.getRandomValues(new Uint8Array(16))].map(b=>b.toString(16).padStart(2,'0')).join('')};persist(['settings']);toast(L('Inbox connected ✓','انربط الصندوق ✓'));inboxSheet()},
-  ibCopy:()=>{const ib=inboxCfg();if(!ib)return;const v=`${ib.url}/add?k=${ib.key}`;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast(L('Link copied — paste it in Shortcuts.','انسخ الرابط — الصقه في الاختصارات.'))).catch(()=>toast(v))},
+  ibCopy:()=>{const ib=inboxCfg();if(!ib)return;const v=`${ib.url}/add?k=${ib.key}`;(navigator.clipboard?navigator.clipboard.writeText(v):Promise.reject()).then(()=>toast(L('Link copied — paste it in Shortcuts.','تم نسخ الرابط — الصقه في الاختصارات.'))).catch(()=>toast(v))},
   ibOff:()=>{const ac=S.settings.autoCfg||{};delete ac.inbox;persist(['settings']);closeSheet();toast(L('Inbox removed. Delete the automation in Shortcuts too.','انشال الصندوق. احذف الأتمتة من الاختصارات بعد.'))}
 });
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)setTimeout(()=>inboxPull(),400)});
