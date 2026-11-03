@@ -1228,6 +1228,7 @@ html.tz .sheet{max-height:calc(94dvh / var(--tz))}
 
 .tm .tm-sub{opacity:.85;font-size:.92em;margin-top:4px}
 .ch-amt .ch-of{font-size:.6em;font-weight:600;opacity:.65;letter-spacing:0}
+.tm .tm-sub.down{color:#FF8A80;opacity:1}.tm .tm-sub.up{color:#7EE2A8;opacity:1}
 </style>
 </head>
 <body>
@@ -3374,9 +3375,9 @@ function todayMeter(r){
   const label=r.realShort>0?L(`Short by ${aedT(r.realShort)} until payday`,`ناقصك ${aedT(r.realShort)} لين الراتب`)
     :r.todayLeft<0?L(`${aedT(-r.todayLeft)} over today’s plan`,`${aedT(-r.todayLeft)} فوق خطة اليوم`)
     :L(`${aedT(spent)} spent of ${aedT(daily)}`,`صرفت ${aedT(spent)} من ${aedT(daily)}`);
-  const cut=r.todayLeft<0&&r.realShort<=0&&r.daysLeft>1?Math.max(0,daily-r.nextDaily):0;
-  const sub=cut>0?L(`Tomorrow: ${aedT(r.nextDaily)}`,`بكرة: ${aedT(r.nextDaily)}`):'';
-  return`<div class="tm" role="img" aria-label="${esc(label+(sub?'. '+sub:''))}"><div class="tm-bar"><i style="width:${pct}%"></i></div><p class="tm-lab">${r.todayLeft<0||r.realShort>0?ic('alert'):''}<span>${label}</span></p>${sub?`<p class="tm-lab tm-sub"><span>${sub}</span></p>`:''}</div>`}
+  const showT=r.realShort<=0&&r.daysLeft>1&&daily>0,dR=Math.round(daily),nR=Math.round(r.nextDaily),dir=nR<dR?'down':nR>dR?'up':'';
+  const sub=showT?L(`Tomorrow: ${aedT(nR)}`,`بكرة: ${aedT(nR)}`)+(dir?` <span aria-hidden="true">${dir==='down'?'▼':'▲'}</span>`:''):'';
+  return`<div class="tm" role="img" aria-label="${esc(label+(sub?'. '+L(`Tomorrow: ${aedT(nR)}`,`بكرة: ${aedT(nR)}`):''))}"><div class="tm-bar"><i style="width:${pct}%"></i></div><p class="tm-lab">${r.todayLeft<0||r.realShort>0?ic('alert'):''}<span>${label}</span></p>${sub?`<p class="tm-lab tm-sub ${dir}"><span>${sub}</span></p>`:''}</div>`}
 function homeV2(){
   const r=calc(0),st=S.settings,nextStart=addD(r.p.end,1),toPay=diffD(today(),nextStart),ns=nextSalary(st);
   const payDate=ns&&ns.date<=nextStart?ns.date:nextStart,payIn=diffD(today(),payDate);
