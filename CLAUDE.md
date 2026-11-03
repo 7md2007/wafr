@@ -50,6 +50,11 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
   (confirmation with `exp === occurrence date` replaces it) and `salaryTarget` matches the nearest salary. Old version: branch `old-version-v1`.
 - Bottom bar: Home · Expenses · Subscriptions · More (Spending is inside More). Motion polish module (before startup `renderAll()`):
   page glide + staggered rows, tab bounce, counting hero/spent numbers (`moCount`), springy bars (`moBar`); all off with Reduce Motion.
+- Monthly needs (pots, Nov 2026): `settings.pots=[{id,type:'food'|'fuel'|'groceries',amt}]` per pay period. `potOf(e)` (fuel by name via
+  `isFuelName`, others by category); pot spending is spread (not today) and the unspent rest is reserved in `calc` (`potRows`, `potRes`).
+  Overspending a pot lowers the daily amount. UI: `needsSheet()` (suggests ≈ last 3 periods), `needsHome()` bars on Home, toast after save.
+- UAE name list (`UAE_WORDS`, `guessCat()`): cafés, restaurants, delivery apps, petrol stations EN+AR → category, used when typing a
+  merchant and for SMS / Apple Pay inbox / shortcut imports.
 - AI chat proposes expenses as cards; nothing saved until the user taps Add. Daily AI limits in `AI_LIMITS`.
 - UI modules were appended in order inside the single file (search for comment banners "Money engine UI", "Transactions", "Import & trust",
   "Calm redesign", "Round 3", "Apple-style interaction layer", "AI outside Claude"). Later modules override earlier views (e.g. `VIEWS.home=homeV3`).

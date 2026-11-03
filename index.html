@@ -1298,6 +1298,14 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 }
 .ch-amt.over bdi{color:#FF8A80}.ch-amt.over .ch-of{color:rgba(255,255,255,.65)}
 .sheet .sh-scroll{overscroll-behavior-y:contain}
+.nd-list>li{padding:12px 0;border-bottom:1px solid var(--line2)}.nd-top{display:flex;align-items:center;gap:12px;margin-bottom:8px;cursor:pointer}
+.nd-top input{width:22px;height:22px;accent-color:#E9CF96;flex:none}.nd-top .main b{display:block}.nd-top .main small{color:var(--tx2)}
+.nd-cta{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:14px 16px;border-radius:18px;border:1px dashed var(--panel-line,rgba(127,127,127,.3));background:var(--panel);color:var(--tx);font:inherit;cursor:pointer}
+.nd-cta b{display:block}.nd-cta small{color:var(--tx2)}.nd-cta .chev{margin-inline-start:auto}
+.nd-bars{list-style:none;margin:0;padding:12px 14px;border-radius:18px;background:var(--panel);border:1px solid var(--panel-line,rgba(127,127,127,.18));display:grid;gap:14px}
+.nd-bars li{display:flex;align-items:center;gap:12px}.nd-m{flex:1;min-width:0}.nd-t{display:flex;justify-content:space-between;gap:8px;font-size:15px}.nd-t small{color:var(--tx2)}.nd-t .over{color:#E5534B}
+.nd-bar{display:block;height:8px;border-radius:9px;background:rgba(127,127,127,.18);margin-top:6px;overflow:hidden}.nd-bar i{display:block;height:100%;border-radius:9px;background:#E9CF96;transition:width .7s cubic-bezier(.22,1,.36,1)}.nd-bar i.over{background:#E5534B}
+.toast{width:max-content}.toast>span{flex:1 1 auto;min-width:0}
 </style>
 </head>
 <body>
@@ -1893,7 +1901,12 @@ const commitKey=e=>e.sub?'s:'+e.sub+':'+e.date:e.inst?'i:'+e.inst.plan+':'+e.ins
 const resPaid=id=>sum(Object.values(S.exp).flat().filter(e=>e.res===id));
 const resLeft=r=>Math.max(0,unfils(fils(r.amt)-fils(resPaid(r.id))));
 /* committed money: bills, installments, planned one-offs, refunds and one-off purchases are spread, not charged to today's allowance */
-const isSpread=e=>!!(e.inst||e.sub||e.res||e.oneoff||e.kind==='refund');
+const isSpread=e=>!!(e.inst||e.sub||e.res||e.oneoff||e.kind==='refund'||potOf(e));
+/* Monthly needs (pots): money set aside each pay period for food / petrol / groceries; their spending comes out of the pot, not today */
+const POT_TYPES={food:{cat:'food',icon:'food',en:'Food & coffee',ar:'أكل وقهوة',help:['Restaurants, cafés, Talabat…','مطاعم، كافيهات، طلبات…']},fuel:{cat:'transport',icon:'fuel',en:'Petrol',ar:'بترول',help:['ADNOC, ENOC, Emarat…','أدنوك، اينوك، امارات…']},groceries:{cat:'groceries',icon:'cart',en:'Groceries',ar:'مقاضي',help:['Carrefour, Lulu, Spinneys…','كارفور، لولو، سبينيز…']}};
+function potOf(e,st){st=st||S.settings;const P=st&&st.pots;if(!P||!P.length||!e||e.kind||e.sub||e.inst||e.res||e.nopot)return null;
+  try{const fuel=P.find(x=>x.type==='fuel'&&+x.amt>0);if(fuel&&(isFuelName(e.m)||(e.cat==='transport'&&isFuelName(e.note))))return fuel;
+    return P.find(x=>x.type!=='fuel'&&+x.amt>0&&POT_TYPES[x.type]&&e.cat===POT_TYPES[x.type].cat)||null}catch(_){return null}}
 function calc(off,stOverride){
   const st=stOverride||S.settings,td=today(),p=periodFor(td,off,st);
   const N=diffD(p.start,p.end)+1;
@@ -1915,7 +1928,9 @@ function calc(off,stOverride){
   const up=subOccurrences(td,p.end).filter(o=>!ex.has('s:'+o.s.id+':'+o.date)),subsRes=sum(up.map(o=>({amt:subAmt(o.s,o.date)})));
   const due=unpaidUntil(p.end).filter(x=>!ex.has('i:'+x.pl.id+':'+x.p.n)),overdue=due.filter(x=>x.p.due<td),instRes=sum(due.map(x=>({amt:x.p.amt}))),overdueAmt=sum(overdue.map(x=>({amt:x.p.amt})));
   const resOpen=(S.res||[]).filter(x=>x.status==='open'&&x.due<=p.end&&!ex.has('r:'+x.id)).map(x=>({x,left:resLeft(x)})).filter(o=>o.left>0),resRes=sum(resOpen.map(o=>({amt:o.left})));
-  const reserved=unfils(fils(subsRes)+fils(instRes)+fils(resRes));
+  const potRows=((st.pots)||[]).filter(x=>+x.amt>0&&POT_TYPES[x.type]).map(pt=>{const sp=sum(list.filter(e=>potOf(e,st)===pt));return{pot:pt,spent:sp,left:unfils(fils(pt.amt)-fils(sp))}});
+  const potRes=unfils(potRows.reduce((a,x)=>a+Math.max(0,fils(x.left)),0));
+  const reserved=unfils(fils(subsRes)+fils(instRes)+fils(resRes)+fils(potRes));
   const available=unfils(fils(funds)-fils(before)-fils(reserved));
   const shortfall=available<0?-available:0;
   const daily=available>0?available/daysLeft:0;
@@ -1927,7 +1942,7 @@ function calc(off,stOverride){
   const projected=Math.min(Math.max(funds,1)*3,before+spentToday+reserved+Math.max(0,daysLeft-1)*Math.min(avg,daily||avg));
   const safeLeft=unfils(fils(funds)-fils(spent)-fils(reserved));
   let status='ok';if(safeLeft<0)status='over';else if(spent>flat*k*1.1)status='watch';
-  Object.assign(r,{k,daysLeft,spentToday,before,reserved,subsRes,instRes,resRes,resOpen,overdueAmt,overdue,instDue:due,up,available,shortfall,daily,todayLeft:daily-spentToday,afterToday,nextDaily,overBy,realShort:afterToday<0?-afterToday:0,ideal:flat*k,paceDiff,projected,status,lastDay:daysLeft===1,safeLeft});
+  Object.assign(r,{k,daysLeft,spentToday,before,reserved,potRows,potRes,subsRes,instRes,resRes,resOpen,overdueAmt,overdue,instDue:due,up,available,shortfall,daily,todayLeft:daily-spentToday,afterToday,nextDaily,overBy,realShort:afterToday<0?-afterToday:0,ideal:flat*k,paceDiff,projected,status,lastDay:daysLeft===1,safeLeft});
   return r;
 }
 
@@ -2783,11 +2798,12 @@ document.addEventListener('submit',e=>{
     const id=f.dataset.id;const data={amt,m:f.m.value.trim(),cat:f.cat.value,note:f.note.value.trim(),date:f.date.value||today(),time:f.time.value||nowHM(),pay:(f.pay&&f.pay.value)||'card',oneoff:!!(f.oneoff&&f.oneoff.checked)};if(f.res&&f.res.value)data.res=f.res.value;const spl=readSplit(f,amt);if(!spl.ok){const b=$('#splitbox');if(b){b.hidden=false;f.querySelector('details.more').open=true}$('#splitmine').textContent=spl.msg;return}data.split=spl.split||undefined;data.todo=!data.m&&data.cat==='other';const bid=f.brand.value||resolveBrandExact(data.m);if(bid&&BRAND[bid]){data.brand=bid;if(normT(data.m)!==normT(BRAND[bid].name)&&resolveBrandExact(data.m)===bid)data.m=BRAND[bid].name}else data.brand='';
     const docs=[];let undo;const r0=calc(0);let bigId='';
     if(id){const r=removeExp(id);if(r){docs.push(r.doc);const ne={...r.e,...data};docs.push(addExp(ne));undo=()=>{const x=removeExp(id);const d=addExp(r.e);persist([x&&x.doc,d].filter(Boolean));renderAll()}}}
-    else{const ne={id:'e'+uid(),created:Date.now(),...data};docs.push(addExp(ne));if(r0.cur&&r0.daily>0&&data.date===today()&&!data.oneoff&&!data.res&&amt>=Math.max(50,3*r0.daily))bigId=ne.id;undo=()=>{const x=removeExp(ne.id);if(x){persist([x.doc]);renderAll()}}}
+    else{const ne={id:'e'+uid(),created:Date.now(),...data};docs.push(addExp(ne));if(r0.cur&&r0.daily>0&&data.date===today()&&!data.oneoff&&!data.res&&!potOf(ne)&&amt>=Math.max(50,3*r0.daily))bigId=ne.id;undo=()=>{const x=removeExp(ne.id);if(x){persist([x.doc]);renderAll()}}}
     if(f.dataset.q){S.queue=S.queue.filter(x=>x.id!==f.dataset.q);saveQueue()}
     if(f.dataset.prop&&!id){const [pi,pj]=f.dataset.prop.split(':').map(Number);const pp=S.chat[pi]&&S.chat[pi].props&&S.chat[pi].props[pj];const ne=docs.length&&allExp().filter(x=>!x.kind).sort((a,b)=>(b.created||0)-(a.created||0))[0];if(pp&&ne)pp.saved=ne.id}
     persist([...new Set(docs.filter(Boolean))]);closeSheet();renderAll();
-    const r=calc(0);toast(id?t('updated'):t('savedT',aedT(Math.max(0,r.todayLeft))),undo);
+    const r=calc(0);const sv=allExp().find(x=>x.id===(id||(docs.length&&allExp().filter(z=>!z.kind).sort((a2,b2)=>(b2.created||0)-(a2.created||0))[0]||{}).id));const pt=sv&&potOf(sv);const pr=pt&&(r.potRows||[]).find(x=>x.pot===pt);
+    toast(pr?(pr.left>=0?L(`From ${potName(pt)}: ${aedT(pr.left)} left of ${aedT(pt.amt)}`,`من ${potName(pt)}: باقي ${aedT(pr.left)} من ${aedT(pt.amt)}`):L(`${potName(pt)} is ${aedT(-pr.left)} over — taken from your daily amount`,`${potName(pt)} فوق بـ ${aedT(-pr.left)} — انخصم من مصروفك اليومي`)):(id?t('updated'):t('savedT',aedT(Math.max(0,r.todayLeft)))),undo);
     if(bigId)setTimeout(()=>bigBuySheet(bigId,amt,r0.daily),450);
   }
   if(f.id==='subform'){
@@ -2817,7 +2833,7 @@ function autoSave(pre,h){S.pendingAuto=null;try{history.replaceState(null,'','#h
   if(findDups(pre.amt,today(),pre.m).length){enqueue('wallet','',{amt:pre.amt,cur:'AED',m:pre.m||'',date:today(),kind:'purchase',notes:[]});renderAll();toast(L('Possible duplicate — added to “To review”.','يمكن مكرر — انضاف لـ «للمراجعة».'));return}
   ac.last=new Date().toISOString();const td=today(),hm=nowHM();const id='a_'+h.replace(/[^\w-]/g,'').slice(0,60)+'_'+td+'_'+hm.replace(':','');
   if(pre.m&&!pre.cat){const mm=merchants();const k=Object.keys(mm).find(x=>x.toLowerCase()===pre.m.toLowerCase());if(k){pre.m=k;pre.cat=mm[k].cat}}
-  const d=addExp({id,amt:pre.amt,m:pre.m||'',cat:pre.cat||'other',note:'',date:td,time:hm,created:Date.now(),src:'auto',todo:!pre.m});if(!d)return;persist([d,'settings']);S.view='home';S.off=0;renderAll();
+  const d=addExp({id,amt:pre.amt,m:pre.m||'',cat:pre.cat||guessCat(pre.m)||'other',note:'',date:td,time:hm,created:Date.now(),src:'auto',todo:!pre.m});if(!d)return;persist([d,'settings']);S.view='home';S.off=0;renderAll();
   const r=calc(0);toast(`${aedT(pre.amt)}${pre.m?' · '+esc(pre.m):''} — ${t('savedT',aedT(Math.max(0,r.todayLeft)))}`,()=>{const x=removeExp(id);if(x){persist([x.doc]);renderAll()}})}
 function tryAuto(){if(S.pendingAuto&&S.settings&&syncState!=='wait'){const a=S.pendingAuto;S.pendingAuto=null;setTimeout(()=>autoSave(a.pre,a.h),0)}}
 function route(){const h=location.hash.slice(1);if(h.startsWith('jps-')&&S.settings){let txt='';try{txt=decodeURIComponent(h.slice(4))}catch(e){txt=h.slice(4)}try{history.replaceState(null,'','#home')}catch(e){}if(/^test$/i.test((parseBankMsg(txt).m||'').trim())){const ac=S.settings.autoCfg=S.settings.autoCfg||{};ac.smsTested=new Date().toISOString();persist(['settings']);S.view='home';renderAll();toast(L('SMS test received ✓ — nothing was saved.','وصل اختبار الرسايل ✓ — ما انحفظ شي.'));return}const r=importText('sms',txt);S.view='home';renderAll();toast(r.saved?L('Expense added from your bank message.','انضاف المصروف من رسالة البنك.'):r.queued?L('Added to “To review”.','انضاف لـ «للمراجعة».'):L('Not a purchase — nothing added.','مب عملية شراء — ما انضاف شي.'));return}
@@ -3011,7 +3027,7 @@ function overspendNote(r){
 function calcLines(r){const st=S.settings;const row=(a,b)=>`<div><dt>${a}</dt><dd><bdi>${b}</bdi></dd></div>`;
   const inc=r.op?L('Money available when you started','الفلوس المتوفرة لما بديت'):r.irregular?L('Money received this period','الفلوس اللي وصلت هالفترة'):(S.ledger||[]).some(x=>x.type==='salary'&&x.date>=r.p.start&&x.date<=r.p.end)?L('Salary received','الراتب اللي وصل'):(st.incomeMode==='salary'?t('salaryMode'):t('incomeUsed'));
   return row(inc,aedC(r.income))+(r.save?row(t('savingsSet'),'− '+aedC(r.save)):'')+(r.extra?row(L('Extra money in','فلوس إضافية'),'+ '+aedC(r.extra)):'')+row(t('calcBefore'),'− '+aedC(r.before))
-    +(r.subsRes?row(t('calcReserved'),'− '+aedC(r.subsRes)):'')+(r.instRes?row(t('calcInst')+(r.overdueAmt?` (${t('calcOverdue')} ${aedT(r.overdueAmt)})`:''),'− '+aedC(r.instRes)):'')+(r.resRes?row(L('Planned one-off costs','مصاريف كبيرة مخططة'),'− '+aedC(r.resRes)):'')
+    +(r.subsRes?row(t('calcReserved'),'− '+aedC(r.subsRes)):'')+(r.instRes?row(t('calcInst')+(r.overdueAmt?` (${t('calcOverdue')} ${aedT(r.overdueAmt)})`:''),'− '+aedC(r.instRes)):'')+(r.resRes?row(L('Planned one-off costs','مصاريف كبيرة مخططة'),'− '+aedC(r.resRes)):'')+(r.potRes?row(L('Monthly needs (food, petrol…)','الاحتياجات الشهرية (أكل، بترول…)'),'− '+aedC(r.potRes)):'')
     +row(t('calcAvail'),aedC(r.available))+`<div><dt>${t('calcDays')}</dt><dd>${r.daysLeft}</dd></div>`+`<div class="tot"><dt>${t('calcDaily')}</dt><dd><bdi>${aedC(r.daily)}</bdi></dd></div>`;
 }
 
@@ -3225,7 +3241,7 @@ function importText(src,text){const p=parseBankMsg(text);
   if(p.status==='reject')return{saved:false,rejected:p.reason};
   const amt=p.cur==='AED'?p.amt:0,dups=amt?findDups(amt,p.date,p.m):[];
   if(p.status==='ok'&&!dups.length&&S.settings.auto!==false&&!(S.settings.autoCfg&&S.settings.autoCfg.off)){const id='m'+uid();const bid=resolveBrandExact(p.m);const mm=merchants()[p.m];
-    const d=addExp({id,amt:p.kind==='refund'?p.amt:p.amt,kind:p.kind==='refund'?'refund':undefined,status:p.kind==='refund'?'done':undefined,m:bid?BRAND[bid].name:p.m,brand:bid||'',cat:bid?BRAND[bid].cat:(mm?mm.cat:'other'),date:p.date||today(),time:nowHM(),note:'',src,created:nowMs(),todo:!bid&&!mm});
+    const d=addExp({id,amt:p.kind==='refund'?p.amt:p.amt,kind:p.kind==='refund'?'refund':undefined,status:p.kind==='refund'?'done':undefined,m:bid?BRAND[bid].name:p.m,brand:bid||'',cat:bid?BRAND[bid].cat:(mm?mm.cat:(guessCat(p.m)||'other')),date:p.date||today(),time:nowHM(),note:'',src,created:nowMs(),todo:!bid&&!mm});
     if(d){persist([d]);return{saved:true,id}}}
   enqueue(src,text,p);return{saved:false,queued:true}}
 async function qAI(id){const it=S.queue.find(x=>x.id===id);if(!it||!AI||!aiAllowed())return;if(!aiBudget('parse'))return;
@@ -3310,6 +3326,42 @@ async function fxToAED(cur,amt,aiAed){if(!(amt>0)||!/^[A-Z]{3}$/.test(cur))retur
     if(j&&j.result==='success'&&j.rates){c={day,rates:j.rates};try{localStorage.setItem(key,JSON.stringify(c))}catch(_){}}}catch(_){}}
   const per=c&&c.rates&&+c.rates[cur];if(per>0)return done(1/per);
   if(aiAed>0)return{...done(aiAed/amt),src:'ai'};return null}
+/* ===== UAE names → category (offline). Coffee, restaurants, delivery and petrol stations, English + Arabic ===== */
+const UAE_WORDS={
+ fuel:'adnoc|enoc|eppco|emarat|emarat petrol|petrol|fuel|gas station|filling station|service station|بترول|وقود|ادنوك|اينوك|ايبكو|امارات للبترول|محطه',
+ food:[/* delivery */'talabat|deliveroo|careem food|noon food|zomato|smiles food|instashop food|طلبات|ديليفرو|كريم فود|نون فود',
+  /* coffee */'starbucks|costa|tim hortons|tims|%arabica|arabica|caribou|dunkin|coffee planet|seven fortunes|bateel|joe & the juice|joe and the juice|espresso lab|nightjar|raw coffee|common grounds|brew92|kave|grind coffee|filli|karak|chai|chaiwala|project chaiwala|dose cafe|third wave|caffe nero|cafe nero|gloria jeans|coffee club|coffee bean|tea leaf|lavazza|illy|paul|la serre|cafe|caffe|coffee|espresso|tea house|teahouse|ستاربكس|كوستا|تيم هورتنز|دانكن|كاريبو|فلي|كرك|شاي|قهوه|كافيه|كافي|مقهي|بتيل',
+  /* fast food & restaurants */'mcdonald|mcdonalds|kfc|burger king|hardees|popeyes|pizza hut|dominos|domino|papa john|subway|shake shack|five guys|wendys|texas chicken|al baik|albaik|jollibee|nandos|pf chang|cheesecake factory|operation falafel|al mallah|zaatar w zeit|zaatar|allo beirut|pickl|salt burger|chilis|applebees|tgi friday|johnny rockets|fuddruckers|al safadi|abu shakra|logma|ravi restaurant|bu qtair|al ustad|calicut paragon|gazebo|hatam|wingstop|raising cane|krispy kreme|baskin robbins|cold stone|cinnabon|magnolia|eataly|le pain quotidien|carluccio|wagamama|yo sushi|maki|black tap|burgerfuel|pizza express|charleys|taco bell|freedom pizza|pinza|shawarma|falafel|burger|pizza|grill|kitchen|restaurant|resturant|bistro|diner|bakery|sweets|kunafa|shawerma|mandi|biryani|sushi|steak|ماكدونالدز|كنتاكي|برجر كنج|هارديز|بوبايز|بيتزا|دومينوز|صب واي|البيك|الصفدي|ابو شقرا|لقمه|مطعم|مطاعم|مشويات|شاورما|شاورمه|فلافل|مخبز|حلويات|كنافه|مندي|برياني|كافتيريا|كفتيريا'].join('|')};
+const UAE_RX=Object.fromEntries(Object.entries(UAE_WORDS).map(([k,v])=>[k,new RegExp('(^|[^a-z0-9؀-ۿ])('+v.split('|').map(w=>normT(w).replace(/[.*+?^${}()[\]\\]/g,'\\$&')).filter(Boolean).join('|')+')($|[^a-z0-9؀-ۿ])')]));
+const isFuelName=m=>{const q=normT(m);return!!q&&UAE_RX.fuel.test(q)};
+const isFoodName=m=>{const q=normT(m);return!!q&&!/careem(?! food)|uber/.test(q)&&UAE_RX.food.test(q)};
+function guessCat(m){if(!m)return null;if(/careem ?food|noon ?food|كريم فود|نون فود/i.test(normT(m)))return'food';const b=resolveBrandExact(m);if(b&&BRAND[b])return BRAND[b].cat;if(isFuelName(m))return'transport';if(isFoodName(m))return'food';return null}
+document.addEventListener('input',e=>{if(e.target.name!=='m')return;const f=e.target.closest('#expform');if(!f||f.dataset.catTouched||f.brand.value)return;
+  const c=guessCat(e.target.value.trim());const cur=f.cat.value;if(c&&c!==cur&&(cur==='other'||f.dataset.catAuto)){const b=f.querySelector(`.catopt[data-c="${c}"]`);if(b){A.pickCat(b);delete f.dataset.catTouched;f.dataset.catAuto='1'}}});
+/* ===== Monthly needs UI ===== */
+const potName=pt=>L(POT_TYPES[pt.type].en,POT_TYPES[pt.type].ar);
+function potSuggest(type){const st=S.settings,fake={pots:[{id:'x',type,amt:1}]};let tot=0,n=0;
+  for(let o=-1;o>=-3;o--){const p=calc(o).p;const sp=sum(expInRange(p.start,p.end).filter(e=>potOf(e,fake)));if(sp>0){tot+=sp;n++}}
+  return n?Math.ceil(tot/n/50)*50:0}
+function needsSheet(){const st=S.settings,cur=st.pots||[];
+  const row=type=>{const pt=cur.find(x=>x.type===type),on=!!(pt&&+pt.amt>0),sug=potSuggest(type),T=POT_TYPES[type];
+    return`<li class="nd-row"><label class="nd-top"><input type="checkbox" class="nd-on" data-t="${type}" ${on?'checked':''}><span class="tile">${ic(T.icon)}</span><span class="main"><b>${L(T.en,T.ar)}</b><small>${L(...T.help)}</small></span></label>
+    <div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num nd-amt" data-t="${type}" inputmode="decimal" placeholder="${sug||0}" value="${on?pt.amt:''}" autocomplete="off"></div>
+    ${sug?`<p class="fine" style="margin:4px 0 0">${L(`You usually spend ≈ ${aedT(sug)} a pay period.`,`عادة تصرف ≈ ${aedT(sug)} بالفترة.`)} <button type="button" class="btn-text" data-a="ndUse" data-t="${type}" data-v="${sug}">${L('Use this','استخدمه')}</button></p>`:''}</li>`};
+  openSheet(L('Monthly needs','الاحتياجات الشهرية'),`<div class="sh-scroll"><p class="fhelp" style="margin:0 0 12px">${L('Set money aside each pay period for things you always buy. Wafr takes them from here — not from today — and tells you what’s left.','خل فلوس على جنب كل فترة للأشياء اللي دايم تشتريها. وفر ياخذها من هني — مب من مصروف اليوم — ويقولك كم باقي.')}</p>
+    <ul class="list clean nd-list">${['food','fuel','groceries'].map(row).join('')}</ul></div>
+    <div class="sh-actions"><span class="grow"></span><button class="btn btn-pri" data-a="ndSave">${L('Save','حفظ')}</button></div>`)}
+document.addEventListener('input',e=>{if(e.target.classList&&e.target.classList.contains('nd-amt')){const c=document.querySelector(`.nd-on[data-t="${e.target.dataset.t}"]`);if(c)c.checked=parseAmt(e.target.value)>0}});
+function needsHome(r){const st=S.settings;if(!r.cur)return'';const rows=r.potRows||[];
+  if(!rows.length)return st.potsHide?'':`<section class="calm-sec nd-home"><button class="nd-cta" data-a="needs">${ic('target')}<span><b>${L('Set money aside for food & petrol','خل فلوس على جنب للأكل والبترول')}</b><small>${L('So a fill-up or a Talabat order never breaks your day','عشان تعبئة بترول أو طلب طلبات ما يخرب يومك')}</small></span>${ic('r','flip chev')}</button></section>`;
+  return`<section class="calm-sec nd-home" aria-labelledby="h-nd"><div class="cs-h"><h2 id="h-nd">${L('Monthly needs','الاحتياجات الشهرية')}</h2><button class="link btn-text" data-a="needs">${L('Edit','تعديل')}</button></div>
+  <ul class="nd-bars">${rows.map(x=>{const pct=Math.min(100,x.spent/Math.max(1,+x.pot.amt)*100),over=x.left<0;return`<li><span class="tile">${ic(POT_TYPES[x.pot.type].icon)}</span><span class="nd-m"><span class="nd-t"><b>${potName(x.pot)}</b><span class="${over?'over':''}"><bdi>${over?L(`${aedT(-x.left)} over`,`فوق بـ ${aedT(-x.left)}`):L(`${aedT(x.left)} left`,`باقي ${aedT(x.left)}`)}</bdi> <small>/ ${aedT(x.pot.amt)}</small></span></span><span class="nd-bar"><i class="${over?'over':''}" style="width:${pct}%"></i></span></span></li>`}).join('')}</ul></section>`}
+Object.assign(A,{
+  needs:()=>needsSheet(),
+  ndUse:el=>{const i=document.querySelector(`.nd-amt[data-t="${el.dataset.t}"]`);if(i){i.value=el.dataset.v;i.dispatchEvent(new Event('input',{bubbles:true}))}},
+  ndSave:()=>{const st=S.settings,old=st.pots||[];const pots=[];document.querySelectorAll('.nd-on').forEach(c=>{const t=c.dataset.t,a=parseAmt((document.querySelector(`.nd-amt[data-t="${t}"]`)||{}).value||'');if(c.checked&&a>0){const o=old.find(x=>x.type===t);pots.push({id:o?o.id:'p'+uid(),type:t,amt:Math.round(a*100)/100})}});
+    st.pots=pots;persist(['settings']);closeSheet();renderAll();toast(pots.length?L('Saved. This money is now set aside each pay period.','انحفظ. هالفلوس صارت على جنب كل فترة.'):L('Monthly needs turned off.','الاحتياجات الشهرية انطفت.'))}
+});
 /* ===== "Your money": one visual screen for paydays + savings. Money is always spread evenly over the month:
    the period starts on the payday that keeps cash positive longest, and every salary counts inside it. ===== */
 let MS=null;
@@ -3439,7 +3491,7 @@ async function inboxItem(it,docs){const ac=S.settings.autoCfg;
   if(findDups(amt,date,m).length){enqueue('wallet','',{amt,cur:'AED',m,date,kind,notes:[]});return'queued'}
   const mmAll=merchants(),k=Object.keys(mmAll).find(x=>x.toLowerCase()===m.toLowerCase());if(k)m=k;const mm=k?mmAll[k]:null,bid=resolveBrandExact(m);
   const d=addExp({id:'ib_'+String(it.id).replace(/[^\w-]/g,'').slice(0,40),amt,kind:kind==='refund'?'refund':undefined,status:kind==='refund'?'done':undefined,m:bid?BRAND[bid].name:m,brand:bid||'',
-    cat:bid?BRAND[bid].cat:(mm?mm.cat:'other'),date,time,note,src:'auto',created:nowMs(),todo:!bid&&!mm});
+    cat:bid?BRAND[bid].cat:(mm?mm.cat:(guessCat(m)||'other')),date,time,note,src:'auto',created:nowMs(),todo:!bid&&!mm});
   if(!d)return'skip';docs.add(d);ac.last=new Date().toISOString();return'saved'}
 async function inboxPull(manual){const ib=inboxCfg();if(!ib||inboxBusy||syncState==='wait'||(S.settings.autoCfg.off&&!manual))return null;inboxBusy=true;
   const out={saved:0,queued:0,test:0,err:''};
@@ -3576,7 +3628,7 @@ function homeV2(){
   const recent=`<section class="calm-sec" aria-labelledby="h-rec"><div class="cs-h"><h2 id="h-rec">${t('recentExp')}</h2>${r.list.length?`<a class="link" href="#expenses">${t('viewAll')}</a>`:''}</div>
     ${r.list.length?`<ul class="list clean">${r.list.slice(0,4).map(expRow).join('')}</ul>`:`<p class="panel-empty">${L('Nothing yet. Tap “Add expense” after you pay for something.','ما في شي للحين. اضغط «أضف مصروف» بعد ما تدفع.')}</p>`}</section>`;
   notePlan(r);
-  return head+reviewNudge()+moneyNotes(r)+checkinCard(r)+wishNudge()+`<div class="calm">${hero}${bills}${recent.replace('class="calm-sec"','class="calm-sec c-rec"')}</div>`;
+  return head+reviewNudge()+moneyNotes(r)+checkinCard(r)+wishNudge()+`<div class="calm">${hero}${needsHome(r)}${bills}${recent.replace('class="calm-sec"','class="calm-sec c-rec"')}</div>`;
 }
 function detailsSheet(){const r=calc(0),st=S.settings,row=(a,b,c='')=>`<div class="${c}"><dt>${a}</dt><dd><bdi>${b}</bdi></dd></div>`;
   openSheet(L('How today’s amount is calculated','كيف ينحسب مبلغ اليوم'),`<div class="sh-scroll">
