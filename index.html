@@ -1229,6 +1229,11 @@ html.tz .sheet{max-height:calc(94dvh / var(--tz))}
 .tm .tm-sub{opacity:.85;font-size:.92em;margin-top:4px}
 .ch-amt .ch-of{font-size:.6em;font-weight:600;opacity:.65;letter-spacing:0}
 .tm .tm-sub.down{color:#FF8A80;opacity:1}.tm .tm-sub.up{color:#7EE2A8;opacity:1}
+.aff-btn{display:block;width:100%;margin-top:10px;background:transparent;border:1px solid rgba(255,255,255,.35);color:#fff;border-radius:14px;padding:12px;font-weight:600}
+.aff-res{margin-top:6px;padding:14px 16px;border-radius:14px;background:var(--surface-2,rgba(0,0,0,.04))}
+.aff-days{font-size:1.05em;margin:0 0 6px}.aff-main{font-size:1.25em;font-weight:700;margin:0}.aff-main small{display:block;font-size:.65em;font-weight:500;opacity:.7;margin-top:2px}
+.aff-main.down{color:#FF8A80}html.light .aff-main.down{color:#C0392B}.aff-acts{flex-wrap:wrap;gap:8px}
+.tm .tm-streak{color:#F2CF7E;margin-top:4px;font-size:.92em}
 </style>
 </head>
 <body>
@@ -2710,13 +2715,14 @@ document.addEventListener('submit',e=>{
   if(f.id==='expform'){
     const amt=parseAmt(f.amt.value);if(!(amt>0)){setErr(f.amt,'amt-err',t('amountReq'));$('#amtwrap').classList.add('invalid');f.amt.focus();return}
     const id=f.dataset.id;const data={amt,m:f.m.value.trim(),cat:f.cat.value,note:f.note.value.trim(),date:f.date.value||today(),time:f.time.value||nowHM(),pay:(f.pay&&f.pay.value)||'card',oneoff:!!(f.oneoff&&f.oneoff.checked)};if(f.res&&f.res.value)data.res=f.res.value;const spl=readSplit(f,amt);if(!spl.ok){const b=$('#splitbox');if(b){b.hidden=false;f.querySelector('details.more').open=true}$('#splitmine').textContent=spl.msg;return}data.split=spl.split||undefined;data.todo=!data.m&&data.cat==='other';const bid=f.brand.value||resolveBrandExact(data.m);if(bid&&BRAND[bid]){data.brand=bid;if(normT(data.m)!==normT(BRAND[bid].name)&&resolveBrandExact(data.m)===bid)data.m=BRAND[bid].name}else data.brand='';
-    const docs=[];let undo;
+    const docs=[];let undo;const r0=calc(0);let bigId='';
     if(id){const r=removeExp(id);if(r){docs.push(r.doc);const ne={...r.e,...data};docs.push(addExp(ne));undo=()=>{const x=removeExp(id);const d=addExp(r.e);persist([x&&x.doc,d].filter(Boolean));renderAll()}}}
-    else{const ne={id:'e'+uid(),created:Date.now(),...data};docs.push(addExp(ne));undo=()=>{const x=removeExp(ne.id);if(x){persist([x.doc]);renderAll()}}}
+    else{const ne={id:'e'+uid(),created:Date.now(),...data};docs.push(addExp(ne));if(r0.cur&&r0.daily>0&&data.date===today()&&!data.oneoff&&!data.res&&amt>=Math.max(50,3*r0.daily))bigId=ne.id;undo=()=>{const x=removeExp(ne.id);if(x){persist([x.doc]);renderAll()}}}
     if(f.dataset.q){S.queue=S.queue.filter(x=>x.id!==f.dataset.q);saveQueue()}
     if(f.dataset.prop&&!id){const [pi,pj]=f.dataset.prop.split(':').map(Number);const pp=S.chat[pi]&&S.chat[pi].props&&S.chat[pi].props[pj];const ne=docs.length&&allExp().filter(x=>!x.kind).sort((a,b)=>(b.created||0)-(a.created||0))[0];if(pp&&ne)pp.saved=ne.id}
     persist([...new Set(docs.filter(Boolean))]);closeSheet();renderAll();
     const r=calc(0);toast(id?t('updated'):t('savedT',aedT(Math.max(0,r.todayLeft))),undo);
+    if(bigId)setTimeout(()=>bigBuySheet(bigId,amt,r0.daily),450);
   }
   if(f.id==='subform'){
     const amt=parseAmt(f.amt.value),nm=f.name.value.trim();setErr(f.name,'sname-err',nm?'':t('nameReq'));setErr(f.amt,'samt-err',amt>0?'':t('amountReq'));
@@ -3037,7 +3043,7 @@ function owedSheet(eid,pid){const e=findExp(eid);if(!e)return;const p=e.split.pe
 const needsDetails=e=>!!e.todo&&!e.kind;
 function checkinCard(r){const st=S.settings,c=st.checkin;if(!c||!c.on||S.off)return'';const now=nowHM();if(now<(c.time||'20:00')||st.reviewed===today())return'';
   const any=r.list.some(e=>e.date===today());
-  return`<div class="nudge" role="status">${ic('clock')}<span><b>${L('Evening check-in','مراجعة المسا')}</b> ${any?L('Did you add everything you spent today?','ضفت كل اللي صرفته اليوم؟'):L('Nothing logged today yet.','ما سجلت شي اليوم للحين.')}</span><span class="nudge-acts"><button class="btn btn-sec sm" data-a="reviewed">${any?L('That’s all','هذا كل شي'):L('No spending today','ما صرفت اليوم')}</button><button class="btn btn-sec sm" data-a="jp">${ic('plus')}${t('addExpense')}</button><a class="btn-text" href="#expenses">${L('Review','راجع')}</a></span></div>`}
+  return`<div class="nudge" role="status">${ic('clock')}<span><b>${L('Evening check-in','مراجعة المسا')}</b> ${any?L('Did you add everything you spent today?','ضفت كل اللي صرفته اليوم؟'):L('Nothing logged today yet.','ما سجلت شي اليوم للحين.')}${r.cur&&r.daily>0&&r.realShort<=0?` <bdi>${L(`Today: ${aedT(r.spentToday)} of ${aedT(r.daily)}`,`اليوم: ${aedT(r.spentToday)} من ${aedT(r.daily)}`)}${r.daysLeft>1?` · ${L(`Tomorrow: ${aedT(r.nextDaily)}`,`بكرة: ${aedT(r.nextDaily)}`)}`:''}</bdi>`:''}</span><span class="nudge-acts"><button class="btn btn-sec sm" data-a="reviewed">${any?L('That’s all','هذا كل شي'):L('No spending today','ما صرفت اليوم')}</button><button class="btn btn-sec sm" data-a="jp">${ic('plus')}${t('addExpense')}</button><a class="btn-text" href="#expenses">${L('Review','راجع')}</a></span></div>`}
 function reviewedLine(){const st=S.settings,d=st.reviewed;const last=allExp().filter(e=>!e.sub&&!e.inst).map(e=>e.date).sort().pop();
   const ref=[d,last].filter(Boolean).sort().pop();if(!ref)return L('No spending logged yet','ما في مصاريف مسجلة للحين');
   const n=diffD(ref,today());return n<=0?L('Spending checked today','المصاريف متراجعة اليوم'):L(`Spending logged until ${fmtDate(ref)}`,`المصاريف مسجلة لين ${fmtDate(ref)}`)}
@@ -3236,6 +3242,57 @@ async function fxToAED(cur,amt,aiAed){if(!(amt>0)||!/^[A-Z]{3}$/.test(cur))retur
     if(j&&j.result==='success'&&j.rates){c={day,rates:j.rates};try{localStorage.setItem(key,JSON.stringify(c))}catch(_){}}}catch(_){}}
   const per=c&&c.rates&&+c.rates[cur];if(per>0)return done(1/per);
   if(aiAed>0)return{...done(aiAed/amt),src:'ai'};return null}
+/* ===== Spending brakes: "Can I afford it?", days-of-spending, 48-hour wish list, big-purchase question, streak ===== */
+function simulateBuy(amt){const r0=calc(0);if(!(amt>0))return{r0,r1:r0};const id='__aff';addExp({id,amt,date:today(),time:nowHM(),cat:'other',created:nowMs()});let r1;try{r1=calc(0)}finally{removeExp(id)}return{r0,r1}}
+function daysTxt(amt,daily){if(!(daily>0))return'';const d=amt/daily;if(d<1)return L('less than a day of spending','أقل من يوم صرف');const n=d<10?Math.round(d*10)/10:Math.round(d);
+  return L(`${n} day${n===1?'':'s'} of spending`,`${n} ${n<=2?'يوم':'أيام'} صرف`)}
+function affordHTML(amt){if(!(amt>0))return`<p class="fhelp">${L('Type a price to see what it does to your budget.','اكتب السعر عشان تشوف تأثيره على ميزانيتك.')}</p>`;
+  const{r0,r1}=simulateBuy(amt),dR=Math.round(r0.daily);
+  const days=daysTxt(amt,r0.daily);let main,cls;
+  if(r1.realShort>0){cls='down';main=L(`You’d be short ${aedT(r1.realShort)} before payday.`,`بيكون ناقصك ${aedT(r1.realShort)} قبل الراتب.`)}
+  else if(r1.daysLeft<=1){cls=amt>Math.max(0,r0.todayLeft)?'down':'';main=L(`Left today after it: ${aedT(Math.max(0,r1.todayLeft))}`,`الباقي اليوم بعدها: ${aedT(Math.max(0,r1.todayLeft))}`)}
+  else{const nR=Math.round(r1.nextDaily);cls=nR<dR?'down':'';main=L(`Tomorrow: ${aedT(nR)} a day`,`بكرة: ${aedT(nR)} باليوم`)+(cls?` <span aria-hidden="true">▼</span>`:'')+`<small>${L(`now ${aedT(dR)}`,`الحين ${aedT(dR)}`)}</small>`}
+  return`<div class="aff-res"><p class="aff-days">${days?`≈ <b>${days}</b>`:''}</p><p class="aff-main ${cls}">${main}</p></div>`}
+function affordSheet(pre){pre=pre||{};
+  openSheet(L('Can I afford it?','أقدر أشتريه؟'),`<div class="sh-scroll"><div class="field"><label class="flabel" for="affamt">${L('Price','السعر')}</label><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="affamt" inputmode="decimal" placeholder="0.00" autocomplete="off" value="${pre.amt||''}" data-autofocus></div></div>
+    <div class="field"><label class="flabel" for="affname">${L('What is it? (optional)','وش هو؟ (اختياري)')}</label><input class="input" id="affname" autocomplete="off" placeholder="${L('e.g. New headphones','مثلاً: سماعات جديدة')}" value="${esc(pre.name||'')}"></div>
+    <div id="affout" aria-live="polite">${affordHTML(+pre.amt||0)}</div></div>
+    <div class="sh-actions aff-acts"><button class="btn btn-sec" data-a="affWait">${ic('clock')}${L('Wait 2 days','انتظر يومين')}</button><button class="btn btn-sec" data-a="affPlan">${ic('target')}${L('Plan it','خطط له')}</button><span class="grow"></span><button class="btn btn-pri" data-a="affBuy">${L('I bought it','اشتريته')}</button></div>`)}
+function affVals(){const a=parseAmt(($('#affamt')||{}).value||''),n=(($('#affname')||{}).value||'').trim().slice(0,40);return{amt:a>0?a:0,name:n}}
+document.addEventListener('input',e=>{if(e.target.id==='affamt'){const o=$('#affout');if(o)o.innerHTML=affordHTML(parseAmt(e.target.value)||0)}});
+function wishes(){return(S.settings&&S.settings.wish)||[]}
+function wishNudge(){const w=wishes().find(x=>x.remind<=nowMs());if(!w)return'';
+  return`<div class="nudge" role="status">${ic('clock')}<span><b>${L(`Still want ${esc(w.name||'it')}?`,`لين الحين تبي ${esc(w.name||'الغرض')}؟`)}</b> <bdi>${aedT(w.amt)}</bdi> · ${daysTxt(w.amt,calc(0).daily)}</span><span class="nudge-acts"><button class="btn btn-sec sm" data-a="wishSkip" data-id="${w.id}">${L('Skip it','خلاص ما أبيه')}</button><button class="btn btn-sec sm" data-a="wishPlan" data-id="${w.id}">${L('Plan it','خطط له')}</button><button class="btn btn-sec sm" data-a="wishBuy" data-id="${w.id}">${L('I bought it','اشتريته')}</button></span></div>`}
+function takeWish(id){const st=S.settings;const w=(st.wish||[]).find(x=>x.id===id);st.wish=(st.wish||[]).filter(x=>x.id!==id);persist(['settings']);return w}
+function planPrefill(name,amt){resSheet();setTimeout(()=>{const n=$('#rname'),a=$('#ramt');if(n&&name)n.value=name;if(a&&amt)a.value=amt},60)}
+/* streak: plan of each day is remembered on this device; a day counts when its normal spending stayed within that plan */
+const PLAN_LS='wafr.dayPlans';
+function notePlan(r){if(!r||!r.cur||!(r.daily>0))return;try{const m=JSON.parse(localStorage.getItem(PLAN_LS)||'{}');const v=Math.round(r.daily*100)/100;if(m[today()]===v)return;m[today()]=v;
+  const ks=Object.keys(m).sort();ks.slice(0,Math.max(0,ks.length-70)).forEach(k=>delete m[k]);localStorage.setItem(PLAN_LS,JSON.stringify(m))}catch(_){}}
+function streakDays(){let m={};try{m=JSON.parse(localStorage.getItem(PLAN_LS)||'{}')}catch(_){}let n=0;
+  for(let i=1;i<=70;i++){const d=addD(today(),-i),plan=m[d];if(!(plan>0))break;const sp=sum(allExp().filter(e=>e.date===d&&!e.kind&&!isSpread(e)));if(sp>plan+0.5)break;n++}return n}
+function streakHTML(){const n=streakDays();return n>=2?`<p class="tm-lab tm-streak"><span>🔥 ${L(`${n} days in a row within plan`,`${n} أيام ورا بعض ضمن الخطة`)}</span></p>`:''}
+/* after saving a big everyday purchase: show it in days and ask how to count it */
+function bigBuySheet(id,amt,daily){const e=allExp().find(x=>x.id===id);if(!e)return;
+  openSheet(L('Big purchase','مصروف كبير'),`<div class="sh-scroll"><p class="aff-days" style="margin-top:0"><bdi>${aedT(amt)}</bdi> ≈ <b>${daysTxt(amt,daily)}</b></p>
+    <p class="fhelp">${L('How should Wafr count it?','كيف تبي وفر يحسبه؟')}</p>
+    <ul class="list clean"><li><button class="row" data-a="bigSpread" data-id="${id}"><span class="tile">${ic('cal')}</span><span class="main"><b>${L('Spread it over the coming days','وزعه على الأيام الجاية')}</b><span>${L('Today isn’t marked as over; each day gets a little less.','اليوم ما ينحسب فوق الخطة؛ كل يوم ينقص شوي.')}</span></span></button></li>
+    <li><button class="row" data-a="bigSave" data-id="${id}"><span class="tile">${ic('target')}</span><span class="main"><b>${L('I paid it from my savings','دفعته من مدخراتي')}</b><span>${L('Your daily amount stays the same.','مصروفك اليومي يبقى نفسه.')}</span></span></button></li></ul></div>
+    <div class="sh-actions"><span class="grow"></span><button class="btn btn-sec" data-a="close">${L('Keep as today’s spending','خله من صرف اليوم')}</button></div>`)}
+Object.assign(A,{
+  afford:()=>affordSheet(),
+  affWait:()=>{const v=affVals();if(!v.amt){toast(t('amountReq'));return}const st=S.settings;st.wish=(st.wish||[]).concat({id:'w'+uid(),name:v.name,amt:v.amt,at:nowMs(),remind:nowMs()+48*3600e3});persist(['settings']);closeSheet();renderAll();
+    toast(L('Saved. Wafr will ask you again in 2 days.','انحفظ. وفر بيسألك مرة ثانية بعد يومين.'))},
+  affPlan:()=>{const v=affVals();closeSheet();setTimeout(()=>planPrefill(v.name,v.amt||''),230)},
+  affBuy:()=>{const v=affVals();closeSheet();setTimeout(()=>expenseSheet(null,{amt:v.amt||'',m:v.name}),230)},
+  wishSkip:el=>{const w=takeWish(el.dataset.id);if(!w)return;const st=S.settings;st.wishKept=unfils(fils(+st.wishKept||0)+fils(w.amt));persist(['settings']);renderAll();
+    toast(L(`Nice — ${aedT(w.amt)} kept in your pocket 👏`,`كفو — ${aedT(w.amt)} بقت في جيبك 👏`))},
+  wishPlan:el=>{const w=takeWish(el.dataset.id);renderAll();if(w)planPrefill(w.name,w.amt)},
+  wishBuy:el=>{const w=takeWish(el.dataset.id);renderAll();if(w)expenseSheet(null,{amt:w.amt,m:w.name})},
+  bigSpread:el=>{const e=allExp().find(x=>x.id===el.dataset.id);if(!e)return;e.oneoff=true;persist(['exp-'+e.date.slice(0,7)]);closeSheet();renderAll();toast(L('Spread over the coming days.','انوزع على الأيام الجاية.'))},
+  bigSave:el=>{const e=allExp().find(x=>x.id===el.dataset.id);if(!e)return;e.oneoff=true;S.ledger.push({id:'l'+uid(),type:'extra',amt:e.amt,date:e.date,note:L('From savings','من المدخرات')+(e.m?': '+e.m:''),exp:e.id,created:nowMs()});
+    persist(['exp-'+e.date.slice(0,7),'ledger']);closeSheet();renderAll();toast(L('Counted as paid from savings.','انحسب مدفوع من المدخرات.'))}
+});
 /* ===== Apple Pay inbox =====
    Shortcuts can't write into the Home Screen app's storage, so the Wallet automation POSTs each payment to the
    owner's own Cloudflare Worker (see inbox-worker/). When Wafr opens it collects them (/list), adds them, then
@@ -3388,16 +3445,18 @@ function homeV2(){
   const hero=`<section class="hero photo calm-hero" aria-labelledby="h-today"><span class="hero-bg" aria-hidden="true"></span>
     <div class="ch-in"><h2 id="h-today" class="ch-lab">${L('Available today','المتاح اليوم')}</h2>
     <p class="ch-amt num"><span class="c">AED</span><bdi>${fmtN(amt)}${r.daily>0&&r.realShort<=0?`<span class="ch-of"> / ${fmtN(Math.round(r.daily))}</span>`:''}</bdi></p>
-    ${todayMeter(r)}
+    ${todayMeter(r)}${streakHTML()}
     <p class="ch-pay">${ic('cal')}<span>${payIn<=0?L('Payday is today','الراتب اليوم'):payIn===1?L('Next payday tomorrow','الراتب باچر'):L(`Next payday in ${payIn} days`,`الراتب الجاي بعد ${payIn} يوم`)} · ${fmtDate(payDate)}</span></p>
     ${warn}
     <button class="btn btn-gold big" data-a="jp">${ic('plus')}${t('addExpense')}</button>
+    <button class="btn btn-ghost-light aff-btn" data-a="afford">${L('Can I afford it?','أقدر أشتريه؟')}</button>
     <button class="ch-more" data-a="details">${L('How is this calculated?','كيف ينحسب هالمبلغ؟')}${ic('r','flip')}</button></div></section>`;
   const up=upcomingItems(31);
   const bills=`<section class="calm-sec c-bills" aria-labelledby="h-bills"><div class="cs-h"><h2 id="h-bills">${L('Coming up','الجاي')}</h2>${up.length?`<a class="link" href="#subs">${t('viewAll')}</a>`:''}</div>${timelineHTML(up,4)}</section>`;
   const recent=`<section class="calm-sec" aria-labelledby="h-rec"><div class="cs-h"><h2 id="h-rec">${t('recentExp')}</h2>${r.list.length?`<a class="link" href="#expenses">${t('viewAll')}</a>`:''}</div>
     ${r.list.length?`<ul class="list clean">${r.list.slice(0,4).map(expRow).join('')}</ul>`:`<p class="panel-empty">${L('Nothing yet. Tap “Add expense” after you pay for something.','ما في شي للحين. اضغط «أضف مصروف» بعد ما تدفع.')}</p>`}</section>`;
-  return head+reviewNudge()+moneyNotes(r)+checkinCard(r)+`<div class="calm">${hero}${bills}${recent.replace('class="calm-sec"','class="calm-sec c-rec"')}</div>`;
+  notePlan(r);
+  return head+reviewNudge()+moneyNotes(r)+checkinCard(r)+wishNudge()+`<div class="calm">${hero}${bills}${recent.replace('class="calm-sec"','class="calm-sec c-rec"')}</div>`;
 }
 function detailsSheet(){const r=calc(0),st=S.settings,row=(a,b,c='')=>`<div class="${c}"><dt>${a}</dt><dd><bdi>${b}</bdi></dd></div>`;
   openSheet(L('How today’s amount is calculated','كيف ينحسب مبلغ اليوم'),`<div class="sh-scroll">
