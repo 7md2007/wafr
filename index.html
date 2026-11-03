@@ -1619,6 +1619,92 @@ div.calm>*{margin-top:0!important;margin-bottom:0!important}
 div.calm>.glance,div.calm>.calc-card,div.calm>.streak-row{margin-top:calc(var(--sp-2) - var(--sp-4))!important}
 div.calm>.calm-sec,div.calm>.hm-insight{margin-top:var(--sp-2)!important}
 html.tz .hm-tile b,html.tz .sb-tile b{white-space:normal!important}
+
+/* ===================================================================
+   FORM SYSTEM — compact, native-feeling sheets (part of the design system)
+   =================================================================== */
+:root{--in-h:48px}
+.sheet .sh-head{padding:14px 18px 10px!important;min-height:0}
+.sheet .sh-head h2{font-size:var(--fs-lg)!important;font-weight:700}
+.sheet .sh-scroll{padding:6px 18px 16px!important}
+.sheet .field,.sheet fieldset{margin:0 0 14px!important;border:0;padding:0}
+.sheet .flabel,.sheet legend{display:block;font-size:var(--fs-sm)!important;font-weight:600;color:var(--c-text-2)!important;margin:0 0 6px!important;padding:0}
+.sheet .input,.sheet select.input{min-height:var(--in-h)!important;height:var(--in-h);padding:0 14px!important;font-size:var(--fs-body)!important;border-radius:var(--r-md)!important;border:1px solid var(--c-border)!important;background:var(--c-surface-2)!important;color:var(--c-text)}
+html.light .sheet .input{background:#F7F5EE!important}
+.sheet textarea.input{height:auto;min-height:90px!important;padding:12px 14px!important}
+.sheet .input:focus,.sheet .amt-field:focus-within,.sheet .money:focus-within .input{border-color:var(--c-accent)!important;box-shadow:0 0 0 3px var(--c-accent-soft)!important;outline:none}
+.sheet .money{position:relative}.sheet .money .cur{font-size:var(--fs-md);font-weight:700;color:var(--c-text-2)}
+.sheet .fhelp{font-size:var(--fs-sm)!important;margin:6px 0 0!important;color:var(--c-text-2)}
+.sheet .fine{font-size:var(--fs-xs)!important;color:var(--c-text-2);margin:4px 0 0}
+.sheet .ferr,.sheet .err{font-size:var(--fs-sm)!important}
+/* the one big amount per form */
+.sheet .amt-field{min-height:64px!important;border-radius:var(--r-md)!important;border:1px solid var(--c-border)!important;background:var(--c-surface-2)!important;padding:0 16px!important}
+html.light .sheet .amt-field{background:#F7F5EE!important}
+.sheet .amt-field input{font-size:32px!important;font-weight:700}
+.sheet .money.big .input{height:60px;min-height:60px!important;font-size:26px!important;font-weight:700}
+/* quick fill (scan / paste) as small pills */
+.qfill{display:flex;flex-wrap:wrap;gap:8px;margin-top:10px}
+.qf,.qfill .btn-text{display:inline-flex;align-items:center;gap:6px;min-height:36px;padding:0 12px;border-radius:var(--r-pill);border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text);font:inherit;font-size:var(--fs-sm);font-weight:600;cursor:pointer;text-decoration:none}
+.qf svg.i,.qfill .btn-text svg.i{width:16px;height:16px}
+.sheet .aistat:empty{display:none}.sheet .aistat{margin:8px 0 0;font-size:var(--fs-sm)}
+/* category picker: compact pills, most-used first */
+.sheet .catgrid{display:flex!important;flex-wrap:wrap;gap:8px;grid-template-columns:none!important}
+.sheet .catopt{display:inline-flex!important;flex-direction:row!important;align-items:center;gap:6px;min-height:38px!important;height:38px;padding:0 12px 0 6px!important;border-radius:var(--r-pill)!important;border:1px solid var(--c-border)!important;background:var(--c-surface)!important;width:auto!important;aspect-ratio:auto!important}
+.sheet .catopt .tile{width:28px!important;height:28px!important;border-radius:50%!important;margin:0!important}
+.sheet .catopt .tile svg.i{width:16px;height:16px}
+.sheet .catopt span:last-child{font-size:var(--fs-sm)!important;font-weight:600;white-space:nowrap}
+.sheet .catopt[aria-checked=true]{border-color:var(--c-accent)!important;background:var(--c-accent-soft)!important}
+.sheet .chips{gap:6px}.sheet .chips .chip{min-height:34px;font-size:var(--fs-sm)!important;padding:0 12px}
+/* date field: readable label over the native picker */
+.dfield{position:relative;display:flex;align-items:center;min-height:var(--in-h);border:1px solid var(--c-border);border-radius:var(--r-md);background:var(--c-surface-2);padding:0 14px;color:var(--c-text);font-size:var(--fs-body)}
+html.light .dfield{background:#F7F5EE}
+.dfield .dval{flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.dfield .dico{color:var(--c-text-2);display:flex}.dfield .dico svg.i{width:18px;height:18px}
+.dfield input[type=date]{position:absolute!important;inset:0;width:100%!important;height:100%!important;opacity:0;cursor:pointer;border:0!important;min-height:0!important;padding:0!important;margin:0!important;background:none!important}
+.dfield:focus-within{border-color:var(--c-accent);box-shadow:0 0 0 3px var(--c-accent-soft)}
+.dfield.ro{opacity:.7}.dfield.ro input{pointer-events:none}
+/* two compact fields on one row */
+.sheet .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}.sheet .grid2>.field{margin-bottom:14px!important;min-width:0}
+/* segmented control */
+.sheet .seg{display:flex;width:100%;padding:3px;gap:3px;border-radius:var(--r-md);background:var(--c-surface-2);border:1px solid var(--c-border)}
+.sheet .seg button{flex:1;min-height:40px;border-radius:12px;border:0;background:none;color:var(--c-text);font:inherit;font-weight:600;font-size:var(--fs-md)}
+.sheet .seg button[aria-checked=true]{background:var(--c-surface);box-shadow:0 1px 3px rgba(0,0,0,.18);color:var(--c-text)}
+html:not(.light) .sheet .seg button[aria-checked=true]{background:var(--c-elevated);box-shadow:inset 0 0 0 1px var(--c-accent)}
+.sheet .seg button svg.i{display:none}
+/* stepper */
+.stepper{display:flex;align-items:center;justify-content:space-between;height:var(--in-h);border:1px solid var(--c-border);border-radius:var(--r-md);background:var(--c-surface-2);padding:0 4px}
+html.light .stepper{background:#F7F5EE}
+.stepper .ib{width:40px;height:40px;font-size:22px;font-weight:600;border-radius:12px;color:var(--c-text)}
+.stepper output{font-size:var(--fs-lg);font-weight:700}
+/* installment preview */
+.sheet .preview{margin-top:4px;padding:12px 14px;border-radius:var(--r-md);background:var(--c-accent-soft);border:0}
+.pv-head{margin:0;display:flex;flex-direction:column;gap:2px}.pv-head b{font-size:var(--fs-xl)}.pv-head span{font-size:var(--fs-sm);color:var(--c-text-2)}
+.pv-more summary{list-style:none;cursor:pointer;font-weight:600;font-size:var(--fs-sm);color:var(--acc-text);display:inline-flex;align-items:center;gap:4px;margin-top:6px;min-height:32px}
+.pv-more summary::-webkit-details-marker{display:none}.pv-more[open] summary svg{transform:rotate(180deg)}
+.sheet .sched{margin:8px 0 0;padding:0;list-style:none;display:grid;gap:6px;font-size:var(--fs-md)}.sheet .sched li{display:flex;justify-content:space-between;gap:8px}
+/* "more options" fold */
+.sheet details.more{margin:2px 0 10px;border-top:1px solid var(--c-border)}
+.sheet details.more>summary{min-height:44px;font-size:var(--fs-md);font-weight:600;color:var(--acc-text)}
+.sheet details.more .inner{padding-top:8px}
+/* platform picker (subscriptions): compact */
+.sheet .pgrid{grid-template-columns:repeat(4,1fr)!important;gap:8px!important}
+.sheet .pplat{min-height:0!important;height:62px;padding:6px 4px!important;gap:4px!important;border-radius:var(--r-md)!important;font-size:11px!important}
+.sheet .pplat .blogo,.sheet .pplat img,.sheet .pplat svg{width:26px!important;height:26px!important}
+/* sticky actions */
+.sheet .sh-actions{position:sticky;bottom:0;padding:10px 18px calc(10px + env(safe-area-inset-bottom))!important;gap:8px;background:inherit;border-top:1px solid var(--c-border)}
+.sheet .sh-actions .btn{min-height:48px}
+.sheet .sh-actions .btn.again{flex:0 0 auto;padding:0 14px}
+@media (max-width:719px){.sheet .sh-actions>.btn-pri:last-child{flex:1 1 auto}}
+/* checkboxes inside forms */
+.sheet .check{display:flex;gap:10px;align-items:flex-start;margin:0 0 14px;font-size:var(--fs-md)}
+
+.sheet .money .input{padding-inline-start:58px!important}
+.sheet .money.big .input{padding-inline-start:66px!important}
+.sheet .money .cur{position:absolute;inset-inline-start:14px;top:50%;transform:translateY(-50%);z-index:1}
+.sheet .preview:has(> .fine:only-child){background:none;padding:0 2px}
+#resform .sh-scroll>.fhelp:first-child,#moneyform .sh-scroll>.fhelp{font-size:var(--fs-sm)!important}
+@media (max-width:359px){.sheet .grid2{grid-template-columns:1fr}}html.tz .sheet .grid2{grid-template-columns:1fr}
+.sheet .sh-scroll input,.sheet .sh-scroll select,.sheet .sh-scroll textarea{scroll-margin:16px 0 24px}
 </style>
 </head>
 <body>
@@ -1759,7 +1845,7 @@ cycleHint:'The day your budget resets each cycle. Use 1 for calendar months, or 
 profileBudget:'Profile & budget',appearLang:'Appearance & language',dataBackup:'Data & backup',danger:'Danger zone',eraseHint:'Permanently deletes all expenses, subscriptions and settings on every device.',
 retry:'Retry',send:'Send',message:'Message',currentCycle:'Current cycle',backCurrent:'Back to current',prevCycle:'Previous cycle',nextCycle:'Next cycle',close:'Close',
 editBudget:'Edit budget',saveBudget:'Save budget',cycleStarts:'Cycle starts',dayX:'Day {x}',yourName:'Your name (optional)',
-whereLbl:'Place or description',wherePh:'e.g. Talabat, ADNOC, Carrefour…',recentPlaces:'Recent places',scan:'Scan a receipt',
+whereLbl:'Place (optional)',wherePh:'e.g. Talabat, ADNOC, Carrefour',recentPlaces:'Recent places',scan:'Scan a receipt',
 copyBackup:'Copy backup',restoreBackup:'Restore backup',backupHint:'Copy your data as text to keep somewhere safe.',restoreHint:'Paste a backup, or choose a backup file.',
 eraseAll:'Erase everything',eraseTitle:'Erase all your data?',eraseYes:'Erase everything',syncOn:'Synced across your devices',syncOff:'Saved on this device only',syncWait:'Connecting…',
 quickAdd:'Quick add from your phone',shortcutTxt:'Add <bdi dir="ltr">#just-paid</bdi> to the end of this page’s link to open Add expense directly — handy for an iPhone Shortcut.',
@@ -1793,7 +1879,7 @@ cycleHint:'اليوم اللي تبدأ فيه ميزانيتك كل دورة. �
 profileBudget:'الملف والميزانية',appearLang:'المظهر واللغة',dataBackup:'البيانات والنسخ الاحتياطي',danger:'منطقة الخطر',eraseHint:'يمسح نهائياً كل المصاريف والاشتراكات والإعدادات على كل الأجهزة.',
 retry:'حاول مرة ثانية',send:'أرسل',message:'الرسالة',currentCycle:'الدورة الحالية',backCurrent:'رجوع للحالية',prevCycle:'الدورة السابقة',nextCycle:'الدورة التالية',close:'إغلاق',
 editBudget:'عدّل الميزانية',saveBudget:'احفظ الميزانية',cycleStarts:'بداية الدورة',dayX:'يوم {x}',yourName:'اسمك (اختياري)',
-whereLbl:'المكان أو الوصف',wherePh:'مثلاً طلبات، أدنوك، كارفور…',recentPlaces:'أماكن سابقة',scan:'صوّر الفاتورة',
+whereLbl:'المكان (اختياري)',wherePh:'مثلاً طلبات، أدنوك، كارفور',recentPlaces:'أماكن سابقة',scan:'صوّر الفاتورة',
 copyBackup:'نسخ النسخة الاحتياطية',restoreBackup:'استرجاع نسخة',backupHint:'انسخ بياناتك كنص واحفظها بمكان آمن.',restoreHint:'الصق النسخة أو اختر ملف.',
 eraseAll:'مسح كل شي',eraseTitle:'تبي تمسح كل بياناتك؟',eraseYes:'إي، امسح كل شي',syncOn:'متزامن بين أجهزتك',syncOff:'محفوظ على هالجهاز بس',syncWait:'جاري الاتصال…',
 quickAdd:'إضافة سريعة من تلفونك',shortcutTxt:'أضف ‎<bdi dir="ltr">#just-paid</bdi>‎ في آخر رابط الصفحة عشان تفتح "أضف مصروف" مباشرة — مفيد لاختصارات الآيفون.',
@@ -1828,7 +1914,7 @@ upcomingSubs:'Upcoming bills',subs:'Subscriptions',addSub:'Add a bill',editSub:'
 danger:'Delete all data',eraseAll:'Delete all data',eraseTitle:'Delete all your data?',eraseYes:'Yes, delete everything',
 dataBackup:'Backup',copyBackup:'Copy a backup',restoreBackup:'Restore from a backup',appearLang:'Look & language',profileBudget:'Your budget',
 saveBudget:'Save changes',editBudget:'Edit budget',dayX:'Day {x} of each month',limit:'Spending budget',ontrack:'On track',watch:'Spending a bit fast',over:'Over budget',
-monthlyEq:'Cost per month',nextRenewal:'Next bill',activeN:'Bills',subsCount:'{x} regular bills',spentShort:'Spent',nextPayday:'Next payday',askBannerT:'Need a hand with your budget?',askBannerS:'Get simple, personalised tips based on your spending.',upcomingPayments:'Upcoming payments',filledFrom:'Filled from what you typed:',checkBefore:'Check before saving.',saveAsBill:'Save as a regular bill instead',merchPh:'Type a place — e.g. Talabat, or “paid 45 at Talabat”…',subNamePh:'Type a service — e.g. YouTube Premium…',storePh:'Store or brand (optional) — e.g. noon, Amazon…',store:'Store',nextReq:'Choose the date of the next payment.',comingUp:'Coming up',nothingDue:'No bills or installments due in the next 30 days.',advTitle:'Salary & budget period',advSub:'Use your salary dates, or change when your budget starts.'});
+monthlyEq:'Cost per month',nextRenewal:'Next bill',activeN:'Bills',subsCount:'{x} regular bills',spentShort:'Spent',nextPayday:'Next payday',askBannerT:'Need a hand with your budget?',askBannerS:'Get simple, personalised tips based on your spending.',upcomingPayments:'Upcoming payments',filledFrom:'Filled from what you typed:',checkBefore:'Check before saving.',saveAsBill:'Save as a regular bill instead',merchPh:'Optional — e.g. Talabat',subNamePh:'Type a service — e.g. YouTube Premium…',storePh:'Store or brand (optional) — e.g. noon, Amazon…',store:'Store',nextReq:'Choose the date of the next payment.',comingUp:'Coming up',nothingDue:'No bills or installments due in the next 30 days.',advTitle:'Salary & budget period',advSub:'Use your salary dates, or change when your budget starts.'});
 Object.assign(T.ar,{insights:'الإنفاق',navOverview:'الإنفاق',thisCycle:'فترة الراتب هذي',payCycle:'فترة الراتب',month:'ميزانية شهرية',currentCycle:'فترة الراتب الحالية',prevCycle:'الفترة السابقة',nextCycle:'الفترة التالية',
 cycleStarts:'يوم بداية الميزانية',cycleDay:'يوم بداية الميزانية',income:'الدخل لكل فترة راتب',
 cycleHint:'ميزانيتك تبدأ من هاليوم لين اليوم اللي قبله في الشهر الجاي. أغلب الناس يختارون يوم الراتب. حط 1 عشان تمشي على الشهر العادي.',
@@ -1852,7 +1938,7 @@ upcomingSubs:'الفواتير الجاية',addSub:'أضف فاتورة',editSu
 danger:'مسح كل البيانات',eraseAll:'مسح كل البيانات',eraseTitle:'تبي تمسح كل بياناتك؟',eraseYes:'إي، امسح كل شي',
 dataBackup:'النسخ الاحتياطي',copyBackup:'انسخ نسخة احتياطية',restoreBackup:'استرجع من نسخة',appearLang:'الشكل واللغة',profileBudget:'ميزانيتك',
 saveBudget:'احفظ التغييرات',editBudget:'عدّل الميزانية',dayX:'يوم {x} من كل شهر',limit:'ميزانية الصرف',ontrack:'على المسار',watch:'تصرف بسرعة شوي',over:'تجاوزت الميزانية',
-monthlyEq:'التكلفة بالشهر',nextRenewal:'الفاتورة الجاية',activeN:'الفواتير',subsCount:'{x} فواتير متكررة',spentShort:'المصروف',nextPayday:'الراتب الجاي',askBannerT:'تحتاج مساعدة في ميزانيتك؟',askBannerS:'نصايح بسيطة على حسب مصاريفك.',upcomingPayments:'الدفعات الجاية',filledFrom:'عبّينا من اللي كتبته:',checkBefore:'راجع قبل الحفظ.',saveAsBill:'احفظه كفاتورة متكررة بدلاً',merchPh:'اكتب المكان — مثلاً طلبات، أو «دفعت 45 في طلبات»…',subNamePh:'اكتب الخدمة — مثلاً يوتيوب بريميوم…',storePh:'المتجر (اختياري) — مثلاً نون، أمازون…',store:'المتجر',nextReq:'اختار تاريخ الدفعة الجاية.',comingUp:'الجاي',nothingDue:'ما في فواتير أو أقساط مستحقة خلال 30 يوم.',advTitle:'الراتب وفترة الميزانية',advSub:'استخدم مواعيد راتبك أو غيّر بداية الميزانية.'});
+monthlyEq:'التكلفة بالشهر',nextRenewal:'الفاتورة الجاية',activeN:'الفواتير',subsCount:'{x} فواتير متكررة',spentShort:'المصروف',nextPayday:'الراتب الجاي',askBannerT:'تحتاج مساعدة في ميزانيتك؟',askBannerS:'نصايح بسيطة على حسب مصاريفك.',upcomingPayments:'الدفعات الجاية',filledFrom:'عبّينا من اللي كتبته:',checkBefore:'راجع قبل الحفظ.',saveAsBill:'احفظه كفاتورة متكررة بدلاً',merchPh:'اختياري — مثلاً طلبات',subNamePh:'اكتب الخدمة — مثلاً يوتيوب بريميوم…',storePh:'المتجر (اختياري) — مثلاً نون، أمازون…',store:'المتجر',nextReq:'اختار تاريخ الدفعة الجاية.',comingUp:'الجاي',nothingDue:'ما في فواتير أو أقساط مستحقة خلال 30 يوم.',advTitle:'الراتب وفترة الميزانية',advSub:'استخدم مواعيد راتبك أو غيّر بداية الميزانية.'});
 T.en.short={transport:'Transport',subs:'Monthly plans',fun:'Fun',bills:'Utilities'};T.en.cats.subs='Subscriptions & plans';T.en.cats.bills='Utility bills';T.ar.cats.subs='اشتراكات وباقات';T.ar.cats.bills='فواتير الخدمات';T.ar.short={transport:'مواصلات',subs:'اشتراكات',bills:'خدمات'};
 T.ar.short={transport:'مواصلات'};T.en.cats.transport='Fuel & transport';T.ar.cats.transport='بترول ومواصلات';T.en.cats.subs='Subscriptions';T.en.cats.fun='Entertainment';T.ar.cats.fun='ترفيه';
 
@@ -1867,7 +1953,7 @@ provider:'Provider',providerName:'Provider name (optional)',providerNamePh:'e.g.
 purchaseAmt:'Purchase amount',purchaseHelp:'The price of the item, without any fees. Add fees under “More options”.',numPayments:'Number of monthly payments',firstPayDate:'First payment date',
 moreOptions:'More options',deposit:'Deposit or amount already paid',depositHelp:'Paid upfront and not part of the schedule. It isn’t added as an expense — add it yourself if you haven’t.',
 feeAed:'One-time plan fee',feeHelp:'A fixed fee in AED added once to the total. Leave empty if there’s no fee.',firstPaid:'First payment already paid',firstPaidHelp:'It will be marked as paid and added to your expenses on its date.',
-editPaidNote:'Payments you’ve already made stay as they are. Only the unpaid payments are recalculated.',preview:'Payment preview',previewNeed:'Enter the purchase amount to see the payments.',
+editPaidNote:'Payments you’ve already made stay as they are. Only the unpaid payments are recalculated.',preview:'Payment preview',previewNeed:'Enter the amount to see each payment.',
 toSchedule:'To pay in instalments',nPayments:'{x} payments',countTooLow:'Choose more payments than you’ve already paid.',
 datePaid:'Date you paid',howRecord:'How should this appear in your expenses?',recNew:'Add it as a new expense',recNewHelp:'{x} under “Installments”.',recLink:'Use existing',recLinkHelp:'You already recorded this — link it, don’t add another.',noLinkCands:'No matching expense found to link.',back:'Back',confirmPaid:'Confirm payment',
 planDeleteT:'Delete this plan?',planDeleteText:'The plan and its unpaid payments will be removed. Payments you already marked as paid stay in your expenses so your history is kept.',planDeleteYes:'Delete plan',
@@ -2593,13 +2679,13 @@ function planForm(pl){
     <fieldset><legend>${t('provider')}</legend><input type="hidden" name="provider" value="${pl.provider}"><div class="seg" role="radiogroup" aria-label="${t('provider')}">${provOpt('tabby','Tabby')}${provOpt('tamara','Tamara')}${provOpt('other',lang()==='ar'?'أخرى':'Other')}</div>
       <div class="field" id="provnamef" style="margin:12px 0 0;${pl.provider==='other'?'':'display:none'}"><label class="flabel" for="pname">${t('providerName')}</label><input class="input" id="pname" name="providerName" value="${esc(pl.providerName||'')}" autocomplete="off" placeholder="${t('providerNamePh')}"></div></fieldset>
     <div class="field"><label class="flabel" for="plname">${t('purchaseName')}</label><input class="input" id="plname" name="name" value="${esc(pl.name)}" placeholder="${t('purchasePh')}" autocomplete="off" data-autofocus>${errHTML('plname-err')}</div>
-    <div class="field"><label class="flabel" for="plstore">${t('store')}</label><input type="hidden" name="brand" value="${pl.brand||''}"><div class="bwrap"><span class="bbadge">${pl.brand&&BRAND[pl.brand]?brandLogo(pl.brand,'sm'):''}</span><input class="input" id="plstore" name="store" value="${esc(pl.brand&&BRAND[pl.brand]?BRAND[pl.brand].name:'')}" placeholder="${t('storePh')}" autocomplete="off" spellcheck="false"></div></div>
-    <div class="field"><label class="flabel" for="plamt">${t('purchaseAmt')}</label><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="plamt" name="amount" inputmode="decimal" value="${pl.amount}" placeholder="0.00" autocomplete="off" aria-describedby="plamt-help"></div><p class="fhelp" id="plamt-help">${t('purchaseHelp')}</p>${errHTML('plamt-err')}</div>
+    <div class="field"><label class="flabel" for="plamt">${t('purchaseAmt')}</label><div class="money big"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="plamt" name="amount" inputmode="decimal" value="${pl.amount}" placeholder="0.00" autocomplete="off" aria-describedby="plamt-help"></div><p class="fhelp" id="plamt-help">${t('purchaseHelp')}</p>${errHTML('plamt-err')}</div>
     <div class="grid2">
-      <div class="field"><label class="flabel" for="plcount">${t('numPayments')}</label><select class="input" id="plcount" name="count">${Array.from({length:11},(_,i)=>i+2).map(n=>`<option value="${n}" ${+pl.count===n?'selected':''}>${n}</option>`).join('')}</select>${errHTML('plcount-err')}</div>
+      <div class="field"><label class="flabel" for="plcount">${t('numPayments')}</label><div class="stepper"><button type="button" class="ib" data-a="cntStep" data-d="-1" aria-label="${L('Fewer payments','دفعات أقل')}">−</button><output id="plcountv" aria-live="polite">${pl.count}</output><button type="button" class="ib" data-a="cntStep" data-d="1" aria-label="${L('More payments','دفعات أكثر')}">+</button></div><select class="sr" id="plcount" name="count" tabindex="-1" aria-hidden="true">${Array.from({length:11},(_,i)=>i+2).map(n=>`<option value="${n}" ${+pl.count===n?'selected':''}>${n}</option>`).join('')}</select>${errHTML('plcount-err')}</div>
       <div class="field"><label class="flabel" for="plfirst">${t('firstPayDate')}</label><input class="input" type="date" id="plfirst" name="first" value="${pl.first}" ${hasPaid?'readonly aria-readonly="true"':''}></div>
     </div>
-    <details class="more" ${(+pl.deposit||+pl.fee||pl.notes)?'open':''}><summary>${t('moreOptions')}${ic('down')}</summary><div class="inner">
+    <details class="more" ${(+pl.deposit||+pl.fee||pl.notes||pl.brand)?'open':''}><summary>${t('moreOptions')}${ic('down')}</summary><div class="inner">
+    <div class="field"><label class="flabel" for="plstore">${t('store')}</label><input type="hidden" name="brand" value="${pl.brand||''}"><div class="bwrap"><span class="bbadge">${pl.brand&&BRAND[pl.brand]?brandLogo(pl.brand,'sm'):''}</span><input class="input" id="plstore" name="store" value="${esc(pl.brand&&BRAND[pl.brand]?BRAND[pl.brand].name:'')}" placeholder="${t('storePh')}" autocomplete="off" spellcheck="false"></div></div>
       <div class="field"><label class="flabel" for="pldep">${t('deposit')}</label><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="pldep" name="deposit" inputmode="decimal" value="${pl.deposit||''}" placeholder="0" autocomplete="off"></div><p class="fhelp">${t('depositHelp')}</p></div>
       <div class="field"><label class="flabel" for="plfee">${t('feeAed')}</label><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="plfee" name="fee" inputmode="decimal" value="${pl.fee||''}" placeholder="0" autocomplete="off"></div><p class="fhelp">${t('feeHelp')}</p></div>
       ${isNew?`<label class="check"><input type="checkbox" name="firstPaid"><span>${t('firstPaid')}</span></label><p class="fhelp" style="margin:-8px 0 16px">${t('firstPaidHelp')}</p>`:''}
@@ -2613,14 +2699,16 @@ function readPlanForm(f){const sb=f.brand.value&&BRAND[f.brand.value]&&normT(f.s
 function updPlanPreview(){
   const f=$('#planform');if(!f)return;const v=readPlanForm(f);const pl=f.dataset.id&&S.inst.find(x=>x.id===f.dataset.id);
   const box=$('#planprev');
-  if(!(v.amount>0)){box.innerHTML=`<h3>${t('preview')}</h3><p class="fine">${t('previewNeed')}</p>`;return}
+  if(!(v.amount>0)){box.innerHTML=`<p class="fine" style="margin:0">${t('previewNeed')}</p>`;return}
   const sc=buildSchedule(v,pl?pl.payments:null);
-  box.innerHTML=`<h3>${t('preview')}</h3><dl class="calcl">
+  const per=sc.pays.filter(x=>!x.paid);const same=per.length&&per.every(x=>x.amt===per[0].amt);
+  box.innerHTML=`<p class="pv-head"><b><bdi>${sc.pays.length} × ${same?aedT2(per[0].amt):L('payments','دفعات')}</bdi></b><span>${L('monthly','شهرياً')} · ${L('total','الإجمالي')} <bdi>${aedT2(sc.total)}</bdi></span></p>
+    <details class="pv-more"><summary>${L('Details','التفاصيل')}${ic('down')}</summary><dl class="calcl">
     <div><dt>${t('purchaseAmt')}</dt><dd>${aedT2(v.amount)}</dd></div>
     ${v.deposit?`<div><dt>${t('deposit')}</dt><dd>− ${aedT2(sc.deposit)}</dd></div>`:''}
     ${v.fee?`<div><dt>${t('feeAed')}</dt><dd>+ ${aedT2(sc.fee)}</dd></div>`:''}
     <div><dt>${t('totalPayable')}</dt><dd>${aedT2(sc.total)}</dd></div>
-    <div class="tot"><dt>${t('toSchedule')} · ${t('nPayments',sc.pays.length)}</dt><dd>${aedT2(sc.toSched)}</dd></div></dl>
+    <div class="tot"><dt>${t('toSchedule')} · ${t('nPayments',sc.pays.length)}</dt><dd>${aedT2(sc.toSched)}</dd></div></dl></details>
     ${sc.ok?'':`<p class="ferr">${ic('alert')}<span>${t('countTooLow')}</span></p>`}
     <ol class="sched">${sc.pays.map((p,i)=>`<li><span>${fmtDate(p.due,{day:'numeric',month:'short',year:'numeric'})}</span><b class="num">${aedT2(p.amt)}</b>${p.paid?stPill('paid'):(i===0&&v.firstPaid?stPill('paid'):'')}</li>`).join('')}</ol>`;
 }
@@ -2786,13 +2874,13 @@ function expenseSheet(e,pre){
     ${e.inst?`<p class="note" style="margin:0 0 14px">${ic('layers')}<span>${t('linkedExpNote',esc((S.inst.find(x=>x.id===e.inst.plan)||{}).name||''))}</span></p>`:''}<div class="field"><label class="flabel" for="amt">${t('amountLbl')}</label>
       <div class="amt-field" id="amtwrap"><span class="c" aria-hidden="true">AED</span><input id="amt" name="amt" inputmode="decimal" placeholder="0.00" value="${e.amt}" autocomplete="off" data-autofocus aria-describedby="amt-err"></div>
       ${errHTML('amt-err')}
-      ${isNew&&AI&&AIimg?`<button type="button" class="btn btn-sec scan" data-a="scan">${ic('cam')}${t('scan')}</button><input type="file" id="scanfile" accept="image/*" hidden>`:''}
-      ${isNew?`<button type="button" class="btn btn-sec scan" data-a="pasteSms">${ic('copy')}${L('Paste bank SMS','الصق رسالة البنك')}</button>`:''}${isNew&&!AI&&!window.claude?`<button type="button" class="btn-text" data-a="aiKey">${ic('cam')}${L('Scan receipts with AI','اقرا الإيصالات بالذكاء')}</button>`:''}
-      <p class="aistat" id="aistat" aria-live="polite"></p></div>
+      ${isNew&&AI&&AIimg?`<div class="qfill"><button type="button" class="qf" data-a="scan">${ic('cam')}${t('scan')}</button><input type="file" id="scanfile" accept="image/*" hidden>`:`<div class="qfill">`}
+      ${isNew?`<button type="button" class="qf" data-a="pasteSms">${ic('copy')}${L('Paste bank SMS','الصق رسالة البنك')}</button>`:''}${isNew&&!AI&&!window.claude?`<button type="button" class="btn-text" data-a="aiKey">${ic('cam')}${L('Scan receipts with AI','اقرا الإيصالات بالذكاء')}</button>`:''}
+      </div><p class="aistat" id="aistat" aria-live="polite"></p></div>
+    <fieldset><legend>${t('category')}</legend><input type="hidden" name="cat" value="${e.cat}">
+      <div class="catgrid" role="radiogroup" aria-label="${t('category')}">${catOrder().map(c=>`<button type="button" class="catopt" role="radio" aria-checked="${c[0]===e.cat}" aria-label="${catName(c[0])}" data-a="pickCat" data-c="${c[0]}">${tile(c[0])}<span>${(T[lang()].short||{})[c[0]]||catName(c[0])}</span></button>`).join('')}</div></fieldset>
     <div class="field"><label class="flabel" for="m">${t('whereLbl')}</label><input type="hidden" name="brand" value="${e.brand||''}"><div class="bwrap"><span class="bbadge">${e.brand&&BRAND[e.brand]?brandLogo(e.brand,'sm'):''}</span><input class="input" id="m" name="m" placeholder="${t('merchPh')}" value="${esc(e.m)}" autocomplete="off" spellcheck="false"></div><p class="note warn" id="atmwarn" hidden>${ic('alert')}<span>${L('This looks like a cash withdrawal. Wafr counts cash when you spend it — add the purchases instead, so nothing is counted twice.','هذا شكله سحب كاش. وفر يحسب الكاش لما تصرفه — ضيف المشتريات بدال، عشان ما ينحسب مرتين.')}</span></p><button type="button" class="btn btn-sec subnudge" id="subnudge" data-a="asBill" hidden>${ic('repeat')}${t('saveAsBill')}</button>
       ${ms.length?`<div class="chips" style="margin-top:10px" aria-label="${t('recentPlaces')}">${ms.map(([m,o])=>`<button type="button" class="chip" data-a="pickM" data-m="${esc(m)}" data-c="${o.cat}" data-b="${o.brand||''}" aria-pressed="false">${o.brand&&BRAND[o.brand]?brandLogo(o.brand,'xs'):ic(catOf(o.cat)[1])}<span>${esc(m)}</span></button>`).join('')}</div>`:''}</div>
-    <fieldset><legend>${t('category')}</legend><input type="hidden" name="cat" value="${e.cat}">
-      <div class="catgrid" role="radiogroup" aria-label="${t('category')}">${CATS.map(c=>`<button type="button" class="catopt" role="radio" aria-checked="${c[0]===e.cat}" aria-label="${catName(c[0])}" data-a="pickCat" data-c="${c[0]}">${tile(c[0])}<span>${(T[lang()].short||{})[c[0]]||catName(c[0])}</span></button>`).join('')}</div></fieldset>
     <div class="field"><label class="flabel" for="date">${t('dateLbl')}</label><input class="input" type="date" id="date" name="date" value="${e.date}" max="${addD(today(),366)}"></div>
     <input type="hidden" name="res" value="${e.res||''}">${rx?`<p class="note" style="margin:0 0 14px">${ic('target')}<span>${L('Paying planned cost','دفع مصروف مخطط')}: <b>${esc(rx.name)}</b> · ${L('set aside','على جنب')} <bdi>${aedT(resLeft(rx))}</bdi></span></p>`:''}
     <details class="more" ${e.note||e.pay==='cash'||e.oneoff||e.split?'open':''}><summary>${t('moreDetails')}${ic('down')}</summary><div class="inner">
@@ -2804,7 +2892,7 @@ function expenseSheet(e,pre){
       <div class="field"><label class="flabel" for="note">${t('noteLbl')}</label><input class="input" id="note" name="note" placeholder="${t('notePh')}" value="${esc(e.note)}" autocomplete="off"></div>
       ${isNew?`<div class="field"><label class="flabel" for="smsbox">${t('smsLbl')}</label><textarea class="input" id="smsbox" placeholder="${t('smsPh')}"></textarea></div>`:''}
     </div></details>
-  </div><div class="sh-actions">${!isNew?`<button class="btn btn-ghost-danger" type="button" data-a="delExp" data-id="${e.id}">${ic('trash')}${t('del')}</button>${!e.inst&&!e.sub&&refundable(e)>0?`<button class="btn btn-sec" type="button" data-a="addRefund" data-id="${e.id}">${ic('undo')}${L('Refund','استرجاع')}</button>`:''}`:''}<span class="grow"></span><button class="btn btn-pri" type="submit">${t('saveExpense')}</button></div></form>`);
+  </div><div class="sh-actions">${!isNew?`<button class="btn btn-ghost-danger" type="button" data-a="delExp" data-id="${e.id}">${ic('trash')}${t('del')}</button>${!e.inst&&!e.sub&&refundable(e)>0?`<button class="btn btn-sec" type="button" data-a="addRefund" data-id="${e.id}">${ic('undo')}${L('Refund','استرجاع')}</button>`:''}`:''}<span class="grow"></span>${isNew?`<button class="btn btn-sec again" type="submit" data-again="1" aria-label="${L('Save and add another','احفظ وأضف ثاني')}">${ic('plus')}${L('Another','ثاني')}</button>`:''}<button class="btn btn-pri" type="submit">${t('saveExpense')}</button></div></form>`);
 }
 function parseSMS(x){x=String(x).replace(/[٠-٩]/g,d=>'٠١٢٣٤٥٦٧٨٩'.indexOf(d));
   const a=x.match(/(?:AED|د\.?إ|درهم)\s*([\d,]+(?:\.\d{1,2})?)/i)||x.match(/([\d,]+(?:\.\d{1,2})?)\s*(?:AED|د\.?إ|درهم)/i);
@@ -2844,11 +2932,10 @@ function subSheet(s,pre){
   const isNew=!s;s=s||{name:'',amt:'',every:1,next:addD(today(),1),cat:'subs',...(pre||{})};
   openSheet(isNew?t('addSub'):t('editSub'),`<form class="sh-form" id="subform" data-id="${s.id||''}" novalidate><div class="sh-scroll">
     ${isNew?platGrid():''}<div class="field"><label class="flabel" for="sname">${t('name')}</label><input type="hidden" name="brand" value="${s.brand||''}"><div class="bwrap"><span class="bbadge">${s.brand&&BRAND[s.brand]?brandLogo(s.brand,'sm'):''}</span><input class="input" id="sname" name="name" value="${esc(s.name)}" placeholder="${t('subNamePh')}" autocomplete="off" spellcheck="false" data-autofocus></div>${errHTML('sname-err')}</div>
-    <div id="splans">${planChips(s.brand,s)}</div><div class="field"><label class="flabel" for="samt">${t('amountLbl')}</label><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="samt" name="amt" inputmode="decimal" value="${s.amt}" autocomplete="off" placeholder="0.00"></div>${errHTML('samt-err')}</div>
+    <div id="splans">${planChips(s.brand,s)}</div><div class="grid2 amt-freq"><div class="field"><label class="flabel" for="samt">${t('amountLbl')}</label><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="samt" name="amt" inputmode="decimal" value="${s.amt}" autocomplete="off" placeholder="0.00"></div>${errHTML('samt-err')}</div><div class="field"><label class="flabel" for="severy">${t('billing')}</label><select class="input" id="severy" name="every">${[1,3,6,12].map(v=>`<option value="${v}" ${+s.every===v?'selected':''}>${freqTxt(v)}</option>`).join('')}</select></div></div>
     ${!isNew?`<div class="field" id="seffw" hidden><label class="flabel" for="seff">${L('New price starts from','السعر الجديد يبدأ من')}</label><input class="input" type="date" id="seff" name="eff" value="${s.next}"><p class="fhelp">${L('Past payments keep their old amount.','الدفعات السابقة تبقى بمبلغها القديم.')}</p></div>`:''}
-    <div class="field"><label class="flabel" for="severy">${t('billing')}</label><select class="input" id="severy" name="every">${[1,3,6,12].map(v=>`<option value="${v}" ${+s.every===v?'selected':''}>${freqTxt(v)}</option>`).join('')}</select></div>
     <div class="field"><label class="flabel" for="snext">${t('nextBill')}</label><input class="input" type="date" id="snext" name="next" value="${s.next||''}" required>${errHTML('snext-err')}</div>
-    <p class="fhelp">${t('autoLog2')}</p>
+    <p class="fine">${t('autoLog2')}</p>
   </div><div class="sh-actions">${!isNew?`<button class="btn btn-ghost-danger" type="button" data-a="delSub" data-id="${s.id}">${ic('trash')}${t('del')}</button>`:''}<span class="grow"></span><button class="btn btn-pri" type="submit">${t('saveSub')}</button></div></form>`);
 }
 function budgetFields(st,isWelcome,edit){st=st||{};const sal=edit&&st.incomeMode==='salary';
@@ -3556,6 +3643,37 @@ const isFoodName=m=>{const q=normT(m);return!!q&&!/careem(?! food)|uber/.test(q)
 function guessCat(m){if(!m)return null;if(/careem ?food|noon ?food|كريم فود|نون فود/i.test(normT(m)))return'food';const b=resolveBrandExact(m);if(b&&BRAND[b])return BRAND[b].cat;if(isFuelName(m))return'transport';if(isFoodName(m))return'food';return null}
 document.addEventListener('input',e=>{if(e.target.name!=='m')return;const f=e.target.closest('#expform');if(!f||f.dataset.catTouched||f.brand.value)return;
   const c=guessCat(e.target.value.trim());const cur=f.cat.value;if(c&&c!==cur&&(cur==='other'||f.dataset.catAuto)){const b=f.querySelector(`.catopt[data-c="${c}"]`);if(b){A.pickCat(b);delete f.dataset.catTouched;f.dataset.catAuto='1'}}});
+A.cntStep=el=>{const sel=$('#plcount');if(!sel)return;const v=Math.min(12,Math.max(2,+sel.value+ +el.dataset.d));sel.value=v;$('#plcountv').textContent=v;sel.dispatchEvent(new Event('change',{bubbles:true}));if(typeof updPlanPreview==='function')updPlanPreview();sheetDirty=true};
+/* ===== Form system helpers: category order, date display, draft, double-submit guard, repeat entry ===== */
+function catOrder(){const n={},lim=addD(today(),-90);allExp().forEach(e=>{if(!e.kind&&e.date>=lim)n[e.cat]=(n[e.cat]||0)+1});
+  return CATS.map((c,i)=>[c,i]).sort((a,b)=>((n[b[0][0]]||0)-(n[a[0][0]]||0))||(a[1]-b[1])).map(x=>x[0]).sort((a,b)=>(a[0]==='other')-(b[0]==='other'))}
+/* one readable date label for every native date field (fixes RTL "Nov 2026 3"; shows Today / Yesterday / Tomorrow) */
+function dateText(v){if(!v)return L('Pick a date','اختار تاريخ');const d=diffD(today(),v);
+  const full=P(v).toLocaleDateString(loc(),{day:'numeric',month:'long',year:'numeric'});
+  return d===0?L('Today','اليوم')+' · '+P(v).toLocaleDateString(loc(),{day:'numeric',month:'short'}):d===-1?L('Yesterday','أمس')+' · '+P(v).toLocaleDateString(loc(),{day:'numeric',month:'short'}):d===1?L('Tomorrow','بكرة')+' · '+P(v).toLocaleDateString(loc(),{day:'numeric',month:'short'}):full}
+function enhanceDates(root){(root||document).querySelectorAll('#sheet input[type=date]:not([data-dx]),#main input[type=date]:not([data-dx])').forEach(inp=>{inp.dataset.dx='1';
+  const w=document.createElement('span');w.className='dfield';inp.parentNode.insertBefore(w,inp);w.appendChild(inp);
+  const lab=document.createElement('span');lab.className='dval';lab.setAttribute('aria-hidden','true');w.insertBefore(lab,inp);
+  const ico=document.createElement('span');ico.className='dico';ico.setAttribute('aria-hidden','true');ico.innerHTML=ic('cal');w.appendChild(ico);
+  const upd=()=>{lab.innerHTML='<bdi>'+esc(dateText(inp.value))+'</bdi>';w.classList.toggle('ro',inp.readOnly)};upd();inp.addEventListener('input',upd);inp.addEventListener('change',upd)})}
+new MutationObserver(()=>enhanceDates()).observe(document.documentElement,{childList:true,subtree:true});
+/* keep an unsaved new expense if the sheet is dismissed (restored for 15 min) */
+const DRAFT_LS='wafr.expDraft';
+function saveDraft(){const f=$('#expform');if(!f||f.dataset.id||f.dataset.saved)return;const d={amt:f.amt.value.trim(),m:f.m.value.trim(),cat:f.cat.value,note:(f.note&&f.note.value||'').trim(),at:Date.now()};
+  try{if(d.amt||d.m||d.note)localStorage.setItem(DRAFT_LS,JSON.stringify(d));else localStorage.removeItem(DRAFT_LS)}catch(_){}}
+function takeDraft(){try{const d=JSON.parse(localStorage.getItem(DRAFT_LS)||'null');localStorage.removeItem(DRAFT_LS);return d&&Date.now()-d.at<15*60e3?d:null}catch(_){return null}}
+const _closeSheetD=closeSheet;closeSheet=function(force){saveDraft();return _closeSheetD(force)};
+const _expenseSheetD=expenseSheet;expenseSheet=function(e,pre){const d=!e&&!pre?takeDraft():null;_expenseSheetD(e,d?{amt:d.amt,m:d.m,cat:d.cat}:pre);
+  if(d){const f=$('#expform');if(f&&d.note&&f.note)f.note.value=d.note;const st=$('#aistat');if(st)st.innerHTML=`${L('Unsaved entry restored.','رجعنا الإدخال اللي ما انحفظ.')} <button type="button" class="btn-text" data-a="clearDraft">${L('Clear','امسح')}</button>`}};
+A.clearDraft=()=>{const f=$('#expform');if(!f)return;f.reset();f.amt.value='';f.m.value='';const o=f.querySelector('.catopt[data-c="other"]');if(o)A.pickCat(o);const st=$('#aistat');if(st)st.textContent='';f.amt.focus()};
+/* ignore a second submit of the same form (double tap) and support "Save + add another" */
+let lastSub={f:null,t:0},againNext=false;
+document.addEventListener('submit',e=>{const f=e.target;const now=Date.now();if(lastSub.f===f&&now-lastSub.t<1200){e.preventDefault();e.stopImmediatePropagation();return}lastSub={f,t:now};
+  if(f.id==='expform'){f.dataset.saved='1';againNext=!!(e.submitter&&e.submitter.dataset.again)}},true);
+document.addEventListener('submit',e=>{const f=e.target;if(f.id!=='expform')return;
+  setTimeout(()=>{if($('#expform')===f&&$('#overlay').classList.contains('open'))delete f.dataset.saved},0);/* save failed validation: keep draft behaviour */
+  if(againNext){againNext=false;const old=f,t0=Date.now();const tick=()=>{const cur=$('#expform');if(cur===old&&$('#overlay').classList.contains('open'))return;/* save failed: stay */
+    if($('#overlay').hidden||!cur){expenseSheet();return}if(Date.now()-t0<1500)setTimeout(tick,60)};setTimeout(tick,120)}});
 /* ===== Unified Expenses: one range model (pay period = budget periods via calc; other ranges = calendar) ===== */
 function expData(){const k=(S.rng&&S.rng.k)||'period';
   if(k==='period'){const r=calc(S.off);let prev=null;try{prev=calc(S.off-1).list}catch(_){}return{mode:'period',k,r,list:r.list,prev,cur:r.cur,label:cycleLabel(r.p)}}
@@ -4264,6 +4382,10 @@ renderAll=function(){const prev=MO.view;_renderAllMO();MO.view=S.view;const m=$(
   if(S.view==='home'){const changed=MO.num.home!=null;moCount(m.querySelector('.ch-amt bdi'),'home');moBar(m.querySelector('.tm-bar i'),'home');
     const nowAmt=MO.num.home;if(changed&&!RM()&&MO.lastHome!=null&&MO.lastHome!==nowAmt){const h=m.querySelector('.calm-hero');if(h)h.animate([{transform:'scale(1)'},{transform:'scale(.985)'},{transform:'scale(1)'}],{duration:420,easing:E_SPRING})}MO.lastHome=nowAmt}
   if(S.view==='insights')moCount(m.querySelector('.rt-amt bdi'),'spent:'+S.rng.k+':'+S.rng.off)};
+/* keep the focused field visible above the keyboard */
+document.addEventListener('focusin',e=>{const el=e.target;if(!el.closest||!el.closest('#sheet .sh-scroll')||!/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName))return;setTimeout(()=>{try{el.scrollIntoView({block:'nearest',behavior:RM()?'auto':'smooth'})}catch(_){}},250)});
+/* save an unsaved new expense as soon as closing starts (also covers swipe-down) */
+{const _csD=closeSheet;closeSheet=function(force){saveDraft();return _csD(force)}}
 if(S.settings)processSubs();
 renderAll();
 if(!S.settings)setTimeout(()=>{if(!S.settings&&!S.pendingAuto)welcomeSheet()},1200);

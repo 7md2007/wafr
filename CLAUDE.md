@@ -71,7 +71,14 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
   **Design system** = last block of the main <style> ("WAFR DESIGN SYSTEM"): tokens `--c-*` (bg/surface/surface-2/elevated/text/
   text-2/border/border-strong/accent/hero/track), type scale `--fs-*`, radii `--r-*`, spacing `--sp-*`; shared components (page header,
   section header, card, stat card, list row, bars, buttons, chips, range bar). Legacy variable names map onto these tokens.
-  Before-redesign copies: branches `old-version-v2` (navy/gold), `old-version-v3` (first emerald), `old-version-v4` (before unification).
+  **Form system** (Nov 2026, after the design system block): compact 48px inputs, one big amount per form, pill category picker
+  ordered by recent use (`catOrder()`), readable date label over native pickers (`enhanceDates()`/`dateText()`, fixes RTL dates),
+  stepper for installment count (`cntStep`), compact installment preview, sticky actions. Expense: Amount → Category → Place
+  (optional) → Date; "+ Another" (save & reopen), draft kept 15 min if dismissed (`wafr.expDraft`), double-submit guard.
+  Installment: store/deposit/fee/notes under More options. Subscription: amount + frequency on one row.
+  `yourMoneySheet()` = Your money screen (was a duplicate `moneySheet` name that broke "Salary received").
+  Before-redesign copies: branches `old-version-v2` (navy/gold), `old-version-v3` (first emerald), `old-version-v4` (before unification),
+  `old-version-v5` (before form redesign).
 
 ## Tests
 `node tests/finance.test.js` (Playwright; needs `playwright` installed, open index.html). 42 tests must pass:
