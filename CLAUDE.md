@@ -58,12 +58,14 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
 - AI chat proposes expenses as cards; nothing saved until the user taps Add. Daily AI limits in `AI_LIMITS`.
 - UI modules were appended in order inside the single file (search for comment banners "Money engine UI", "Transactions", "Import & trust",
   "Calm redesign", "Round 3", "Apple-style interaction layer", "AI outside Claude"). Later modules override earlier views (e.g. `VIEWS.home=homeV3`).
-- Design (Nov 2026): **Emerald & Ivory** (owner's choice, replaced navy + gold). Final token layer at the end of the main <style>
-  (light: ivory #F7F5EE / white cards / hero #103D35 / action #24745F; dark: #081C19 / #102B26 / hero #164B40 / action #A8D5BA),
-  contrast-checked to WCAG AA. Falcon card + skyline JPEGs recoloured to emerald with a mint falcon (no gold). Fonts Inter + IBM Plex
-  Sans Arabic are bundled in `fonts/` (OFL licences included) — no Google Fonts. Home hero: "Available to spend today" big,
-  "Spent today X / Y" + bar, inline "How it's calculated"; More is grouped (My finances, Appearance, Smart features, Privacy & data, Help).
-  Before-redesign copy: branch `old-version-v2`. Springy sheets, reduced-motion, in-app text size (1 / 1.15 / 1.3) all supported.
+- Design (Nov 2026, 2nd pass): **Midnight Emerald** dark (charcoal #0C1114 / cards #171F23 / elevated #20322F / accent #7AD0AE /
+  text #F5F7F6 / #A9B6B4 / borders #30403F; emerald only for actions, progress, selection and the hero #143A32) + **Emerald & Ivory**
+  light (#F7F5EE / #FFFFFF / hero #103D35 / accent #24745F / text #173D35). Both contrast-checked (WCAG AA). Final token layer is at
+  the end of the main <style>. No skyline; small transparent mint falcon (`--falcon-img`) in the hero corner. Fonts Inter + IBM Plex
+  Sans Arabic bundled in `fonts/` (OFL) — no Google Fonts. Home: compact header (greeting, date · period, status badge) → hero
+  ("Available to spend today", "Spent today X / Y" bar, Add expense) → glance row (Tomorrow, Next payday, Can I afford it) → collapsible
+  "How it's calculated" card → tiles → needs → coming up → insight → recent. More: profile card + grouped compact rows.
+  Before-redesign copies: branches `old-version-v2` (navy/gold), `old-version-v3` (first emerald pass).
 
 ## Tests
 `node tests/finance.test.js` (Playwright; needs `playwright` installed, open index.html). 42 tests must pass:

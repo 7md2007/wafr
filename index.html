@@ -1484,6 +1484,42 @@ html.tz .glance{grid-template-columns:1fr 1fr}html.tz .glance .gl-btn{grid-colum
 .home-head.hh2{flex-wrap:nowrap!important}.hh2 .hh-l{flex:1 1 auto;width:auto!important}
 .hh-sub{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-top:4px}.hh-sub .psub{margin:0!important}.hh2 .hh-l{width:100%!important}
 .hh-sub .psub{flex:0 1 auto!important;width:auto!important;min-width:0}.hh-sub .badge{margin:0!important}
+
+/* ----- More v3: compact separated groups ----- */
+.settings .mo-grp .card{padding:0;border-radius:18px;overflow:hidden}
+.settings .srow{min-height:56px;padding:9px 14px;gap:12px}
+.settings .srow .main b{font-size:16px;line-height:1.3}.settings .srow .main>span{font-size:13px;line-height:1.35;margin-top:1px}
+.settings .srow .tile{width:34px;height:34px;border-radius:10px}
+.mo-grp{margin:0 0 20px}.mo-grp h2{font-size:13px!important;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--tx2)!important;margin:0 6px 8px}
+html[lang=ar] .mo-grp h2{text-transform:none;letter-spacing:0;font-size:14px!important}
+.mo-prof{padding:14px;border-radius:20px;margin-bottom:20px}
+html:not(.light) .mo-prof{background:var(--hero-bg)}
+.mo-pm span{line-height:1.4}
+.settings .seg button{min-height:40px}
+#main .pagewrap>div:first-child h1,#main>div:first-child h1,#main h1{font-size:28px}
+html[lang=ar] #main h1{font-size:26px}
+.mo-prof{flex-wrap:wrap}.mo-pm{flex:1 1 60%}.mo-nums{display:flex!important;gap:14px;margin-top:6px!important}
+.mo-nums>span{display:flex;flex-direction:column;font-weight:700;font-size:15px;color:#fff}.mo-nums small{font-weight:500;font-size:11px;color:var(--hero-tx2);text-transform:uppercase;letter-spacing:.04em}
+html[lang=ar] .mo-nums small{text-transform:none;letter-spacing:0;font-size:12px}
+.mo-prof .mo-av{align-self:flex-start}.mo-prof .btn{align-self:flex-start}
+.mo-prof{position:relative;flex-wrap:nowrap}.mo-pm{flex:1 1 auto}.mo-prof .btn{position:absolute;top:12px;inset-inline-end:12px;min-height:36px;padding:0 12px}.mo-pm>b{padding-inline-end:84px}
+
+/* ----- Expenses & Subscriptions v3 ----- */
+#main .list.clean .row{min-height:60px;padding:9px 14px}
+#main .row .main b{font-size:16px}#main .row .main>span{font-size:13px}
+#main .row .amt,#main .row .end .amt{font-size:16px;font-weight:700}
+.lgroup h3,.dayhead,.grp-h{font-size:13px}
+.es-card,.sb-tile,.hm-tile,.glance,.calc-card,.nd-bars{box-shadow:none!important}
+.es-amt{font-size:28px}
+.sb-tile.wide{background:var(--panel);border:1px solid var(--panel-line);border-inline-start:3px solid var(--acc)}
+#main .pagewrap>div:first-child,#main>div:first-child{align-items:center}
+.shead2 .btn,.pghead .btn{min-height:40px}
+.phead{flex-wrap:wrap!important;align-items:center!important;margin:4px 0 14px!important}.phead>div:first-child{min-width:min-content;flex:1 1 auto}.phead .acts{flex:none}
+#main h1{overflow-wrap:normal!important;hyphens:manual!important;word-break:normal!important}
+#main .phead h1{font-size:clamp(22px,7.6vw,28px)}html.tz #main .phead h1{font-size:clamp(20px,7vw,28px)}
+.phead>div:first-child{min-width:0!important}
+.mo-nums{flex-wrap:wrap;row-gap:4px}
+@media (max-width:359px){.mo-prof .btn{position:static;align-self:flex-start}.mo-pm>b{padding-inline-end:0}.mo-prof{flex-wrap:wrap}}
 </style>
 </head>
 <body>
@@ -1721,7 +1757,7 @@ monthlyEq:'التكلفة بالشهر',nextRenewal:'الفاتورة الجاي
 T.en.short={transport:'Transport',subs:'Monthly plans',fun:'Fun',bills:'Utilities'};T.en.cats.subs='Subscriptions & plans';T.en.cats.bills='Utility bills';T.ar.cats.subs='اشتراكات وباقات';T.ar.cats.bills='فواتير الخدمات';T.ar.short={transport:'مواصلات',subs:'اشتراكات',bills:'خدمات'};
 T.ar.short={transport:'مواصلات'};T.en.cats.transport='Fuel & transport';T.ar.cats.transport='بترول ومواصلات';T.en.cats.subs='Subscriptions';T.en.cats.fun='Entertainment';T.ar.cats.fun='ترفيه';
 
-Object.assign(T.en,{installments:'Installments',instSub:'Purchases you’re paying in parts, like Tabby or Tamara.',addPlan:'Add installment plan',editPlan:'Edit plan',savePlan:'Save plan',saveChanges:'Save changes',
+Object.assign(T.en,{installments:'Installments',instSub:'Tabby, Tamara and other plans',addPlan:'Add installment plan',editPlan:'Edit plan',savePlan:'Save plan',saveChanges:'Save changes',
 instEmptyT:'No installment plans yet',instEmpty:'Keep track of purchases you’re paying in parts.',stillToPay:'Still to pay',dueThisPeriod:'Due this pay period',nextPayment:'Next payment',overdueX:'{x} overdue',
 instReserveNote:'Wafr sets money aside for unpaid payments due this pay period (and any overdue ones) before working out your daily allowance.',
 activePlans:'Active plans',completedPlans:'Completed plans',noActive:'No active plans right now.',instDisclaimer:'Wafr isn’t connected to Tabby, Tamara or any provider. Enter the amounts and dates from your own agreement.',
@@ -2460,19 +2496,16 @@ more(){
   const link=(href,icon,c,title,val)=>`<li><a class="srow" href="${href}"><span class="tile" style="--c:${c}">${ic(icon)}</span><span class="main"><b>${title}</b>${val?`<span>${val}</span>`:''}</span>${ic('r','flip chev')}</a></li>`;
   const r0=calc(0);
   return pageHead(L('More','المزيد'))+`<div class="settings">
-  <section class="mo-prof"><span class="mo-av" aria-hidden="true">${esc((st.name||'W').trim().charAt(0).toUpperCase())}</span><span class="mo-pm"><b>${esc(st.name||L('Your budget','ميزانيتك'))}</b><span>${L('Income this period','الدخل هالفترة')} <bdi>${aedT(r0.income)}</bdi> · ${L('Planned savings','الادخار المخطط')} <bdi>${aedT(st.savings||0)}</bdi></span></span><button class="btn btn-sec sm" data-a="editBudget">${ic('edit')}${L('Edit','تعديل')}</button></section>
+  <section class="mo-prof"><span class="mo-av" aria-hidden="true">${esc((st.name||'W').trim().charAt(0).toUpperCase())}</span><span class="mo-pm"><b><bdi>${esc(st.name||L('Your budget','ميزانيتك'))}</bdi></b><span class="mo-nums"><span><small>${L('Income','الدخل')}</small><bdi>${fmtN(r0.income)}</bdi></span><span><small>${L('Savings','الادخار')}</small><bdi>${fmtN(st.savings||0)}</bdi></span><span><small>${L('To spend','للصرف')}</small><bdi>${fmtN(r0.limit)}</bdi></span></span></span><button class="btn btn-sec sm" data-a="editBudget">${ic('edit')}${L('Edit','تعديل')}</button></section>
   <section class="mo-grp" aria-labelledby="s-fin"><h2 id="s-fin">${L('My finances','فلوسي')}</h2><div class="card"><ul class="list">
     <li><button class="srow" data-a="editBudget"><span class="tile">${ic('wallet')}</span><span class="main"><b>${L('Your money','فلوسك')}</b><span>${L('Paydays, income and savings','أيام الراتب، الدخل والادخار')}</span></span>${ic('r','flip chev')}</button></li>
     <li><button class="srow" data-a="needs"><span class="tile">${ic('target')}</span><span class="main"><b>${L('Monthly needs','الاحتياجات الشهرية')}</b><span>${(st.pots||[]).length?(st.pots||[]).map(potName).join(', '):L('Food, petrol, groceries and more','أكل، بترول، مقاضي وغيرها')}</span></span>${ic('r','flip chev')}</button></li>
-    <li><button class="srow" data-a="money"><span class="tile">${ic('inflow')}</span><span class="main"><b>${st.incomeMode==='irregular'?L('Money received','فلوس وصلت'):L('Salary received / extra income','وصل الراتب / دخل إضافي')}</b><span>${L('Confirm money that actually arrived','أكد الفلوس اللي فعلاً وصلت')}</span></span>${ic('r','flip chev')}</button></li>
-    <li><button class="srow" data-a="openingSheet"><span class="tile">${ic('wallet')}</span><span class="main"><b>${L('Start from today’s balance','ابدأ من رصيد اليوم')}</b><span>${st.opening&&st.opening.date===calc(0).p.start?L(`Started ${fmtDate(st.opening.date)} from `,`بديت ${fmtDate(st.opening.date)} من `)+`<bdi>${aedT(st.opening.amt)}</bdi>`:L('For joining mid-period: use the money you have now','لو بديت بنص الفترة: استخدم الفلوس اللي عندك الحين')}</span></span>${ic('r','flip chev')}</button></li>
+    <li><button class="srow" data-a="money"><span class="tile">${ic('inflow')}</span><span class="main"><b>${st.incomeMode==='irregular'?L('Money received','فلوس وصلت'):L('Salary received / extra income','وصل الراتب / دخل إضافي')}</b><span>${L('Confirm what arrived','أكد الفلوس اللي فعلاً وصلت')}</span></span>${ic('r','flip chev')}</button></li>
+    <li><button class="srow" data-a="openingSheet"><span class="tile">${ic('wallet')}</span><span class="main"><b>${L('Start from today’s balance','ابدأ من رصيد اليوم')}</b><span>${st.opening&&st.opening.date===calc(0).p.start?L(`Started ${fmtDate(st.opening.date)} from `,`بديت ${fmtDate(st.opening.date)} من `)+`<bdi>${aedT(st.opening.amt)}</bdi>`:L('Use the money you have now','لو بديت بنص الفترة: استخدم الفلوس اللي عندك الحين')}</span></span>${ic('r','flip chev')}</button></li>
     <li><button class="srow" data-a="balance"><span class="tile">${ic('scale')}</span><span class="main"><b>${L('Check my balance','راجع رصيدي')}</b><span>${reviewedLine()}</span></span>${ic('r','flip chev')}</button></li>
     <li><button class="srow" data-a="checkin"><span class="tile">${ic('clock')}</span><span class="main"><b>${L('Evening check-in','مراجعة المسا')}</b><span>${st.checkin&&st.checkin.on?L(`On · ${st.checkin.time}`,`شغال · ${st.checkin.time}`):L('Off','مطفي')}</span></span>${ic('r','flip chev')}</button></li>
     ${link('#insights','chart','#7E4FCC',t('navOverview'),L('What you spent in any time range','كم صرفت في أي فترة'))}
     ${link('#installments','layers','#3F5FD0',t('installments'),t('instSub'))}
-    <li><div class="srow"><span class="main"><b>${t('incomeUsed')}</b><span>${cycleLabel(calc(0).p)}</span></span><span class="val num">${aedT(calc(0).income)}</span></div></li>
-    <li><div class="srow wrap"><span class="main"><b>${t('savingsMonthly')}</b><span>${t('savingsTargetHint')}</span></span><span class="val num">${aedT(st.savings)}</span></div></li>
-    <li><div class="srow"><span class="main"><b>${t('limit')}</b><span>${lang()==='ar'?'لفترة الميزانية الحالية':'For the current budget period'}</span></span><span class="val num">${aedT(calc(0).limit)}</span></div></li>
   </ul></div></section>
   <section class="mo-grp" aria-labelledby="s-app"><h2 id="s-app">${t('appearLang')}</h2><div class="card"><ul class="list">
     <li><div class="srow wrap"><span class="main"><b>${t('theme')}</b></span>${seg('theme',[['light',t('light'),1],['dark',t('dark'),1],['auto',t('auto'),1]],t('theme'))}</div></li>
@@ -2486,7 +2519,7 @@ more(){
     <li><button class="srow" data-a="automation"><span class="tile">${ic('repeat')}</span><span class="main"><b>${L('Automatic expenses','المصاريف التلقائية')}</b><span>${(S.settings.autoCfg||{}).off?L('Off','مطفي'):(S.settings.autoCfg||{}).last?L('Working','شغال'):L('Set up Apple Pay or bank messages','اربط أبل باي أو رسايل البنك')}</span></span>${ic('r','flip chev')}</button></li>
   </ul></div></section>
   <section class="mo-grp" aria-labelledby="s-data"><h2 id="s-data">${L('Privacy & data','الخصوصية والبيانات')}</h2><div class="card"><ul class="list">
-    <li><button class="srow" data-a="privacy"><span class="tile">${ic('shield')}</span><span class="main"><b>${L('Privacy & your data','الخصوصية وبياناتك')}</b><span>${L('What’s stored where, AI and sync choices, export, delete','وين تنحفظ البيانات، الذكاء والمزامنة، التصدير والمسح')}</span></span>${ic('r','flip chev')}</button></li>
+    <li><button class="srow" data-a="privacy"><span class="tile">${ic('shield')}</span><span class="main"><b>${L('Privacy & your data','الخصوصية وبياناتك')}</b><span>${L('Storage, AI, export, delete','وين تنحفظ البيانات، الذكاء والمزامنة، التصدير والمسح')}</span></span>${ic('r','flip chev')}</button></li>
     <li><div class="srow"><span class="main"><b>${syncState==='on'?t('syncOn'):syncState==='wait'?t('syncWait'):t('syncOff')}</b></span><span class="sync ${syncState==='on'?'on':''}"><i class="syncdot"></i></span></div></li>
     <li><button class="srow" data-a="export"><span class="tile" style="--c:#2A73C0">${ic('copy')}</span><span class="main"><b>${t('copyBackup')}</b><span>${t('backupHint')}</span></span>${ic('r','flip chev')}</button></li>
     <li><button class="srow" data-a="import"><span class="tile" style="--c:#2A73C0">${ic('upload')}</span><span class="main"><b>${t('restoreBackup')}</b><span>${t('restoreHint')}</span></span>${ic('r','flip chev')}</button></li>
@@ -3992,7 +4025,7 @@ function homeV3(){const html=homeV2();return html.replace('<div class="calm">','
 /* ---------- subscriptions: one list ---------- */
 function subsV3(){
   const list=[...S.subs].sort((a,b)=>a.next.localeCompare(b.next)),m=S.subs.reduce((s,x)=>s+fils(subAmt(x,today()))/x.every,0)/100;
-  const head=pageHead(t('subs'),null,`<button class="btn btn-pri" data-a="addSub">${ic('plus')}${t('addSub')}</button>`);
+  const head=pageHead(t('subs'),null,`<button class="btn btn-sec sm" data-a="addSub">${ic('plus')}${L('Add','أضف')}</button>`);
   const nx=list[0];
   const sum=list.length?`<section class="sb-tiles" aria-label="${L('Subscriptions summary','ملخص الاشتراكات')}">
     <div class="sb-tile"><small>${L('Per month','بالشهر')}</small><b class="num"><bdi>${aedT(m)}</bdi></b></div>
