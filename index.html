@@ -1379,6 +1379,23 @@ section.hero.photo.calm-hero::after{background:none!important}
 .hero.photo.calm-hero .hero-bg{background-size:150% auto!important;background-position:right top!important;-webkit-mask-image:linear-gradient(#000 30%,transparent 62%);mask-image:linear-gradient(#000 30%,transparent 62%)}
 .calm-hero .ch-in{position:relative;z-index:1}
 .tm .tm-sub.down,.ch-amt.over bdi{color:#FFA89F}
+
+/* ----- Emerald & Ivory: Expenses & Subscriptions ----- */
+.es-card{background:var(--panel);border:1px solid var(--panel-line);border-radius:22px;padding:16px;margin:0 0 14px;box-shadow:var(--shadow)}
+.es-lab{margin:0;color:var(--tx2);font-size:14px}.es-amt{margin:2px 0 0;font-size:30px;font-weight:700;letter-spacing:-.01em}
+.es-cmp{margin:4px 0 0;font-size:13px;font-weight:600}.es-cmp.down{color:var(--ok)}.es-cmp.up{color:var(--err)}
+.es-break{display:flex;align-items:center;gap:16px;margin-top:14px;padding-top:14px;border-top:1px solid var(--line2)}.es-break svg{flex:none}
+.es-legend{list-style:none;margin:0;padding:0;display:grid;gap:7px;flex:1;min-width:0;font-size:14px}
+.es-legend li{display:grid;grid-template-columns:10px 1fr auto 38px;align-items:center;gap:8px}.es-legend i{width:10px;height:10px;border-radius:3px}
+.es-legend span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.es-legend em{font-style:normal;color:var(--tx2);text-align:end;font-size:13px}
+.sb-tiles{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:4px 0 18px}
+.sb-tile{background:var(--panel);border:1px solid var(--panel-line);border-radius:18px;padding:12px 14px;min-width:0;box-shadow:var(--shadow)}
+.sb-tile.wide{grid-column:1/-1;background:var(--surface-2);border-color:transparent}
+.sb-tile small{display:block;color:var(--tx2);font-size:13px}.sb-tile b{display:block;font-size:22px;margin-top:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.sb-tile.wide b{font-size:17px}.sb-tile em{display:block;font-style:normal;color:var(--tx2);font-size:13px;margin-top:2px}
+.sb-h{font-size:18px;margin:0 2px 10px}
+.row .main>b,.tl-row .main>b,.sb-tile b,.hm-tile b,.nd-t b,.added .main b,.qitem b{unicode-bidi:plaintext;text-align:start}
+html[dir=rtl] .row .main>b,html[dir=rtl] .tl-row .main>b,html[dir=rtl] .sb-tile b{text-align:right}
 </style>
 </head>
 <body>
@@ -2267,7 +2284,7 @@ expenses(){
   const r=calc(S.off);
   const used={};r.list.forEach(e=>used[e.cat]=(used[e.cat]||0)+ev(e));
   const quick=Object.entries(used).sort((a,b)=>b[1]-a[1]).slice(0,3).map(x=>x[0]);
-  return pageHead(t('expenses'),null,cycleSel(r))+`
+  return pageHead(t('expenses'),null,cycleSel(r))+expSummary(r)+`
   <div class="toolbar one" role="search">
     <div class="search"><label class="sr" for="q">${t('searchLabel')}</label>${ic('search')}<input class="input" id="q" type="search" name="q" placeholder="${L('Search…','ابحث…')}" value="${esc(S.q)}" autocomplete="off" spellcheck="false"></div>
     <div class="catsel"><label class="sr" for="fcat">${t('category')}</label><select class="input" id="fcat" name="fcat"><option value="all">${L('All','الكل')}</option>${CATS.map(c=>`<option value="${c[0]}" ${S.fcat===c[0]?'selected':''}>${catName(c[0])}</option>`).join('')}</select></div>
@@ -2391,7 +2408,8 @@ function expList(r){
   const list=r.list.filter(e=>(S.fcat==='all'||e.cat===S.fcat||(S.fcat==='todo'&&needsDetails(e)))&&(!q||(e.m||'').toLowerCase().includes(q)||(e.note||'').toLowerCase().includes(q)||catName(e.cat).toLowerCase().includes(q)));
   if(!r.list.length)return`<div class="card" style="margin-top:16px">${emptyState(t('noExpTitle'),t('noExpText'),addBtn())}</div>`;
   const g={};list.forEach(e=>(g[e.date]=g[e.date]||[]).push(e));
-  return`<p class="lsum" aria-live="polite"><b class="num">${aedT(sum(list))}</b><span>${plural(list.length)}</span></p>
+  const filtered=!!((S.q||'').trim())||(S.fcat&&S.fcat!=='all');
+  return`<p class="lsum ${filtered?'':'sr'}" aria-live="polite"><b class="num">${aedT(sum(list))}</b><span>${plural(list.length)}</span></p>
   <div class="card">${list.length?Object.entries(g).map(([d,a])=>`<div class="daygroup"><h3 class="dayh"><span>${d===today()?t('today'):fmtDate(d,{weekday:'long',day:'numeric',month:'short'})}</span><span class="num">${aedT(sum(a))}</span></h3><ul class="list">${a.map(expRowG).join('')}</ul></div>`).join(''):emptyState(t('noMatch'),'', '',true)}</div>`;
 }
 function pastSummary(r){
@@ -3419,6 +3437,18 @@ const isFoodName=m=>{const q=normT(m);return!!q&&!/careem(?! food)|uber/.test(q)
 function guessCat(m){if(!m)return null;if(/careem ?food|noon ?food|كريم فود|نون فود/i.test(normT(m)))return'food';const b=resolveBrandExact(m);if(b&&BRAND[b])return BRAND[b].cat;if(isFuelName(m))return'transport';if(isFoodName(m))return'food';return null}
 document.addEventListener('input',e=>{if(e.target.name!=='m')return;const f=e.target.closest('#expform');if(!f||f.dataset.catTouched||f.brand.value)return;
   const c=guessCat(e.target.value.trim());const cur=f.cat.value;if(c&&c!==cur&&(cur==='other'||f.dataset.catAuto)){const b=f.querySelector(`.catopt[data-c="${c}"]`);if(b){A.pickCat(b);delete f.dataset.catTouched;f.dataset.catAuto='1'}}});
+/* ===== Expenses summary: total, change vs last period, category ring (real data only) ===== */
+function expSummary(r){const L0=r.list.filter(e=>!e.kind);if(!L0.length)return'';const tot=L0.reduce((a,e)=>a+ev(e),0);if(!(tot>0))return'';
+  let prev=0;try{prev=calc(S.off-1).list.filter(e=>!e.kind).reduce((a,e)=>a+ev(e),0)}catch(_){}
+  const by={};L0.forEach(e=>{by[e.cat]=(by[e.cat]||0)+ev(e)});let cats=Object.entries(by).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);
+  if(cats.length>5){const rest=cats.slice(4).reduce((a,x)=>a+x[1],0);cats=cats.slice(0,4).concat([['__rest',rest]])}
+  const C=2*Math.PI*36;let off=0;const segs=cats.map(([c,v])=>{const len=v/tot*C,col=c==='__rest'?'#8FA69B':catOf(c)[2];const el=`<circle r="36" cx="46" cy="46" fill="none" stroke="${col}" stroke-width="12" stroke-dasharray="${Math.max(0,len-1.5)} ${C}" stroke-dashoffset="${-off}"/>`;off+=len;return el}).join('');
+  const nm=c=>c==='__rest'?L('Other','أخرى'):catName(c);
+  const chg=prev>0?Math.round((tot-prev)/prev*100):null;
+  const cmp=chg===null?'':`<p class="es-cmp ${chg>0?'up':'down'}"><span aria-hidden="true">${chg>0?'▲':'▼'}</span> ${L(`${Math.abs(chg)}% ${chg>0?'more':'less'} than the last pay period`,`${Math.abs(chg)}٪ ${chg>0?'أكثر':'أقل'} من الفترة اللي قبل`)}</p>`;
+  return`<section class="es-card" aria-labelledby="es-h"><div class="es-top"><div><p class="es-lab" id="es-h">${L('Total spent','إجمالي المصروف')}</p><p class="es-amt num"><bdi>${aedT(tot)}</bdi></p>${cmp}</div></div>
+    <div class="es-break"><svg viewBox="0 0 92 92" width="92" height="92" role="img" aria-label="${esc(cats.map(([c,v])=>`${nm(c)} ${Math.round(v/tot*100)}%`).join(', '))}"><g transform="rotate(-90 46 46)"><circle r="36" cx="46" cy="46" fill="none" stroke="var(--line2)" stroke-width="12"/>${segs}</g></svg>
+    <ul class="es-legend">${cats.map(([c,v])=>`<li><i style="background:${c==='__rest'?'#8FA69B':catOf(c)[2]}" aria-hidden="true"></i><span>${nm(c)}</span><b class="num"><bdi>${aedT(v)}</bdi></b><em>${Math.round(v/tot*100)}%</em></li>`).join('')}</ul></div></section>`}
 /* ===== Monthly needs UI ===== */
 const potName=pt=>L(POT_TYPES[pt.type].en,POT_TYPES[pt.type].ar);
 function potSuggest(type){const st=S.settings,fake={pots:[{id:'x',type,amt:1}]};let tot=0,n=0;
@@ -3865,7 +3895,12 @@ function homeV3(){const html=homeV2();return html.replace('<div class="calm">','
 function subsV3(){
   const list=[...S.subs].sort((a,b)=>a.next.localeCompare(b.next)),m=S.subs.reduce((s,x)=>s+fils(subAmt(x,today()))/x.every,0)/100;
   const head=pageHead(t('subs'),null,`<button class="btn btn-pri" data-a="addSub">${ic('plus')}${t('addSub')}</button>`);
-  const sum=list.length?`<p class="sumline"><span>${L('About','تقريباً')} <b class="num"><bdi>${aedT(m)}</bdi></b> ${L('a month','بالشهر')}</span><span>${plural2(list.length,'subscription','subscriptions','اشتراكات')}</span></p>`:'';
+  const nx=list[0];
+  const sum=list.length?`<section class="sb-tiles" aria-label="${L('Subscriptions summary','ملخص الاشتراكات')}">
+    <div class="sb-tile"><small>${L('Per month','بالشهر')}</small><b class="num"><bdi>${aedT(m)}</bdi></b></div>
+    <div class="sb-tile"><small>${L('Active','فعالة')}</small><b class="num">${list.length}</b></div>
+    <div class="sb-tile wide"><small>${L('Next renewal','التجديد الجاي')}</small><b>${esc(nx.name)}</b><em><bdi>${aedT(subAmt(nx,nx.next))}</bdi> · ${fmtDate(nx.next)}</em></div></section>
+    <h2 class="sb-h">${L('Recurring payments','الدفعات المتكررة')}</h2>`:'';
   const rows=list.map(s=>{const n=diffD(today(),s.next);const late=n<0;return`<li><button class="row" data-a="editSub" data-id="${s.id}">${s.brand&&BRAND[s.brand]?brandLogo(s.brand):tile(s.cat||'subs')}<span class="main"><b>${esc(s.name)}</b><span>${fmtDate(s.next)} · ${n===0?t('today'):n===1?t('tomorrow'):late?L('Overdue','متأخر'):L(`in ${n} days`,`بعد ${n} يوم`)}</span></span><span class="end"><span class="amt"><bdi>${aedT(subAmt(s,s.next))}</bdi></span><span class="freq">${freqTxt(+s.every)}</span></span></button></li>`}).join('');
   const body=list.length?`<ul class="list clean">${rows}</ul><p class="fine" style="margin:10px 4px 0">${t('autoLog2')}</p>`:`<div class="card">${emptyState(t('noSubsTitle'),t('noSubsText'),'',true)}</div>`;
   return`<div class="pagewrap">${head}${sum}${body}${resSection()}</div>`}
