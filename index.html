@@ -1244,6 +1244,15 @@ html.tz .sheet{max-height:calc(94dvh / var(--tz))}
 .tm .tm-row{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:4px 8px;font-size:15px}
 .tm .tm-l{display:inline-flex;align-items:center;gap:6px}.tm .tm-row .tm-sub{margin:0;font-size:1em;white-space:nowrap}
 .ch-links{display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}.ch-links .ch-more{margin:0}
+/* iPhone: never allow sideways movement */
+html,body{overflow-x:hidden;max-width:100%;overscroll-behavior-x:none}
+.sheet,.sh-scroll,.sh-form,#overlay,main,#main{overflow-x:hidden;max-width:100%}
+.sh-scroll{touch-action:pan-y;overscroll-behavior-x:none}
+input,select,textarea,.input{max-width:100%;min-width:0;box-sizing:border-box}
+input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;display:block;width:100%;min-width:0;text-align:start}
+input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:start}
+.rtabs,.chips{flex-wrap:wrap!important;overflow-x:visible!important;white-space:normal!important;row-gap:8px}
+.rtabs>*,.chips>*{flex:0 0 auto}
 </style>
 </head>
 <body>
