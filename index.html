@@ -3638,7 +3638,7 @@ Object.assign(A,{aiKey:()=>aiKeySheet(),keyDel:()=>{try{localStorage.removeItem(
 
 /* ---------- SMS: paste button + iPhone automation ---------- */
 FLOWS.sms={t:['Read bank SMS automatically','اقرا رسايل البنك تلقائياً'],d:['When your bank texts you about a purchase, your iPhone sends the message to Wafr. Wafr reads the amount and shop, ignores codes and offers, and asks you about anything unclear.','لما يرسلك البنك رسالة شراء، الآيفون يرسلها لوفر. وفر يقرا المبلغ والمحل، يتجاهل الرموز والعروض، ويسألك عن أي شي مب واضح.'],
-  steps:[['Open Shortcuts → Automation → + → Message. Set “Sender” to your bank (e.g. ENBD), choose “Run Immediately”.','افتح الاختصارات ← الأتمتة ← + ← رسالة. خل "المرسل" بنكك (مثلاً ENBD)، واختار "تشغيل فوراً".'],
+  steps:[['Open Shortcuts → Automation → + → Message. Leave Sender empty. Tap “Message Contains” and type AED. Choose “Run Immediately”, then Next → New Blank Automation.','افتح الاختصارات ← الأتمتة ← + ← رسالة. خل المرسل فاضي. اضغط "الرسالة تحتوي" واكتب AED. اختار "تشغيل فوراً"، وبعدين التالي ← أتمتة فارغة جديدة.'],
          ['Add “URL Encode” and choose Shortcut Input → Content.','أضف "ترميز URL" واختار مدخل الاختصار ← المحتوى.'],
          ['Add “Open URLs”. Paste the link below and put the URL Encoded text in place of MESSAGE.','أضف "فتح الروابط". الصق الرابط تحت وحط النص المرمّز مكان MESSAGE.'],
          ['Test: send yourself a text like “Purchase of AED 1.00 at Test”, or wait for your next bank SMS.','جرب: أرسل لنفسك رسالة مثل "Purchase of AED 1.00 at Test"، أو انتظر رسالة البنك الجاية.']],link:'#jps-MESSAGE'};
