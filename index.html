@@ -1706,6 +1706,10 @@ html.light .stepper{background:#F7F5EE}
 @media (max-width:359px){.sheet .grid2{grid-template-columns:1fr}}html.tz .sheet .grid2{grid-template-columns:1fr}
 .sheet .sh-scroll input,.sheet .sh-scroll select,.sheet .sh-scroll textarea{scroll-margin:16px 0 24px}
 .backlink{display:inline-flex;align-items:center;gap:2px;margin:0 0 4px -6px;padding:4px 6px;border:0;background:none;color:var(--acc-text);font:inherit;font-size:var(--fs-md);font-weight:600;cursor:pointer;min-height:36px}.backlink svg.i{width:20px;height:20px}html[dir=rtl] .backlink{margin:0 -6px 4px 0}
+#bkunder{position:fixed;inset:0;z-index:0;overflow:hidden;background:var(--c-bg);pointer-events:none}
+#bkunder::after{content:"";position:absolute;inset:0;background:#000;opacity:var(--dim,.18)}
+#bkunder .bk-in{will-change:translate}#bkunder .bk-main{box-sizing:border-box}
+body.bk-drag #main{position:relative;z-index:1;min-height:100vh;min-height:100dvh;background:var(--c-bg);box-shadow:0 0 24px rgba(0,0,0,.25);will-change:transform}
 </style>
 </head>
 <body>
@@ -2524,7 +2528,7 @@ function renderAll(){
 }
 function statusChipOld(s){const m={ok:['check',t('ontrack')],watch:['alert',t('watch')],over:['alert',t('over')]}[s]||['check',t('ontrack')];return`<span class="status ${s}">${ic(m[0])}${m[1]}</span>`}
 function statusChip(s){return`<span class="status ${s}"><i class="sdot"></i>${{ok:t('ontrack'),watch:t('watch'),over:t('over')}[s]||t('ontrack')}</span>`}
-function pageHead(title,sub,acts=''){const bk=typeof TOP_VIEWS!=='undefined'&&S.view&&!TOP_VIEWS.includes(S.view)&&S.view!=='insights';return`<header class="phead"><div>${bk?`<button class="backlink" data-a="navBack">${ic('l','flip')}<span>${L('Back','رجوع')}</span></button>`:''}<h1>${title}</h1>${sub?`<p class="psub">${sub}</p>`:''}</div>${acts?`<div class="acts">${acts}</div>`:''}</header>`}
+function pageHead(title,sub,acts=''){const bk=false;return`<header class="phead"><div>${bk?`<button class="backlink" data-a="navBack">${ic('l','flip')}<span>${L('Back','رجوع')}</span></button>`:''}<h1>${title}</h1>${sub?`<p class="psub">${sub}</p>`:''}</div>${acts?`<div class="acts">${acts}</div>`:''}</header>`}
 function cycleLabel(p){const pc=p.mode!=='month';return pc||p.start.slice(0,7)!==p.end.slice(0,7)?`${fmtDate(p.start)} – ${fmtDate(p.end)}`:P(p.start).toLocaleDateString(loc(),{month:'long',year:'numeric'})}
 function cycleSel(r){
   return`<div class="cycle" role="group" aria-label="${t('thisCycle')}"><button class="ib" data-a="prev" aria-label="${t('prevCycle')}">${ic('l','flip')}</button>
@@ -2968,7 +2972,7 @@ let tt=null;
 function toast(msg,undo){const el=$('#toast');el.innerHTML=`<span>${msg}</span>${undo?`<button type="button" id="undo">${t('undo')}</button>`:''}`;el.classList.add('show');clearTimeout(tt);tt=setTimeout(()=>el.classList.remove('show'),undo?6000:3000);if(undo)$('#undo').onclick=()=>{undo();el.classList.remove('show')}}
 
 /* ---------- actions ---------- */
-function go(v){if(lang()==='ar'&&VIEWS[v]){navTo(v);return}const h=v==='home'?'#home':'#'+v;if(location.hash!==h)location.hash=h;else route()}
+function go(v){if(VIEWS[v]){navTo(v);return}const h=v==='home'?'#home':'#'+v;if(location.hash!==h)location.hash=h;else route()}
 const A={
   skip:()=>{$('#main').focus()},
   jp:()=>{if(S.settings)expenseSheet()},
@@ -4376,37 +4380,44 @@ function moBar(el,key){if(!el)return;const to=parseFloat(el.style.width)||0,from
   el.animate([{width:(from==null?0:from)+'%'},{width:to+'%'}],{duration:from==null?900:700,easing:E_OUT})}
 const _renderAllMO=renderAll;
 renderAll=function(){const prev=MO.view;_renderAllMO();MO.view=S.view;const m=$('#main');if(!m)return;
-  if(!RM()&&prev!==null&&prev!==S.view){
+  if(MO.skip){MO.skip=false}else if(!RM()&&prev!==null&&prev!==S.view){
     m.animate([{opacity:0,transform:'translateY(12px)'},{opacity:1,transform:'none'}],{duration:360,easing:E_OUT});
     [...m.querySelectorAll('.calm-hero,.calm-sec,.list.clean>li,.list>li,.rcats>li,.rtotal,.card')].slice(0,12).forEach((el,i)=>el.animate([{opacity:0,transform:'translateY(10px)'},{opacity:1,transform:'none'}],{duration:420,delay:50+i*32,easing:E_OUT,fill:'backwards'}));
     const pill=$('#bnav a[aria-current=page] .pill');if(pill)pill.animate([{transform:'scale(.82)'},{transform:'scale(1)'}],{duration:480,easing:E_SPRING})}
   if(S.view==='home'){const changed=MO.num.home!=null;moCount(m.querySelector('.ch-amt bdi'),'home');moBar(m.querySelector('.tm-bar i'),'home');
     const nowAmt=MO.num.home;if(changed&&!RM()&&MO.lastHome!=null&&MO.lastHome!==nowAmt){const h=m.querySelector('.calm-hero');if(h)h.animate([{transform:'scale(1)'},{transform:'scale(.985)'},{transform:'scale(1)'}],{duration:420,easing:E_SPRING})}MO.lastHome=nowAmt}
   if(S.view==='insights')moCount(m.querySelector('.rt-amt bdi'),'spent:'+S.rng.k+':'+S.rng.off)};
-/* ===== Arabic back navigation: the iPhone's system back-swipe always comes from the LEFT edge.
-   In Arabic, pages replace the history entry (so that left swipe has nothing to go back to) and
-   Wafr provides its own back swipe from the RIGHT edge, plus a back button on sub-pages. ===== */
+/* ===== Swipe back on every page, both languages (English: from the left edge, Arabic: from the right edge).
+   Pages replace the history entry, so the iPhone's own back-swipe has nothing to go back to; Wafr keeps its
+   own stack (view + scroll position). While dragging, the previous page is shown underneath; releasing
+   switches instantly (no re-animation) and restores where you were. ===== */
 const TOP_VIEWS=['home','expenses','subs','more'];const NAVST=[];
-function navTo(v){if(!VIEWS[v])return;if(TOP_VIEWS.includes(v))NAVST.length=0;else if(S.view&&S.view!==v)NAVST.push(S.view);
+function navTo(v){if(!VIEWS[v])return;if(S.view&&S.view!==v){NAVST.push({v:S.view,y:scrollY});if(NAVST.length>30)NAVST.shift()}
   try{history.replaceState(null,'','#'+v)}catch(_){}route()}
-function backTarget(){return NAVST.length?NAVST[NAVST.length-1]:(TOP_VIEWS.includes(S.view)?null:'more')}
-function navBack(){const t=backTarget();if(!t)return false;NAVST.pop();try{history.replaceState(null,'','#'+t)}catch(_){}route();return true}
-A.navBack=()=>{if(lang()==='ar'){navBack();return}if(history.length>1)history.back();else go(backTarget()||'home')};
-document.addEventListener('click',e=>{if(lang()!=='ar'||e.defaultPrevented||e.button>0||e.metaKey||e.ctrlKey)return;const a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;
-  const v=a.getAttribute('href').slice(1);if(!VIEWS[v])return;e.preventDefault();navTo(v)});
-/* right-edge swipe (Arabic) */
+function backTarget(){return NAVST.length?NAVST[NAVST.length-1]:null}
+function navBack(){const t=NAVST.pop();if(!t)return false;MO.skip=true;try{history.replaceState(null,'','#'+t.v)}catch(_){}route();
+  window.scrollTo(0,t.y||0);return true}
+A.navBack=()=>navBack();
+document.addEventListener('click',e=>{if(e.defaultPrevented||e.button>0||e.metaKey||e.ctrlKey)return;const a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;
+  const v=a.getAttribute('href').slice(1);if(!VIEWS[v])return;e.preventDefault();if(v!==S.view)navTo(v)});
 const BK={d:null};
-document.addEventListener('touchstart',e=>{if(lang()!=='ar'||e.touches.length!==1||!$('#overlay').hidden)return;const x=e.touches[0].clientX;if(x<innerWidth-28||!backTarget())return;
-  BK.d={x0:x,y0:e.touches[0].clientY,dx:0,t:e.timeStamp,on:false}},{passive:true});
+function bkUnder(t){/* render the previous page underneath, at its saved scroll position */
+  const m=$('#main'),r=m.getBoundingClientRect(),cur=S.view,u=document.createElement('div');u.id='bkunder';u.setAttribute('aria-hidden','true');
+  let html='';try{S.view=t.v;html=VIEWS[t.v]()}catch(_){}finally{S.view=cur}
+  const cs=getComputedStyle(m);u.innerHTML=`<div class="bk-in" style="padding-top:${Math.max(0,r.top+scrollY)}px;transform:translateY(${-(t.y||0)}px)"><div class="bk-main" style="width:${r.width}px;margin-inline-start:${lang()==='ar'?innerWidth-r.right:r.left}px;padding:0 ${cs.paddingRight} 0 ${cs.paddingLeft}">${html}</div></div>`;
+  u.querySelectorAll('[id]').forEach(x=>x.removeAttribute('id'));document.body.appendChild(u);return u}
+document.addEventListener('touchstart',e=>{if(e.touches.length!==1||!$('#overlay').hidden||!backTarget())return;const x=e.touches[0].clientX,rtl=lang()==='ar';
+  if(rtl?x<innerWidth-28:x>28)return;BK.d={x0:x,y0:e.touches[0].clientY,dx:0,t:e.timeStamp,on:false,rtl}},{passive:true});
 document.addEventListener('touchmove',e=>{const d=BK.d;if(!d)return;const dx=e.touches[0].clientX-d.x0,dy=e.touches[0].clientY-d.y0;
-  if(!d.on){if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>8){BK.d=null;return}if(dx>-8)return;d.on=true}
-  e.preventDefault();d.dx=Math.min(0,dx);const m=$('#main');m.style.transition='none';m.style.transform=`translate3d(${d.dx}px,0,0)`;m.style.opacity=String(1-Math.min(.35,-d.dx/innerWidth*.5))},{passive:false});
-function bkEnd(e){const d=BK.d;BK.d=null;if(!d||!d.on)return;const m=$('#main'),W=innerWidth,v=d.dx/Math.max(1,(e.timeStamp-d.t))*1000;
-  const go2=-d.dx>W*.3||v<-600;const ease='transform .22s cubic-bezier(.22,1,.36,1),opacity .22s';
-  if(go2){m.style.transition=RM()?'none':ease;m.style.transform=`translate3d(${-W}px,0,0)`;m.style.opacity='0';
-    setTimeout(()=>{m.style.transition='none';m.style.transform='';m.style.opacity='';navBack();
-      if(!RM())m.animate([{transform:'translate3d(30%,0,0)',opacity:.4},{transform:'none',opacity:1}],{duration:240,easing:'cubic-bezier(.22,1,.36,1)'})},RM()?0:210)}
-  else{m.style.transition=RM()?'none':ease;m.style.transform='';m.style.opacity='';setTimeout(()=>{m.style.transition=''},240)}}
+  if(!d.on){if(Math.abs(dy)>Math.abs(dx)&&Math.abs(dy)>8){BK.d=null;return}if(d.rtl?dx>-8:dx<8)return;d.on=true;d.u=bkUnder(backTarget());document.body.classList.add('bk-drag')}
+  e.preventDefault();d.dx=d.rtl?Math.min(0,dx):Math.max(0,dx);const W=innerWidth,f=Math.abs(d.dx)/W;
+  $('#main').style.transform=`translate3d(${d.dx}px,0,0)`;d.u.firstChild.style.translate=`${(d.rtl?1:-1)*(1-f)*W*.3}px 0`;d.u.style.setProperty('--dim',String(.18*(1-f)))},{passive:false});
+function bkEnd(e){const d=BK.d;BK.d=null;if(!d||!d.on)return;const m=$('#main'),W=innerWidth,v=Math.abs(d.dx)/Math.max(1,(e.timeStamp-d.t))*1000;
+  const done=()=>{document.body.classList.remove('bk-drag');m.style.transition='';m.style.transform='';if(d.u)d.u.remove()};
+  if(Math.abs(d.dx)>W*.33||v>650){m.style.transition=RM()?'none':'transform .18s ease-out';m.style.transform=`translate3d(${d.rtl?-W:W}px,0,0)`;
+    if(d.u){d.u.firstChild.style.transition=RM()?'none':'translate .18s ease-out';d.u.firstChild.style.translate='0 0'}
+    setTimeout(()=>{m.style.transition='none';m.style.transform='';navBack();requestAnimationFrame(done)},RM()?0:180)}
+  else{m.style.transition=RM()?'none':'transform .2s ease-out';m.style.transform='';setTimeout(done,210)}}
 document.addEventListener('touchend',bkEnd);document.addEventListener('touchcancel',bkEnd);
 /* keep the focused field visible above the keyboard */
 document.addEventListener('focusin',e=>{const el=e.target;if(!el.closest||!el.closest('#sheet .sh-scroll')||!/^(INPUT|SELECT|TEXTAREA)$/.test(el.tagName))return;setTimeout(()=>{try{el.scrollIntoView({block:'nearest',behavior:RM()?'auto':'smooth'})}catch(_){}},250)});
