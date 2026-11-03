@@ -1253,6 +1253,10 @@ input[type=date],input[type=time]{-webkit-appearance:none;appearance:none;displa
 input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and-time-value{text-align:start}
 .rtabs,.chips{flex-wrap:wrap!important;overflow-x:visible!important;white-space:normal!important;row-gap:8px}
 .rtabs>*,.chips>*{flex:0 0 auto}
+.rsel{position:relative;display:inline-flex;align-items:center;margin-top:2px}
+.rsel select{-webkit-appearance:none;appearance:none;border:0;background:transparent;color:var(--tx2);font:inherit;font-size:15px;font-weight:600;padding:2px 22px 2px 4px;text-align:center;cursor:pointer;max-width:100%}
+.rsel::after{content:'';position:absolute;inset-inline-end:6px;top:50%;width:7px;height:7px;border-right:2px solid var(--tx2,#888);border-bottom:2px solid var(--tx2,#888);transform:translateY(-70%) rotate(45deg);pointer-events:none}
+.rsel-row{display:flex;justify-content:center;margin:0 0 6px}.rlab{display:flex;flex-direction:column;align-items:center}
 </style>
 </head>
 <body>
@@ -3298,6 +3302,7 @@ function bigBuySheet(id,amt,daily){const e=allExp().find(x=>x.id===id);if(!e)ret
     <ul class="list clean"><li><button class="row" data-a="bigSpread" data-id="${id}"><span class="tile">${ic('cal')}</span><span class="main"><b>${L('Spread it over the coming days','وزعه على الأيام الجاية')}</b><span>${L('Today isn’t marked as over; each day gets a little less.','اليوم ما ينحسب فوق الخطة؛ كل يوم ينقص شوي.')}</span></span></button></li>
     <li><button class="row" data-a="bigSave" data-id="${id}"><span class="tile">${ic('target')}</span><span class="main"><b>${L('I paid it from my savings','دفعته من مدخراتي')}</b><span>${L('Your daily amount stays the same.','مصروفك اليومي يبقى نفسه.')}</span></span></button></li></ul></div>
     <div class="sh-actions"><span class="grow"></span><button class="btn btn-sec" data-a="close">${L('Keep as today’s spending','خله من صرف اليوم')}</button></div>`)}
+document.addEventListener('change',e=>{if(e.target.id==='rngsel'){S.rng.k=e.target.value;S.rng.off=0;renderAll();const x=$('#rngsel');if(x)x.focus()}});
 Object.assign(A,{
   afford:()=>affordSheet(),
   affWait:()=>{const v=affVals();if(!v.amt){toast(t('amountReq'));return}const st=S.settings;st.wish=(st.wish||[]).concat({id:'w'+uid(),name:v.name,amt:v.amt,at:nowMs(),remind:nowMs()+48*3600e3});persist(['settings']);closeSheet();renderAll();
@@ -3637,13 +3642,14 @@ function rangeLabel(k,r){if(r.a===r.b)return fmtDate(r.a,{weekday:'long',day:'nu
 function spendingV3(){const k=S.rng.k,off=S.rng.off,r=rangeFor(k,off),cur=off===0||k==='custom';
   const list=expInRange(r.a,r.b),total=sum(list);const by={};list.forEach(e=>{by[e.cat]=(by[e.cat]||0)+ev(e)});
   const cats=Object.entries(by).filter(x=>x[1]>0).sort((a,b)=>b[1]-a[1]);const max=cats.length?cats[0][1]:1;
-  const tabs=`<div class="rtabs" role="tablist" aria-label="${L('Time range','الفترة')}">${RNG.map(([v,en,ar])=>`<button role="tab" aria-selected="${k===v}" data-a="rng" data-k="${v}">${L(en,ar)}</button>`).join('')}</div>`;
+  const sel=`<span class="rsel"><label class="sr" for="rngsel">${L('Time range','الفترة')}</label><select id="rngsel">${RNG.map(([v,en,ar])=>`<option value="${v}" ${k===v?'selected':''}>${L(en,ar)}</option>`).join('')}</select></span>`;
+  const tabs=k==='custom'?`<div class="rsel-row">${sel}</div>`:'';
   const nav=k==='custom'?`<div class="rcustom"><div class="field"><label class="flabel" for="rga">${L('From','من')}</label><input class="input" type="date" id="rga" value="${r.a}" max="${today()}"></div><div class="field"><label class="flabel" for="rgb">${L('To','إلى')}</label><input class="input" type="date" id="rgb" value="${r.b}" max="${today()}"></div></div>`
-    :`<div class="rnav"><button class="ib" data-a="rngPrev" aria-label="${L('Previous','السابق')}">${ic('l','flip')}</button><div class="rlab"><b>${rangeLabel(k,r)}</b>${cur?`<small>${k==='today'?L('Today','اليوم'):L('Current','الحالي')}</small>`:`<button class="btn-text" data-a="rngNow">${L('Back to current','رجوع للحالي')}</button>`}</div><button class="ib" data-a="rngNext" ${off>=0?'disabled':''} aria-label="${L('Next','التالي')}">${ic('r','flip')}</button></div>`;
+    :`<div class="rnav"><button class="ib" data-a="rngPrev" aria-label="${L('Previous','السابق')}">${ic('l','flip')}</button><div class="rlab"><b>${rangeLabel(k,r)}</b>${sel}${cur?'':`<button class="btn-text" data-a="rngNow">${L('Back to current','رجوع للحالي')}</button>`}</div><button class="ib" data-a="rngNext" ${off>=0?'disabled':''} aria-label="${L('Next','التالي')}">${ic('r','flip')}</button></div>`;
   const totalH=`<section class="rtotal" aria-live="polite"><p class="rt-lab">${L('Spent','المصروف')}</p><p class="rt-amt num"><bdi>${aedT2(total)}</bdi></p><p class="rt-sub">${plural(list.filter(e=>!e.kind).length)}${k!=='today'&&list.length?` · ${L('About','تقريباً')} <bdi>${aedT(total/Math.max(1,Math.min(diffD(r.a,r.b),diffD(r.a,today()))+1))}</bdi> ${L('a day','باليوم')}`:''}</p></section>`;
   const catH=cats.length?`<section class="calm-sec"><div class="cs-h"><h2>${L('By category','حسب الفئة')}</h2></div><ul class="rcats">${cats.map(([c,v])=>`<li><span class="rc-ic">${ic(catOf(c)[1])}</span><span class="rc-main"><span class="rc-top"><b>${catName(c)}</b><bdi class="num">${aedT(v)}</bdi></span><span class="rc-bar"><i style="width:${Math.max(2,v/max*100)}%"></i></span></span><span class="rc-pct num">${Math.round(v/Math.max(total,1)*100)}%</span></li>`).join('')}</ul></section>`:'';
   const txH=`<section class="calm-sec"><div class="cs-h"><h2>${L('Transactions','العمليات')}</h2></div>${list.length?`<ul class="list clean">${list.slice(0,60).map(expRow).join('')}</ul>${list.length>60?`<p class="fine">${L('Showing the latest 60.','نعرض آخر 60.')} <a href="#expenses">${t('viewAll')}</a></p>`:''}`:`<p class="panel-empty">${L('Nothing recorded in this range.','ما في شي مسجل في هالفترة.')}</p>`}</section>`;
-  return`<div class="pagewrap">${pageHead(L('Spending','المصاريف'),L('See what you spent in any time range. This doesn’t change your budget.','شوف كم صرفت في أي فترة. هذا ما يغير ميزانيتك.'))}${tabs}${nav}${totalH}<div class="rgrid">${catH}${txH}</div></div>`}
+  return`<div class="pagewrap">${pageHead(L('Spending','المصاريف'))}${tabs}${nav}${totalH}<div class="rgrid">${catH}${txH}</div></div>`}
 Object.assign(A,{
   rng:el=>{S.rng.k=el.dataset.k;S.rng.off=0;renderAll();const b=$(`[data-a=rng][data-k="${el.dataset.k}"]`);if(b)b.focus()},
   rngPrev:()=>{S.rng.off--;renderAll();const b=$('[data-a=rngPrev]');if(b)b.focus()},
