@@ -77,6 +77,8 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
   (optional) → Date; "+ Another" (save & reopen), draft kept 15 min if dismissed (`wafr.expDraft`), double-submit guard.
   Installment: store/deposit/fee/notes under More options. Subscription: amount + frequency on one row.
   `yourMoneySheet()` = Your money screen (was a duplicate `moneySheet` name that broke "Salary received").
+  Arabic back navigation: iPhone's system back-swipe is always from the LEFT; in Arabic `navTo()` replaces history entries
+  (so that swipe does nothing) and a RIGHT-edge swipe / `.backlink` button goes back (`navBack()`, stack `NAVST`). English unchanged.
   Before-redesign copies: branches `old-version-v2` (navy/gold), `old-version-v3` (first emerald), `old-version-v4` (before unification),
   `old-version-v5` (before form redesign).
 
