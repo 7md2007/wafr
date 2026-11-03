@@ -4392,10 +4392,10 @@ renderAll=function(){const prev=MO.view;_renderAllMO();MO.view=S.view;const m=$(
    own stack (view + scroll position). While dragging, the previous page is shown underneath; releasing
    switches instantly (no re-animation) and restores where you were. ===== */
 const TOP_VIEWS=['home','expenses','subs','more'];const NAVST=[];
-function navTo(v){if(!VIEWS[v])return;if(S.view&&S.view!==v){NAVST.push({v:S.view,y:scrollY});if(NAVST.length>30)NAVST.shift()}
+function navTo(v){if(!VIEWS[v])return;if(TOP_VIEWS.includes(v))NAVST.length=0;/* main tabs: no swipe-back */else if(S.view&&S.view!==v){NAVST.push({v:S.view,y:scrollY});if(NAVST.length>30)NAVST.shift()}
   try{history.replaceState(null,'','#'+v)}catch(_){}route()}
-function backTarget(){return NAVST.length?NAVST[NAVST.length-1]:null}
-function navBack(){const t=NAVST.pop();if(!t)return false;MO.skip=true;try{history.replaceState(null,'','#'+t.v)}catch(_){}route();
+function backTarget(){if(TOP_VIEWS.includes(S.view))return null;return NAVST.length?NAVST[NAVST.length-1]:{v:'more',y:0}}
+function navBack(){const t=backTarget();if(!t)return false;NAVST.pop();MO.skip=true;try{history.replaceState(null,'','#'+t.v)}catch(_){}route();
   window.scrollTo(0,t.y||0);return true}
 A.navBack=()=>navBack();
 document.addEventListener('click',e=>{if(e.defaultPrevented||e.button>0||e.metaKey||e.ctrlKey)return;const a=e.target.closest&&e.target.closest('a[href^="#"]');if(!a)return;

@@ -77,7 +77,8 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
   (optional) → Date; "+ Another" (save & reopen), draft kept 15 min if dismissed (`wafr.expDraft`), double-submit guard.
   Installment: store/deposit/fee/notes under More options. Subscription: amount + frequency on one row.
   `yourMoneySheet()` = Your money screen (was a duplicate `moneySheet` name that broke "Salary received").
-  Swipe back (Nov 2026): every page, both languages — English from the LEFT edge, Arabic from the RIGHT edge. Pages replace the
+  Swipe back (Nov 2026): only on full-screen sub-pages opened from More (Installments, Ask…), back to where they were opened; main
+  tabs never swipe. Both languages — English from the LEFT edge, Arabic from the RIGHT edge. Pages replace the
   history entry (`navTo()`), so the iPhone's own back-swipe has nothing to go back to; Wafr keeps a stack `NAVST` of {view, scroll}.
   While dragging the previous page is rendered underneath (`bkUnder()`); release switches instantly (`navBack()`, `MO.skip` = no
   page animation) and restores the scroll position. No back buttons (owner's choice).
