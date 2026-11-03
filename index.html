@@ -3636,7 +3636,7 @@ function msHTML(){const P0=msPlan(),days=new Set(MS.sal.map(x=>+x.day));const se
 function msRefresh(keepFocus){const b=$('#msBody');if(!b)return;const f=document.activeElement&&document.activeElement.id;b.innerHTML=msHTML();if(keepFocus&&f){const e=$('#'+f);if(e){e.focus();if(e.setSelectionRange&&e.type!=='range'){const v=e.value;e.setSelectionRange(v.length,v.length)}}}}
 function msLive(){const P0=msPlan(),pct=P0.tot>0?Math.min(100,MS.save/P0.tot*100):0;const d=$('#msDaily');if(d)d.innerHTML=`≈ ${aedT(P0.daily)} <small>${L('/ day','/ اليوم')}</small>`;
   const sp=$('#msSp'),sv=$('#msSv'),r=$('#msSave');if(sp){sp.style.width=(100-pct)+'%';sp.innerHTML=`${L('Spend','صرف')} <bdi>${fmtN(P0.spend)}</bdi>`}if(sv){sv.style.width=pct+'%';sv.innerHTML=`<bdi>${fmtN(MS.save)}</bdi>`}if(r)r.style.setProperty('--p',pct+'%')}
-function moneySheet(){const st=S.settings;
+function yourMoneySheet(){const st=S.settings;
   let sal=(st.salaries||[]).filter(x=>x.active!==false).map(x=>({...x}));
   if(st.incomeMode==='irregular')sal=sal.length?sal:[];
   else if(st.incomeMode!=='salary'||!sal.length){sal=+st.income>0?[{id:uid(),name:'',amt:+st.income,day:+st.startDay||1,active:true}]:[]}
@@ -3648,7 +3648,7 @@ document.addEventListener('input',e=>{if(!MS)return;const id=e.target.id;
     const c=document.querySelector(`.ms-chip[data-id="${x.id}"] span`);if(c)c.innerHTML=`<b>${esc(x.name||L('Salary','راتب'))}</b><small>${+x.amt>0?aedT(x.amt):L('Add amount','أضف المبلغ')}</small>`}});
 document.addEventListener('change',e=>{if(MS&&e.target.id==='msSave')msRefresh()});
 Object.assign(A,{
-  editBudget:()=>moneySheet(),
+  editBudget:()=>yourMoneySheet(),
   msDay:el=>{const d=+el.dataset.d,x=MS.sal.find(y=>+y.day===d);if(x)MS.edit={id:x.id,day:d};else{const n={id:uid(),name:'',amt:0,day:d,active:true};MS.sal.push(n);MS.edit={id:n.id,day:d}}msRefresh();setTimeout(()=>{const a=$('#msAmt');if(a&&!a.value)a.focus()},30)},
   msEdit:el=>{const x=MS.sal.find(y=>y.id===el.dataset.id);if(!x)return;MS.edit={id:x.id,day:+x.day};msRefresh()},
   msDel:()=>{if(!MS.edit)return;MS.sal=MS.sal.filter(y=>y.id!==MS.edit.id);MS.edit=null;msRefresh()},
