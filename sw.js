@@ -1,4 +1,4 @@
-const C='wafr-v1793703901';
+const C='wafr-v1793806000';
 self.addEventListener('install',e=>{e.waitUntil(caches.open(C).then(c=>c.addAll(['./','./index.html','./manifest.webmanifest','./icon-180.png','./icon-192.png','./icon-512.png','./fonts/inter-latin-400-normal.woff2','./fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2','./fonts/inter-latin-500-normal.woff2','./fonts/ibm-plex-sans-arabic-arabic-500-normal.woff2','./fonts/inter-latin-600-normal.woff2','./fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2','./fonts/inter-latin-700-normal.woff2','./fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2'])).then(()=>self.skipWaiting()))});
 self.addEventListener('activate',e=>{e.waitUntil(caches.keys().then(k=>Promise.all(k.filter(x=>x!==C).map(x=>caches.delete(x)))).then(()=>self.clients.claim()))});
 /* network first, so updates show up; cached copy when offline */
