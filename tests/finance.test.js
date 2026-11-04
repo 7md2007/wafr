@@ -129,6 +129,19 @@ const ok=(name,c,info)=>{if(c){pass++;console.log('  ✓',name)}else{fail++;cons
   r=await run(`(()=>{${reset}TODAY_OVERRIDE='2026-11-21';addExp({id:'p1',amt:0.1,date:'2026-11-10',cat:'food'});addExp({id:'p2',amt:0.2,date:'2026-11-10',cat:'food'});return calc(0).spent})()`);
   ok('0.10 + 0.20 = 0.30 exactly',r===0.3,r);
 
+  console.log('#save-up mode (carry = save)');
+  r=await run(`(()=>{${reset}TODAY_OVERRIDE='2026-11-02';const sp=calc(0);S.settings.carry='save';const sv=calc(0);
+    addExp({id:'big',amt:1000,date:'2026-11-02',time:'20:00',cat:'shopping',created:Date.now()});TODAY_OVERRIDE='2026-11-03';const after=calc(0);S.settings.carry='spread';const afterSp=calc(0);
+    return{sp:+sp.daily.toFixed(2),sv:+sv.daily.toFixed(2),up:sv.savedUp,a:+after.daily.toFixed(2),as:+afterSp.daily.toFixed(2)}})()`);
+  ok('default (spread): skipped day is spread over the rest = 10,000 / 29',r.sp===344.83,r);
+  ok('save-up: skipped day carries over in full = 2 × 333.33',r.sv===666.67&&r.up===333.33,r);
+  ok('save-up: an overspend is still spread out (never below the spread amount)',r.a===r.as&&r.a===321.43,r);
+  r=await run(`(()=>{${reset}S.settings.carry='save';TODAY_OVERRIDE='2026-11-01';S.subs=[{id:'b',name:'Rent',amt:500,every:1,next:'2026-11-20',anchor:20,cat:'subs'}];const d1=calc(0);TODAY_OVERRIDE='2026-11-02';const d2=calc(0);
+    return{d1:+d1.daily.toFixed(2),n1:+d1.nextDaily.toFixed(2),d2:+d2.daily.toFixed(2),res:d2.reserved}})()`);
+  ok('save-up: bills stay set aside first; tomorrow preview matches tomorrow',r.d1===316.67&&r.n1===633.33&&r.d2===633.33&&r.res===500,r);
+  r=await run(`(()=>{${reset}S.settings.carry='save';TODAY_OVERRIDE='2026-11-30';const r=calc(0);return{d:+r.daily.toFixed(2),av:r.available}})()`);
+  ok('save-up: last day gets everything left',r.d===r.av,r);
+
   ok('no page errors',errs.length===0,errs);
   console.log(`\n${pass} passed, ${fail} failed`);await b.close();process.exit(fail?1:0);
 })();

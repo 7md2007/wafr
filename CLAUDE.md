@@ -32,6 +32,9 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
 - Reserved before the daily amount: unpaid subscriptions + installments due this period (+ overdue) + open planned costs (`resLeft`).
 - Bills/installments/planned costs/one-offs/refunds paid today are spread (not charged to today's allowance).
 - Real shortfall shown honestly (`shortfall`, `realShort`); never hide reserved bills.
+- Save-up mode (Nov 2026): `settings.carry` = `'spread'` (default: unspent money spread over the rest of the period) or `'save'`
+  (unspent money carries over in full: daily = max(spread daily, available − (daysLeft−1) × base), base = (funds − spread items − reserved)/N;
+  `savedUp` = daily − base). Overspending is still spread. Toggle: More → My finances → "Money you don't spend". Home shows "Includes AED X you saved up".
 
 ## Other important pieces
 - Bank SMS parser `parseBankMsg()` (versioned rules, EN+AR, rejects OTP/promo/balance, foreign currency → review queue). Duplicates → `findDups()` → review queue (`S.queue`), never auto-deleted.
@@ -89,7 +92,7 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
 `node tests/finance.test.js` (Playwright; needs `playwright` installed, open index.html). 42 tests must pass:
 mid-period start, irregular income, early/late salary, one-offs & reserves, overspend/shortfall, refunds, splits, balance check, cash,
 SMS parser, duplicates, subscription price dates, AI proposals, date ranges, leap years, old-data migration, 0.1+0.2.
-If the test file path points at `../index.html` it uses this repo's file.
+If the test file path points at `../index.html` it uses this repo's file. (47 tests since save-up mode.)
 
 ## Where we stopped (Nov 3, 2026)
 Done: everything above is live on GitHub Pages. Owner added it to his iPhone Home Screen.

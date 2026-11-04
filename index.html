@@ -91,6 +91,8 @@ html:not(.light) .mark-bg{stroke:rgba(113,212,154,.45);stroke-width:1}
 .fab{position:fixed;z-index:31;inset-inline-end:16px;bottom:calc(var(--bnav-h) + env(safe-area-inset-bottom) + 14px);display:inline-flex;align-items:center;gap:10px;height:56px;padding:0 22px 0 18px;border-radius:18px;background:var(--acc);color:var(--acc-ink);font-weight:700;font-size:18px;box-shadow:var(--shadow-pop);transition:transform .15s var(--ease),background-color .18s}
 .fab:hover{background:var(--acc-hover)}.fab:active{transform:scale(.97)}
 .fab[hidden]{display:none}
+.hero-saved{display:flex;align-items:center;gap:8px;margin:10px 0 0;font-size:14px;font-weight:600;color:var(--hero-fill,#A8D5BA)}.hero-saved .i{width:16px;height:16px;flex:none}
+.mo-more>summary{list-style:none;cursor:pointer}.mo-more>summary::-webkit-details-marker{display:none}.mo-more[open]>summary .chev{transform:rotate(180deg)}.mo-more>ul{border-top:1px solid var(--c-border,#30403F)}
 
 @media (min-width:720px){
   .shell{grid-template-columns:96px minmax(0,1fr)}
@@ -1799,7 +1801,7 @@ syncOn:'Synced across your devices',syncOff:'Saved on this device',syncWait:'Con
 welcome:'Welcome to Wafr',welcomeSub:'Set your income and savings goal. Wafr works out what’s safe to spend each day.',start:'Start',
 shortcut:'Quick add shortcut',shortcutTxt:'Open this page with <bdi dir="ltr">#just-paid</bdi> at the end of the link to jump straight to Just Paid — handy for an iPhone Shortcut or home-screen bookmark.',
 saveSet:'Save changes',ask:'Ask Wafr',askSub:'Your AI money assistant',askPh:'Ask about your spending…',thinking:'Thinking…',aiIntro:'Ask me anything about your budget — or tell me what you paid and I’ll log it.',q1:'Can I afford AED 300 today?',q2:'Where am I overspending?',q3:'How can I save more this cycle?',q4:'I paid 40 at Starbucks',added:'Added',tipT:'AI tip',getTip:'Get my tip',newTip:'New tip',scan:'Scan receipt',reading:'Reading receipt…',scanFail:'Couldn’t read that receipt — try a clearer photo',aiOff:'AI isn’t available right now',aiLimit:'AI is busy — try again in a bit',aiCat:'AI picked the category',stop:'Stop',clear:'Clear chat',smsBtn:'Paste bank SMS',smsPh:'Paste the purchase SMS from your bank — Wafr reads the amount and place',setSaved:'Settings saved',hi:'Hi',
-cats:{food:'Food',groceries:'Groceries',transport:'Fuel',shopping:'Shopping',bills:'Bills',subs:'Subs',fun:'Fun',health:'Health',family:'Family',other:'Other'}},
+cats:{food:'Food & coffee',groceries:'Groceries',transport:'Fuel',shopping:'Shopping',bills:'Bills',subs:'Subs',fun:'Fun',health:'Health',family:'Family',other:'Other'}},
 ar:{home:'الرئيسية',expenses:'المصاريف',jp:'دفعت الحين',subs:'الاشتراكات',more:'المزيد',insights:'التحليل',
 ontrack:'على المسار',watch:'انتبه',over:'تجاوزت الميزانية',safeToday:'تقدر تصرف اليوم',overToday:'تجاوزت ميزانية اليوم',
 dailyBudget:'الميزانية اليومية',flat:'المعدل الثابت',today:'اليوم',remaining:'المتبقي',daysLeft:'الأيام الباقية',limit:'حد الصرف',
@@ -1825,10 +1827,10 @@ syncOn:'متزامن بين أجهزتك',syncOff:'محفوظ على هالجه�
 welcome:'هلا بك في وفر',welcomeSub:'حط دخلك وهدف التوفير، ووفر تحسب لك كم تقدر تصرف كل يوم.',start:'يلا نبدأ',
 shortcut:'اختصار الإضافة السريعة',shortcutTxt:'افتح الصفحة مع ‎<bdi dir="ltr">#just-paid</bdi>‎ في آخر الرابط عشان تروح مباشرة لـ "دفعت الحين" — مفيد لاختصارات الآيفون.',
 saveSet:'حفظ التغييرات',ask:'اسأل وفر',askSub:'مساعدك الذكي للفلوس',askPh:'اسأل عن مصاريفك…',thinking:'قاعد يفكر…',aiIntro:'اسألني أي شي عن ميزانيتك — أو قول لي كم دفعت وأنا أسجله.',q1:'أقدر أصرف 300 درهم اليوم؟',q2:'وين أصرف زيادة؟',q3:'كيف أوفر أكثر هالدورة؟',q4:'دفعت 40 في ستاربكس',added:'انضاف',tipT:'نصيحة ذكية',getTip:'عطني نصيحة',newTip:'نصيحة جديدة',scan:'صوّر الفاتورة',reading:'قاعد يقرا الفاتورة…',scanFail:'ما قدرت أقرا الفاتورة — جرب صورة أوضح',aiOff:'الذكاء الاصطناعي مب متوفر الحين',aiLimit:'مشغول شوي — جرب بعدين',aiCat:'الذكاء اختار التصنيف',stop:'وقف',clear:'مسح المحادثة',smsBtn:'الصق رسالة البنك',smsPh:'الصق رسالة الشراء من البنك — وفر تقرا المبلغ والمكان',setSaved:'انحفظت الإعدادات',hi:'هلا',
-cats:{food:'أكل',groceries:'بقالة',transport:'بترول',shopping:'تسوق',bills:'فواتير',subs:'اشتراكات',fun:'ترفيه',health:'صحة',family:'عائلة',other:'أخرى'}}
+cats:{food:'أكل وقهوة',groceries:'بقالة',transport:'بترول',shopping:'تسوق',bills:'فواتير',subs:'اشتراكات',fun:'ترفيه',health:'صحة',family:'عائلة',other:'أخرى'}}
 };
 Object.assign(T.en,{jp:'Add expense',addExpense:'Add expense',saveExpense:'Save expense',subs:'Subscriptions',more:'More',settings:'Settings',auto:'System',
-ontrack:'On track',watch:'A little over pace',over:'Over budget',hiName:'Hi, {x}',hi0:'Hi there',
+ontrack:'On track',watch:'A little over pace',over:'Over budget',hiName:'Hello, {x}',hi0:'Hello',
 safeExplain:'What you can spend today and still save {x} this cycle.',overExplain:'You’ve spent more than today’s allowance. Tomorrow’s allowance adjusts automatically.',
 spentToday:'Spent today',allowance:'Daily allowance',howCalc:'How it’s calculated',
 calcLimit:'Spending limit (income − savings goal)',calcBefore:'Spent before today',calcReserved:'Set aside for subscriptions due this cycle',calcAvail:'Available for the rest of the cycle',calcDays:'Days left, including today',calcDaily:'Daily allowance',calcFlat:'Even daily split of the limit',calcPace:'Ahead of an even pace by',calcBehind:'Behind an even pace by',
@@ -2345,16 +2347,25 @@ function calc(off,stOverride){
   const reserved=unfils(fils(subsRes)+fils(instRes)+fils(resRes)+fils(potRes));
   const available=unfils(fils(funds)-fils(before)-fils(reserved));
   const shortfall=available<0?-available:0;
-  const daily=available>0?available/daysLeft:0;
+  // carry mode: 'spread' (default) spreads unspent money over the rest of the period;
+  // 'save' keeps it whole so it carries to the next days (save up for the weekend). Never below the spread amount,
+  // so an overspend is still spread out instead of wiping out the next days.
+  const carrySave=st.carry==='save';
+  const spreadPaid=sum(list.filter(isSpread));
+  const base=Math.max(0,unfils(fils(funds)-fils(spreadPaid)-fils(reserved))/N);
+  const spreadDaily=available>0?available/daysLeft:0;
+  const daily=carrySave?Math.max(spreadDaily,available-(daysLeft-1)*base):spreadDaily;
+  const savedUp=carrySave?Math.max(0,+(daily-base).toFixed(2)):0;
   const afterToday=unfils(fils(available)-fils(spentToday));
-  const nextDaily=daysLeft>1?Math.max(0,afterToday)/(daysLeft-1):0;
+  const nextSpread=daysLeft>1?Math.max(0,afterToday)/(daysLeft-1):0;
+  const nextDaily=daysLeft>1?(carrySave?Math.max(nextSpread,afterToday-(daysLeft-2)*base):nextSpread):0;
   const overBy=daily>0||spentToday>0?Math.max(0,spentToday-daily):0;
   const paceDiff=flat*(k-1)-before;
   const avg=k>1?before/(k-1):spentToday;
   const projected=Math.min(Math.max(funds,1)*3,before+spentToday+reserved+Math.max(0,daysLeft-1)*Math.min(avg,daily||avg));
   const safeLeft=unfils(fils(funds)-fils(spent)-fils(reserved));
   let status='ok';if(safeLeft<0)status='over';else if(spent>flat*k*1.1)status='watch';
-  Object.assign(r,{k,daysLeft,spentToday,before,reserved,potRows,potRes,subsRes,instRes,resRes,resOpen,overdueAmt,overdue,instDue:due,up,available,shortfall,daily,todayLeft:daily-spentToday,afterToday,nextDaily,overBy,realShort:afterToday<0?-afterToday:0,ideal:flat*k,paceDiff,projected,status,lastDay:daysLeft===1,safeLeft});
+  Object.assign(r,{k,daysLeft,spentToday,before,reserved,potRows,potRes,subsRes,instRes,resRes,resOpen,overdueAmt,overdue,instDue:due,up,available,shortfall,daily,base,savedUp,carrySave,spreadDaily,todayLeft:daily-spentToday,afterToday,nextDaily,overBy,realShort:afterToday<0?-afterToday:0,ideal:flat*k,paceDiff,projected,status,lastDay:daysLeft===1,safeLeft});
   return r;
 }
 
@@ -2572,21 +2583,23 @@ ask(){
 },
 more(){
   const st=S.settings;
-  const seg=(k,opts,label)=>`<div class="seg" role="radiogroup" aria-label="${label}">${opts.map(([v,l,i])=>`<button role="radio" aria-checked="${st[k]===v}" data-a="setopt" data-k="${k}" data-val="${v}">${i&&st[k]===v?ic('check'):''}${l}</button>`).join('')}</div>`;
+  const seg=(k,opts,label)=>`<div class="seg" role="radiogroup" aria-label="${label}">${opts.map(([v,l,i])=>`<button role="radio" aria-checked="${(st[k]||(k==='carry'?'spread':''))===v}" data-a="setopt" data-k="${k}" data-val="${v}">${i&&(st[k]||(k==='carry'?'spread':''))===v?ic('check'):''}${l}</button>`).join('')}</div>`;
   const link=(href,icon,c,title,val)=>`<li><a class="srow" href="${href}"><span class="tile" style="--c:${c}">${ic(icon)}</span><span class="main"><b>${title}</b>${val?`<span>${val}</span>`:''}</span>${ic('r','flip chev')}</a></li>`;
   const r0=calc(0);
   return pageHead(L('More','المزيد'))+`<div class="settings">
   <section class="mo-prof"><span class="mo-av" aria-hidden="true">${esc((st.name||'W').trim().charAt(0).toUpperCase())}</span><span class="mo-pm"><b><bdi>${esc(st.name||L('Your budget','ميزانيتك'))}</bdi></b><span class="mo-nums"><span><small>${L('Income','الدخل')}</small><bdi>${fmtN(r0.income)}</bdi></span><span><small>${L('Savings','الادخار')}</small><bdi>${fmtN(st.savings||0)}</bdi></span><span><small>${L('To spend','للصرف')}</small><bdi>${fmtN(r0.limit)}</bdi></span></span></span><button class="btn btn-sec sm" data-a="editBudget">${ic('edit')}${L('Edit','تعديل')}</button></section>
   <section class="mo-grp" aria-labelledby="s-fin"><h2 id="s-fin">${L('My finances','فلوسي')}</h2><div class="card"><ul class="list">
     <li><button class="srow" data-a="editBudget"><span class="tile">${ic('wallet')}</span><span class="main"><b>${L('Your money','فلوسك')}</b><span>${L('Paydays, income and savings','أيام الراتب، الدخل والادخار')}</span></span>${ic('r','flip chev')}</button></li>
+    <li><div class="srow wrap"><span class="main"><b>${L('Money you don’t spend','الفلوس اللي ما تصرفها')}</b><span>${st.carry==='save'?L('Carries over in full to the next days — save up for a bigger day','تنتقل كاملة للأيام الجاية — جمّع ليوم أكبر'):L('Spread over the rest of the period','تتوزع على باقي الفترة')}</span></span>${seg('carry',[['spread',L('Spread it','وزّعها'),1],['save',L('Save it up','جمّعها'),1]],L('Money you don’t spend','الفلوس اللي ما تصرفها'))}</div></li>
     <li><button class="srow" data-a="needs"><span class="tile">${ic('target')}</span><span class="main"><b>${L('Monthly needs','الاحتياجات الشهرية')}</b><span>${(st.pots||[]).length?(st.pots||[]).map(potName).join(', '):L('Food, petrol, groceries and more','أكل، بترول، مقاضي وغيرها')}</span></span>${ic('r','flip chev')}</button></li>
     <li><button class="srow" data-a="money"><span class="tile">${ic('inflow')}</span><span class="main"><b>${st.incomeMode==='irregular'?L('Money received','فلوس وصلت'):L('Salary received / extra income','وصل الراتب / دخل إضافي')}</b><span>${L('Confirm what arrived','أكد الفلوس اللي فعلاً وصلت')}</span></span>${ic('r','flip chev')}</button></li>
+    ${link('#installments','layers','#3F5FD0',t('installments'),t('instSub'))}
+  </ul></div></section>
+  <section class="mo-grp" aria-labelledby="s-tools"><h2 id="s-tools">${L('Tools','أدوات')}</h2><div class="card"><details class="mo-more"><summary class="srow"><span class="tile">${ic('more')}</span><span class="main"><b>${L('More tools','أدوات أكثر')}</b><span>${L('Starting balance, balance check, evening check-in','رصيد البداية، مراجعة الرصيد، مراجعة المسا')}</span></span>${ic('down','chev')}</summary><ul class="list">
     <li><button class="srow" data-a="openingSheet"><span class="tile">${ic('wallet')}</span><span class="main"><b>${L('Start from today’s balance','ابدأ من رصيد اليوم')}</b><span>${st.opening&&st.opening.date===calc(0).p.start?L(`Started ${fmtDate(st.opening.date)} from `,`بديت ${fmtDate(st.opening.date)} من `)+`<bdi>${aedT(st.opening.amt)}</bdi>`:L('Use the money you have now','لو بديت بنص الفترة: استخدم الفلوس اللي عندك الحين')}</span></span>${ic('r','flip chev')}</button></li>
     <li><button class="srow" data-a="balance"><span class="tile">${ic('scale')}</span><span class="main"><b>${L('Check my balance','راجع رصيدي')}</b><span>${reviewedLine()}</span></span>${ic('r','flip chev')}</button></li>
     <li><button class="srow" data-a="checkin"><span class="tile">${ic('clock')}</span><span class="main"><b>${L('Evening check-in','مراجعة المسا')}</b><span>${st.checkin&&st.checkin.on?L(`On · ${st.checkin.time}`,`شغال · ${st.checkin.time}`):L('Off','مطفي')}</span></span>${ic('r','flip chev')}</button></li>
-    ${link('#expenses','chart','#7E4FCC',t('navOverview'),L('Any time range, in Expenses','أي فترة، في المصاريف'))}
-    ${link('#installments','layers','#3F5FD0',t('installments'),t('instSub'))}
-  </ul></div></section>
+  </ul></details></div></section>
   <section class="mo-grp" aria-labelledby="s-app"><h2 id="s-app">${t('appearLang')}</h2><div class="card"><ul class="list">
     <li><div class="srow wrap"><span class="main"><b>${t('theme')}</b></span>${seg('theme',[['light',t('light'),1],['dark',t('dark'),1],['auto',t('auto'),1]],t('theme'))}</div></li>
     ${textSizeRow()}
@@ -2615,7 +2628,7 @@ function expRowG(e){return expRow(e).replace(` · ${fmtDate(e.date)}`,'')}
 function expList(r){
   const q=S.q.trim().toLowerCase();
   const list=r.list.filter(e=>(S.fcat==='all'||e.cat===S.fcat||(S.fcat==='todo'&&needsDetails(e)))&&(!q||(e.m||'').toLowerCase().includes(q)||(e.note||'').toLowerCase().includes(q)||catName(e.cat).toLowerCase().includes(q)));
-  if(!r.list.length)return`<div class="card" style="margin-top:16px">${emptyState(t('noExpTitle'),t('noExpText'),addBtn())}</div>`;
+  if(!r.list.length)return`<div class="card" style="margin-top:16px">${emptyState(t('noExpTitle'),t('noExpText'))}</div>`;
   const g={};list.forEach(e=>(g[e.date]=g[e.date]||[]).push(e));
   const filtered=!!((S.q||'').trim())||(S.fcat&&S.fcat!=='all');
   return`<p class="lsum ${filtered?'':'sr'}" aria-live="polite"><b class="num">${aedT(sum(list))}</b><span>${plural(list.length)}</span></p>
@@ -3989,12 +4002,12 @@ function homeV2(){
   const calcBox=`<details class="ch-calc"><summary>${L('How it’s calculated','كيف ينحسب')}${ic('down')}</summary><dl>
     ${row(L('Income this period','الدخل لهالفترة'),aedT(r.income))}${r.save?row(L('Planned savings','الادخار المخطط'),'− '+aedT(r.save)):''}${r.extra?row(L('Extra money in','فلوس إضافية'),'+ '+aedT(r.extra)):''}
     ${row(L('Spent before today','المصروف قبل اليوم'),'− '+aedT(r.before))}${r.reserved?row(L('Set aside: bills, plans & needs','محجوز: فواتير وخطط واحتياجات'),'− '+aedT(r.reserved)):''}
-    ${row(L(`Left ÷ ${r.daysLeft} day${r.daysLeft>1?'s':''}`,`الباقي ÷ ${r.daysLeft} يوم`),aedT(Math.max(0,r.daily)),'tot')}</dl>
+    ${r.carrySave&&r.savedUp>=1?row(L('Normal daily amount','المبلغ اليومي العادي'),aedT(r.base))+row(L('Saved up from earlier days','جمّعته من الأيام اللي فاتت'),'+ '+aedT(r.savedUp))+row(L('Today','اليوم'),aedT(Math.max(0,r.daily)),'tot'):row(L(`Left ÷ ${r.daysLeft} day${r.daysLeft>1?'s':''}`,`الباقي ÷ ${r.daysLeft} يوم`),aedT(Math.max(0,r.daily)),'tot')}</dl>
     <button class="ch-more" data-a="details">${L('Full breakdown','التفاصيل كاملة')}${ic('r','flip')}</button></details>`;
   const hero=`<section class="hero photo calm-hero hero2" aria-labelledby="h-today"><span class="hero-bg" aria-hidden="true"></span>
     <div class="ch-in"><h2 id="h-today" class="ch-lab">${L('Available to spend today','تقدر تصرف اليوم')}</h2>
     <p class="ch-amt num"><span class="c">AED</span><bdi>${fmtN(amt)}</bdi></p>
-    ${todayMeter(r)}${warn}
+    ${todayMeter(r)}${warn}${!warn&&r.savedUp>=1?`<p class="hero-saved">${ic('wallet')}<span>${L(`Includes <bdi>${aedT(r.savedUp)}</bdi> you saved up`,`فيها <bdi>${aedT(r.savedUp)}</bdi> جمّعتها من قبل`)}</span></p>`:''}
     <button class="btn btn-gold big" data-a="jp">${ic('plus')}${t('addExpense')}</button></div></section>`;
   const tmr=r.realShort<=0&&r.daysLeft>1&&r.daily>0?Math.round(r.nextDaily):null,tdir=tmr==null?'':tmr<Math.round(r.daily)?'down':tmr>Math.round(r.daily)?'up':'';
   const glance=`<section class="glance" aria-label="${L('At a glance','بلمحة')}">
@@ -4023,6 +4036,7 @@ function detailsSheet(){const r=calc(0),st=S.settings,row=(a,b,c='')=>`<div clas
     ${overspendNote(r)}
     <h3 class="h3">${L('How today’s amount is worked out','كيف ينحسب مبلغ اليوم')}</h3>
     <dl class="kv calc-kv">${calcLines(r)}</dl>
+    ${r.carrySave?`<p class="fhelp" style="margin-top:8px">${L(`Save-up mode is on: money you don’t spend carries over in full. Today = normal daily amount <bdi>${aedT(r.base)}</bdi> + saved up <bdi>${aedT(r.savedUp)}</bdi>.`,`وضع التجميع شغال: الفلوس اللي ما تصرفها تنتقل كاملة. اليوم = المبلغ اليومي العادي <bdi>${aedT(r.base)}</bdi> + اللي جمّعته <bdi>${aedT(r.savedUp)}</bdi>.`)}</p>`:''}
     <p class="fine" style="margin-top:8px">${t('calcNote')}</p>
     <div class="qa" style="margin-top:16px"><button class="btn btn-sec sm" data-a="money">${ic('inflow')}${L('Money received','فلوس وصلت')}</button><button class="btn btn-sec sm" data-a="balance">${ic('scale')}${L('Check my balance','راجع رصيدي')}</button><a class="btn btn-sec sm" href="#expenses">${ic('chart')}${t('insights')}</a></div>
   </div>`)}
