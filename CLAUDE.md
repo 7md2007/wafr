@@ -92,6 +92,8 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
 - Sheets: open/close run as Web Animations on transform/opacity (`shAnim`, compositor); the JS spring is only for finger drags.
   The scrim is its own layer (`#ovscrim`, opacity). Never set CSS custom properties on #overlay/html per frame (restyles every child);
   never measure layout per frame (`SH.h` is measured once per animation/drag).
+  Swipe-down: claim the gesture on the FIRST touchmove (iOS commits to native scrolling otherwise), one transform write per frame
+  (`shSetSoon`), release finishes with `shAnim` at the finger's speed; `.sheet .sh-scroll{overscroll-behavior-y:none}`.
 - Bars animate with `transform: scaleX` (`moBar`), never `width`.
 - Date/number formatters are cached (`_DFC`, `_NF0/_NF2`); creating Intl formatters per row was >50% of render time.
 - `renderNav` only touches the DOM when its markup changed (`setHTML`).

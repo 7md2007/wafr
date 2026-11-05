@@ -1305,7 +1305,7 @@ input[type=date]::-webkit-date-and-time-value,input[type=time]::-webkit-date-and
 .convo .composer .send{width:48px;height:48px;border-radius:50%}
 }
 .ch-amt.over bdi{color:#FF8A80}.ch-amt.over .ch-of{color:rgba(255,255,255,.65)}
-.sheet .sh-scroll{overscroll-behavior-y:contain}
+.sheet .sh-scroll{overscroll-behavior-y:none}
 .nd-list>li{padding:10px 0;border-bottom:1px solid var(--line2)}.nd-top{display:flex;align-items:center;gap:12px;cursor:pointer}.nd-body{margin-top:8px}
 .nd-top input{width:22px;height:22px;accent-color:#A8D5BA;flex:none}.nd-top .main b{display:block}.nd-top .main small{color:var(--tx2)}
 .nd-cta{display:flex;align-items:center;gap:12px;width:100%;text-align:start;padding:14px 16px;border-radius:18px;border:1px dashed var(--panel-line,rgba(127,127,127,.3));background:var(--panel);color:var(--tx);font:inherit;cursor:pointer}
@@ -4296,7 +4296,8 @@ const SH={y:0,anim:null,closing:false,drag:null};
 function shEls(){return{ov:$('#overlay'),sh:$('#sheet')}}
 function shH(){const {sh}=shEls();return Math.max(200,sh.getBoundingClientRect().height)}
 const SCRIM=()=>document.getElementById('ovscrim');
-function shSet(y){const {sh}=shEls();SH.y=y;sh.style.transform=`translate3d(0,${Math.max(y,-40)}px,0)`;const h=SH.h||(SH.h=shH());const sc=SCRIM();if(sc)sc.style.opacity=Math.max(0,Math.min(1,1-y/h)).toFixed(3)}
+let _shRaf=0,_shNext=null;function shSetSoon(y){SH.y=y;_shNext=y;if(!_shRaf)_shRaf=requestAnimationFrame(()=>{_shRaf=0;if(_shNext!=null){const n=_shNext;_shNext=null;shSet(n)}})}
+function shSet(y){if(_shRaf){cancelAnimationFrame(_shRaf);_shRaf=0;_shNext=null}const {sh}=shEls();SH.y=y;sh.style.transform=`translate3d(0,${Math.max(y,-40)}px,0)`;const h=SH.h||(SH.h=shH());const sc=SCRIM();if(sc)sc.style.opacity=Math.max(0,Math.min(1,1-y/h)).toFixed(3)}
 function shStop(){if(SH.anim){SH.anim.stop();SH.anim=null}
   if(SH.wa){const w=SH.wa;SH.wa=null;const {sh}=shEls();let y=w.to;try{y=new DOMMatrixReadOnly(getComputedStyle(sh).transform).m42}catch(e){}w.a.cancel();w.b&&w.b.cancel();shSet(y)}}
 /* open/close run on the compositor (Web Animations: transform + opacity only), so page work can't make them stutter */
@@ -4323,28 +4324,28 @@ closeSheet=function(force){const {ov,sh}=shEls();if(ov.hidden)return;
   if(!shPhoneMode()){_closeSheet(force);return}
   if(SH.closing)return;SH.closing=true;ov.classList.remove('open');
   const finish=()=>{if(!SH.closing)return;SH.closing=false;ov.classList.add('open');{const sc=SCRIM();if(sc)sc.style.opacity='0'}_closeSheet(force);setTimeout(()=>{if(ov.hidden)sh.style.transform=''},220)};
-  SH.h=shH();if(SH.dragV)shTo(SH.h+24,SH.dragV,{damping:1,response:.3},finish);else shAnim(SH.h+24,250,'cubic-bezier(.4,0,.9,.6)',finish);SH.dragV=0;
+  SH.h=shH();if(SH.dragV){const dist=Math.max(0,SH.h+24-SH.y),v=Math.max(Math.abs(SH.dragV),900);shAnim(SH.h+24,Math.round(Math.min(300,Math.max(140,dist/v*1000*1.7))),'cubic-bezier(.3,.7,.4,1)',finish)}else shAnim(SH.h+24,250,'cubic-bezier(.4,0,.9,.6)',finish);SH.dragV=0;
 };
 /* drag the sheet by its handle/header: 1:1, keeps the grab offset, momentum on release, interruptible */
 document.addEventListener('pointerdown',e=>{const moving=!!(SH.anim||SH.wa);const g=e.target.closest(moving?'#sheet':'#sheet .grab, #sheet .sh-head');if(!g||!shPhoneMode()||e.button>0)return;if(!moving&&e.target.closest('button,a,input,select,textarea'))return;
   const {ov}=shEls();if(ov.hidden)return;shStop();SH.closing=false;ov.classList.add('open');
   SH.h=shH();SH.drag={id:e.pointerId,y0:e.clientY,start:SH.y,hist:[{t:e.timeStamp,y:e.clientY}],moved:false};g.setPointerCapture&&g.setPointerCapture(e.pointerId)});
 document.addEventListener('pointermove',e=>{const d=SH.drag;if(!d||e.pointerId!==d.id)return;const dy=e.clientY-d.y0;if(!d.moved&&Math.abs(dy)<6)return;d.moved=true;
-  let y=d.start+dy;if(y<0)y=rubber(y,shH());shSet(y);d.hist.push({t:e.timeStamp,y:e.clientY});if(d.hist.length>6)d.hist.shift();e.preventDefault()},{passive:false});
+  let y=d.start+dy;if(y<0)y=rubber(y,SH.h||shH());shSetSoon(y);d.hist.push({t:e.timeStamp,y:e.clientY});if(d.hist.length>6)d.hist.shift();e.preventDefault()},{passive:false});
 function shRelease(e){const d=SH.drag;if(!d||e.pointerId!==d.id)return;SH.drag=null;if(!d.moved){if(SH.y!==0&&!SH.closing)shTo(0,0,{damping:1,response:.3});return}SH.eatClick=true;setTimeout(()=>{SH.eatClick=false},400);
   const h=d.hist,a=h[0],b=h[h.length-1];const v=b.t>a.t?(b.y-a.y)/((b.t-a.t)/1000):0;const H=shH(),end=SH.y+projectMomentum(v);
-  if(!sheetLocked&&(end>H*.35||v>650)){SH.dragV=v;closeSheet()}else shTo(0,v,{damping:Math.abs(v)>300?.8:1,response:.32})}
+  if(!sheetLocked&&(end>H*.35||v>650)){SH.dragV=v;closeSheet()}else shAnim(0,Math.abs(v)>300?320:260,'cubic-bezier(.25,1.1,.5,1)')}
 document.addEventListener('click',e=>{if(SH.eatClick){SH.eatClick=false;e.stopPropagation();e.preventDefault()}},true);
 /* swipe down from anywhere in the sheet (when its content is at the top) to pull it down; a short flick closes it */
 document.addEventListener('touchstart',e=>{if(!shPhoneMode()||e.touches.length!==1)return;const sc=e.target.closest('#sheet .sh-scroll');if(!sc)return;
   if(e.target.closest('input[type=range],textarea,select,.no-swipe'))return;const {ov}=shEls();if(ov.hidden)return;
   SH.cd={y0:e.touches[0].clientY,x0:e.touches[0].clientX,sc,mode:null,start:SH.y,hist:[{t:e.timeStamp,y:e.touches[0].clientY}]}},{passive:true});
 document.addEventListener('touchmove',e=>{const d=SH.cd;if(!d)return;const y=e.touches[0].clientY,dy=y-d.y0,dx=e.touches[0].clientX-d.x0;
-  if(!d.mode){if(Math.abs(dy)<6&&Math.abs(dx)<6)return;d.mode=(dy>0&&Math.abs(dy)>Math.abs(dx)&&d.sc.scrollTop<=0)?'sheet':'scroll';if(d.mode==='sheet'){shStop();SH.h=shH();SH.closing=false;shEls().ov.classList.add('open');d.y0=y}}
-  if(d.mode!=='sheet')return;e.preventDefault();let ny=d.start+(y-d.y0);if(ny<0)ny=rubber(ny,shH());shSet(ny);d.hist.push({t:e.timeStamp,y});if(d.hist.length>6)d.hist.shift()},{passive:false});
+  if(!d.mode){if(dy===0&&dx===0)return;d.mode=(dy>0&&Math.abs(dy)>=Math.abs(dx)&&d.sc.scrollTop<=0)?'sheet':'scroll';if(d.mode==='sheet'){shStop();SH.h=shH();SH.closing=false;shEls().ov.classList.add('open');d.y0=y-dy}}
+  if(d.mode!=='sheet')return;e.preventDefault();let ny=d.start+(y-d.y0);if(ny<0)ny=rubber(ny,SH.h||shH());shSetSoon(ny);d.hist.push({t:e.timeStamp,y});if(d.hist.length>6)d.hist.shift()},{passive:false});
 function shTouchEnd(){const d=SH.cd;SH.cd=null;if(!d||d.mode!=='sheet')return;SH.eatClick=true;setTimeout(()=>{SH.eatClick=false},400);
   const h=d.hist,a=h[0],b=h[h.length-1];const v=b.t>a.t?(b.y-a.y)/((b.t-a.t)/1000):0;const H=shH(),end=SH.y+projectMomentum(v);
-  if(!sheetLocked&&(end>H*.35||v>650||SH.y>140)){SH.dragV=v;closeSheet()}else shTo(0,v,{damping:Math.abs(v)>300?.8:1,response:.32})}
+  if(!sheetLocked&&(end>H*.35||v>650||SH.y>140)){SH.dragV=v;closeSheet()}else shAnim(0,Math.abs(v)>300?320:260,'cubic-bezier(.25,1.1,.5,1)')}
 document.addEventListener('touchend',shTouchEnd);document.addEventListener('touchcancel',shTouchEnd);
 document.addEventListener('pointerup',shRelease);document.addEventListener('pointercancel',shRelease);
 /* keyboard / button alternatives stay: Esc and the × button both close */
