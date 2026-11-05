@@ -88,6 +88,17 @@ All numbers go through `calc()`; arithmetic in fils (`fils()`/`unfils()`). Key r
   Before-redesign copies: branches `old-version-v2` (navy/gold), `old-version-v3` (first emerald), `old-version-v4` (before unification),
   `old-version-v5` (before form redesign).
 
+## Performance rules (Nov 2026 audit — keep these)
+- Sheets: open/close run as Web Animations on transform/opacity (`shAnim`, compositor); the JS spring is only for finger drags.
+  The scrim is its own layer (`#ovscrim`, opacity). Never set CSS custom properties on #overlay/html per frame (restyles every child);
+  never measure layout per frame (`SH.h` is measured once per animation/drag).
+- Bars animate with `transform: scaleX` (`moBar`), never `width`.
+- Date/number formatters are cached (`_DFC`, `_NF0/_NF2`); creating Intl formatters per row was >50% of render time.
+- `renderNav` only touches the DOM when its markup changed (`setHTML`).
+- iPhone keyboard: `kbSync()` (visualViewport) lifts the open sheet above the keyboard so Save stays visible.
+- Form controls: one segmented look (`.seg`/`.seg2` share the track+thumb style), one big amount per form at `--amt-h` (60px),
+  inputs `--in-h` (48px), 2-column rows `align-items:end`. Block "FORM CONSISTENCY" at the end of the main <style>.
+
 ## Tests
 `node tests/finance.test.js` (Playwright; needs `playwright` installed, open index.html). 42 tests must pass:
 mid-period start, irregular income, early/late salary, one-offs & reserves, overspend/shortfall, refunds, splits, balance check, cash,

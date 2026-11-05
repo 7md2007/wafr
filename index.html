@@ -1209,7 +1209,9 @@ html{-webkit-tap-highlight-color:transparent;touch-action:manipulation}
 .grab{display:none}
 @media (max-width:719px){.grab{display:flex;justify-content:center;padding:8px 0 2px;touch-action:none;cursor:grab}.grab i{display:block;width:40px;height:5px;border-radius:9px;background:var(--panel-line)}
   #sheet .sh-head{touch-action:none}}
-.overlay.springy{opacity:1!important;transition:none!important;background:rgba(3,10,24,calc(var(--scrimA,0) * .5))}
+.overlay.springy{opacity:1!important;transition:none!important;background:transparent}
+.overlay.kb .sh-actions{padding-bottom:10px!important}
+.ov-scrim{position:absolute;inset:0;background:rgba(3,10,24,.5);opacity:0;pointer-events:none;will-change:opacity}.overlay:not(.springy) .ov-scrim{display:none}
 .overlay.springy .sheet{transition:none!important;will-change:transform}
 .btn,.row,.srow,.chip,.pplat,.pchip,.tl-row,.catopt,.daygrid button,.segopt span,.ib,.nl,.bnav a,.fab,.ch-more,.seg button,.choice{transition:transform 120ms ease-out,background-color .15s ease,border-color .15s ease,box-shadow .15s ease}
 .btn:active,.chip:active,.pplat:active,.pchip:active,.daygrid button:active,.ib:active,.fab:active,.seg button:active,.ch-more:active,.segopt:active span{transform:scale(.96)}
@@ -1712,6 +1714,27 @@ html.light .stepper{background:#F7F5EE}
 #bkunder::after{content:"";position:absolute;inset:0;background:#000;opacity:var(--dim,.18)}
 #bkunder .bk-in{will-change:translate}#bkunder .bk-main{box-sizing:border-box}
 body.bk-drag #main{position:relative;z-index:1;min-height:100vh;min-height:100dvh;background:var(--c-bg);box-shadow:0 0 24px rgba(0,0,0,.25);will-change:transform}
+
+/* ===== FORM CONSISTENCY (Nov 2026): one look per control, sized by tokens ===== */
+:root{--amt-h:60px;--seg-h:40px}
+/* one segmented control style everywhere (Money received used the old outlined boxes) */
+.sheet .seg2{display:flex;flex-wrap:nowrap;gap:3px;padding:3px;border-radius:var(--r-md);background:var(--c-surface-2);border:1px solid var(--c-border)}
+html.light .sheet .seg2,html.light .sheet .seg{background:#F7F5EE}
+.sheet .segopt{flex:1 1 0;min-width:0}
+.sheet .segopt span{min-height:var(--seg-h);padding:6px 10px;border:0;border-radius:12px;background:none;font-size:var(--fs-md);font-weight:600;color:var(--c-text);box-shadow:none;line-height:1.25}
+.sheet .segopt input:checked+span{background:var(--c-surface);box-shadow:0 1px 3px rgba(0,0,0,.18);border:0}
+html:not(.light) .sheet .segopt input:checked+span{background:var(--c-elevated);box-shadow:inset 0 0 0 1px var(--c-accent)}
+.sheet .seg button{min-height:var(--seg-h)}
+/* the one big amount per form: same height, number size and AED label in every form */
+.sheet .amt-field{min-height:var(--amt-h)!important}
+.sheet .money.big .input{height:var(--amt-h)!important;min-height:var(--amt-h)!important;font-size:28px!important}
+.sheet .amt-field input{font-size:28px!important}
+.sheet .amt-field .c,.sheet .money.big .cur{font-size:17px!important;font-weight:700;color:var(--c-text-2)}
+.sheet .money.big .input{padding-inline-start:62px!important}
+/* two fields side by side: controls line up even if one label wraps */
+.sheet .grid2{align-items:end}
+/* intro text above a form needs the same gap as between fields */
+.sheet .sh-scroll>.fhelp:first-child{margin:0 0 14px!important}
 </style>
 </head>
 <body>
@@ -1726,7 +1749,7 @@ body.bk-drag #main{position:relative;z-index:1;min-height:100vh;min-height:100dv
 </div>
 <nav class="bnav" id="bnav"></nav>
 <button class="fab" id="fab" data-a="jp" hidden></button>
-<div class="overlay" id="overlay" hidden><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1"></div></div>
+<div class="overlay" id="overlay" hidden><div class="ov-scrim" id="ovscrim" aria-hidden="true"></div><div class="sheet" id="sheet" role="dialog" aria-modal="true" aria-labelledby="sheet-title" tabindex="-1"></div></div>
 <div class="toast" id="toast" role="status" aria-live="polite"></div>
 <script>
 /* ---------- icons (one family, 1.8 stroke) ---------- */
@@ -1921,7 +1944,7 @@ upcomingSubs:'Upcoming bills',subs:'Subscriptions',addSub:'Add a bill',editSub:'
 danger:'Delete all data',eraseAll:'Delete all data',eraseTitle:'Delete all your data?',eraseYes:'Yes, delete everything',
 dataBackup:'Backup',copyBackup:'Copy a backup',restoreBackup:'Restore from a backup',appearLang:'Look & language',profileBudget:'Your budget',
 saveBudget:'Save changes',editBudget:'Edit budget',dayX:'Day {x} of each month',limit:'Spending budget',ontrack:'On track',watch:'Spending a bit fast',over:'Over budget',
-monthlyEq:'Cost per month',nextRenewal:'Next bill',activeN:'Bills',subsCount:'{x} regular bills',spentShort:'Spent',nextPayday:'Next payday',askBannerT:'Need a hand with your budget?',askBannerS:'Get simple, personalised tips based on your spending.',upcomingPayments:'Upcoming payments',filledFrom:'Filled from what you typed:',checkBefore:'Check before saving.',saveAsBill:'Save as a regular bill instead',merchPh:'Optional — e.g. Talabat',subNamePh:'Type a service — e.g. YouTube Premium…',storePh:'Store or brand (optional) — e.g. noon, Amazon…',store:'Store',nextReq:'Choose the date of the next payment.',comingUp:'Coming up',nothingDue:'No bills or installments due in the next 30 days.',advTitle:'Salary & budget period',advSub:'Use your salary dates, or change when your budget starts.'});
+monthlyEq:'Cost per month',nextRenewal:'Next bill',activeN:'Bills',subsCount:'{x} regular bills',spentShort:'Spent',nextPayday:'Next payday',askBannerT:'Need a hand with your budget?',askBannerS:'Get simple, personalised tips based on your spending.',upcomingPayments:'Upcoming payments',filledFrom:'Filled from what you typed:',checkBefore:'Check before saving.',saveAsBill:'Save as a regular bill instead',merchPh:'Optional — e.g. Talabat',subNamePh:'e.g. YouTube Premium',storePh:'Store or brand (optional) — e.g. noon, Amazon…',store:'Store',nextReq:'Choose the date of the next payment.',comingUp:'Coming up',nothingDue:'No bills or installments due in the next 30 days.',advTitle:'Salary & budget period',advSub:'Use your salary dates, or change when your budget starts.'});
 Object.assign(T.ar,{insights:'الإنفاق',navOverview:'الإنفاق',thisCycle:'فترة الراتب هذي',payCycle:'فترة الراتب',month:'ميزانية شهرية',currentCycle:'فترة الراتب الحالية',prevCycle:'الفترة السابقة',nextCycle:'الفترة التالية',
 cycleStarts:'يوم بداية الميزانية',cycleDay:'يوم بداية الميزانية',income:'الدخل لكل فترة راتب',
 cycleHint:'ميزانيتك تبدأ من هاليوم لين اليوم اللي قبله في الشهر الجاي. أغلب الناس يختارون يوم الراتب. حط 1 عشان تمشي على الشهر العادي.',
@@ -1945,7 +1968,7 @@ upcomingSubs:'الفواتير الجاية',addSub:'أضف فاتورة',editSu
 danger:'مسح كل البيانات',eraseAll:'مسح كل البيانات',eraseTitle:'تبي تمسح كل بياناتك؟',eraseYes:'إي، امسح كل شي',
 dataBackup:'النسخ الاحتياطي',copyBackup:'انسخ نسخة احتياطية',restoreBackup:'استرجع من نسخة',appearLang:'الشكل واللغة',profileBudget:'ميزانيتك',
 saveBudget:'احفظ التغييرات',editBudget:'عدّل الميزانية',dayX:'يوم {x} من كل شهر',limit:'ميزانية الصرف',ontrack:'على المسار',watch:'تصرف بسرعة شوي',over:'تجاوزت الميزانية',
-monthlyEq:'التكلفة بالشهر',nextRenewal:'الفاتورة الجاية',activeN:'الفواتير',subsCount:'{x} فواتير متكررة',spentShort:'المصروف',nextPayday:'الراتب الجاي',askBannerT:'تحتاج مساعدة في ميزانيتك؟',askBannerS:'نصايح بسيطة على حسب مصاريفك.',upcomingPayments:'الدفعات الجاية',filledFrom:'عبّينا من اللي كتبته:',checkBefore:'راجع قبل الحفظ.',saveAsBill:'احفظه كفاتورة متكررة بدلاً',merchPh:'اختياري — مثلاً طلبات',subNamePh:'اكتب الخدمة — مثلاً يوتيوب بريميوم…',storePh:'المتجر (اختياري) — مثلاً نون، أمازون…',store:'المتجر',nextReq:'اختار تاريخ الدفعة الجاية.',comingUp:'الجاي',nothingDue:'ما في فواتير أو أقساط مستحقة خلال 30 يوم.',advTitle:'الراتب وفترة الميزانية',advSub:'استخدم مواعيد راتبك أو غيّر بداية الميزانية.'});
+monthlyEq:'التكلفة بالشهر',nextRenewal:'الفاتورة الجاية',activeN:'الفواتير',subsCount:'{x} فواتير متكررة',spentShort:'المصروف',nextPayday:'الراتب الجاي',askBannerT:'تحتاج مساعدة في ميزانيتك؟',askBannerS:'نصايح بسيطة على حسب مصاريفك.',upcomingPayments:'الدفعات الجاية',filledFrom:'عبّينا من اللي كتبته:',checkBefore:'راجع قبل الحفظ.',saveAsBill:'احفظه كفاتورة متكررة بدلاً',merchPh:'اختياري — مثلاً طلبات',subNamePh:'مثلاً يوتيوب بريميوم',storePh:'المتجر (اختياري) — مثلاً نون، أمازون…',store:'المتجر',nextReq:'اختار تاريخ الدفعة الجاية.',comingUp:'الجاي',nothingDue:'ما في فواتير أو أقساط مستحقة خلال 30 يوم.',advTitle:'الراتب وفترة الميزانية',advSub:'استخدم مواعيد راتبك أو غيّر بداية الميزانية.'});
 T.en.short={transport:'Transport',subs:'Monthly plans',fun:'Fun',bills:'Utilities'};T.en.cats.subs='Subscriptions & plans';T.en.cats.bills='Utility bills';T.ar.cats.subs='اشتراكات وباقات';T.ar.cats.bills='فواتير الخدمات';T.ar.short={transport:'مواصلات',subs:'اشتراكات',bills:'خدمات'};
 T.ar.short={transport:'مواصلات'};T.en.cats.transport='Fuel & transport';T.ar.cats.transport='بترول ومواصلات';T.en.cats.subs='Subscriptions';T.en.cats.fun='Entertainment';T.ar.cats.fun='ترفيه';
 
@@ -1957,7 +1980,7 @@ paidOf:'{a} of {b} paid',nextColon:'Next:',leftX:'{x} left',stPaid:'Paid',stToda
 paymentN:'Payment {a} of {b}',dueOn:'Due {x}',paidOn:'paid {x}',markPaid:'Mark as paid',undoPay:'Undo payment',remainingBal:'Still to pay',totalPayable:'Total payable',schedule:'Payment schedule',
 markPaidNote:'Marking a payment as paid adds it to your expenses once. Undoing it removes that expense again.',archive:'Archive',unarchive:'Move back to active',
 provider:'Provider',providerName:'Provider name (optional)',providerNamePh:'e.g. Postpay, bank card plan…',purchaseName:'What did you buy?',purchasePh:'e.g. Phone, Furniture…',
-purchaseAmt:'Purchase amount',purchaseHelp:'The price of the item, without any fees. Add fees under “More options”.',numPayments:'Number of monthly payments',firstPayDate:'First payment date',
+purchaseAmt:'Purchase amount',purchaseHelp:'The price of the item, without any fees. Add fees under “More options”.',numPayments:'Monthly payments',firstPayDate:'First payment date',
 moreOptions:'More options',deposit:'Deposit or amount already paid',depositHelp:'Paid upfront and not part of the schedule. It isn’t added as an expense — add it yourself if you haven’t.',
 feeAed:'One-time plan fee',feeHelp:'A fixed fee in AED added once to the total. Leave empty if there’s no fee.',firstPaid:'First payment already paid',firstPaidHelp:'It will be marked as paid and added to your expenses on its date.',
 editPaidNote:'Payments you’ve already made stay as they are. Only the unpaid payments are recalculated.',preview:'Payment preview',previewNeed:'Enter the amount to see each payment.',
@@ -1990,7 +2013,7 @@ paidOf:'دفعت {a} من {b}',nextColon:'الجاية:',leftX:'باقي {x}',st
 paymentN:'الدفعة {a} من {b}',dueOn:'تستحق {x}',paidOn:'دفعت {x}',markPaid:'سجلها مدفوعة',undoPay:'تراجع عن الدفع',remainingBal:'الباقي للدفع',totalPayable:'المجموع المستحق',schedule:'جدول الدفعات',
 markPaidNote:'لما تسجل دفعة مدفوعة تنضاف لمصاريفك مرة وحدة. التراجع يشيلها.',archive:'أرشفة',unarchive:'رجعها للحالية',
 provider:'الجهة',providerName:'اسم الجهة (اختياري)',providerNamePh:'مثلاً بوست باي…',purchaseName:'شو اشتريت؟',purchasePh:'مثلاً تلفون، أثاث…',
-purchaseAmt:'سعر الشراء',purchaseHelp:'سعر الغرض بدون رسوم. أضف الرسوم في "خيارات أكثر".',numPayments:'عدد الدفعات الشهرية',firstPayDate:'تاريخ أول دفعة',
+purchaseAmt:'سعر الشراء',purchaseHelp:'سعر الغرض بدون رسوم. أضف الرسوم في "خيارات أكثر".',numPayments:'عدد الدفعات',firstPayDate:'تاريخ أول دفعة',
 moreOptions:'خيارات أكثر',deposit:'الدفعة المقدمة أو المدفوع مسبقاً',depositHelp:'مدفوع مقدماً ومب من الجدول. ما ينضاف كمصروف — أضفه بنفسك إذا ما سجلته.',
 feeAed:'رسوم الخطة (مرة وحدة)',feeHelp:'رسوم ثابتة بالدرهم تنضاف مرة وحدة للمجموع. خلها فاضية إذا ما في رسوم.',firstPaid:'أول دفعة مدفوعة',firstPaidHelp:'بتنسجل مدفوعة وتنضاف لمصاريفك في تاريخها.',
 editPaidNote:'الدفعات المدفوعة تبقى مثل ما هي. بس الدفعات الباقية تنحسب من جديد.',preview:'معاينة الدفعات',previewNeed:'اكتب سعر الشراء عشان تشوف الدفعات.',
@@ -2032,9 +2055,13 @@ let TODAY_OVERRIDE=null;const today=()=>TODAY_OVERRIDE||ymd(new Date());
 const nowHM=()=>{const d=new Date();return pad(d.getHours())+':'+pad(d.getMinutes())};
 const addMonthsAnchor=(s,n,anchor)=>{const d=P(s),y=d.getFullYear(),m=d.getMonth()+n,last=new Date(y,m+1,0).getDate();return ymd(new Date(y,m,Math.min(anchor,last)))};
 const loc=()=>lang()==='ar'?'ar-AE-u-nu-latn':'en-GB';
+/* formatters are expensive to create: build each one once and reuse it (was the biggest cost when rendering lists) */
+const _DFC=new Map();const _tlds=Date.prototype.toLocaleDateString;
+Date.prototype.toLocaleDateString=function(l,o){try{const k=l+'|'+JSON.stringify(o||null);let f=_DFC.get(k);if(!f){f=new Intl.DateTimeFormat(l,o&&Object.keys(o).length?o:undefined);_DFC.set(k,f)}return f.format(this)}catch(e){return _tlds.call(this,l,o)}};
+const _NF0=new Intl.NumberFormat('en-US'),_NF2=new Intl.NumberFormat('en-US',{maximumFractionDigits:2});
 const fmtDate=(s,o={day:'numeric',month:'short'})=>P(s).toLocaleDateString(loc(),o);
-const n0=v=>Math.round(v).toLocaleString('en-US');
-const n2=v=>(Math.round(v*100)/100).toLocaleString('en-US',{maximumFractionDigits:2});
+const n0=v=>_NF0.format(Math.round(v));
+const n2=v=>_NF2.format(Math.round(v*100)/100);
 const aed=v=>`AED ${n0(v)}`;
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
@@ -2512,17 +2539,18 @@ function applyTheme(){
 const NAV=[['home','home'],['expenses','list'],['subs','repeat'],['installments','layers'],['insights','chart'],['ask','spark'],['more','more']];
 const BNAV=[['home','home'],['expenses','list'],['subs','repeat'],['more','more']];
 function syncHTML(){const on=syncState==='on';return`<span class="sync ${on?'on':''}" title="${on?t('syncOn'):syncState==='wait'?t('syncWait'):t('syncOff')}"><i class="syncdot"></i><span>${on?t('syncOn'):syncState==='wait'?t('syncWait'):t('syncOff')}</span></span>`}
+const setHTML=(el,h)=>{if(el&&el.__h!==h){el.innerHTML=h;el.__h=h}};
 function renderNav(){
   const v=S.view,cur=x=>x===v?'aria-current="page"':'';
-  $('#side').innerHTML=`<a class="brand" href="#home" aria-label="Wafr home">${MARK(44)}<b translate="no">Wafr</b></a>
+  setHTML($('#side'),`<a class="brand" href="#home" aria-label="Wafr home">${MARK(44)}<b translate="no">Wafr</b></a>
   ${S.settings?`<button class="btn btn-pri add" data-a="jp" aria-label="${t('addExpense')}">${ic('plus')}<span>${t('addExpense')}</span></button>`:''}
   <nav aria-label="${t('openMenu')}">${NAV.filter(([k])=>k!=='ask'||AI).map(([k,i])=>`<a class="nl" href="#${k}" ${cur(k)}>${ic(i)}<span>${k==='more'?t('settings'):t(k)}</span></a>`).join('')}</nav>
-  <div class="side-foot">${syncHTML()}</div>`;
+  <div class="side-foot">${syncHTML()}</div>`);
   const bcur=k=>(k===v||(k==='more'&&(v==='insights'||v==='ask'||v==='installments')))?'aria-current="page"':'';
   $('#bnav').setAttribute('aria-label',t('openMenu'));
-  $('#bnav').innerHTML=BNAV.map(([k,i])=>`<a href="#${k}" ${bcur(k)}><span class="pill">${ic(i)}</span>${k==='insights'?t('navOverview'):t(k)}</a>`).join('');
-  $('#mbar').innerHTML=`${MARK(32)}<span translate="no">Wafr</span>`;
-  const fab=$('#fab');fab.innerHTML=`${ic('plus')}${t('addExpense')}`;fab.hidden=!S.settings||!['expenses','insights'].includes(v);
+  setHTML($('#bnav'),BNAV.map(([k,i])=>`<a href="#${k}" ${bcur(k)}><span class="pill">${ic(i)}</span>${k==='insights'?t('navOverview'):t(k)}</a>`).join(''));
+  setHTML($('#mbar'),`${MARK(32)}<span translate="no">Wafr</span>`);
+  const fab=$('#fab');setHTML(fab,`${ic('plus')}${t('addExpense')}`);fab.hidden=!S.settings||!['expenses','insights'].includes(v);
   document.body.className='v-'+v;
 }
 const renderSide=renderNav;
@@ -3269,8 +3297,8 @@ function moneySheet(type){
   const st=S.settings,irr=st.incomeMode==='irregular';type=type||(irr?'transfer':'salary');
   const types=irr?['transfer','earning']:['salary','extra'];
   openSheet(L('Money received','فلوس وصلت'),`<form class="sh-form" id="moneyform" novalidate><div class="sh-scroll">
-    <fieldset><legend class="flabel">${L('What is it?','وش هي؟')}</legend><div class="seg2" role="radiogroup">${types.map(k=>`<label class="segopt"><input type="radio" name="type" value="${k}" ${k===type?'checked':''}><span>${ltName(k)}</span></label>`).join('')}</div></fieldset>
-    <div class="field"><label class="flabel" for="mamt">${t('amountLbl')}</label><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="mamt" name="amt" inputmode="decimal" placeholder="0.00" value="${type==='salary'?expectedSalary()||'':''}" autocomplete="off" data-autofocus></div>${errHTML('mamt-err')}</div>
+    <fieldset><legend class="flabel">${L('What is it?','وش هي؟')}</legend><div class="seg2" role="radiogroup">${types.map(k=>`<label class="segopt"><input type="radio" name="type" value="${k}" ${k===type?'checked':''}><span>${({salary:L('Salary','الراتب')})[k]||ltName(k)}</span></label>`).join('')}</div></fieldset>
+    <div class="field"><label class="flabel" for="mamt">${t('amountLbl')}</label><div class="money big"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="mamt" name="amt" inputmode="decimal" placeholder="0.00" value="${type==='salary'?expectedSalary()||'':''}" autocomplete="off" data-autofocus></div>${errHTML('mamt-err')}</div>
     <div class="field"><label class="flabel" for="mdate">${L('Date received','تاريخ الاستلام')}</label><input class="input" type="date" id="mdate" name="date" value="${today()}" max="${today()}">${errHTML('mdate-err')}</div>
     <div class="field"><label class="flabel" for="mnote">${t('noteLbl')}</label><input class="input" id="mnote" name="note" autocomplete="off" placeholder="${L('Optional','اختياري')}"></div>
     <p class="fhelp" id="mhelp"></p><div class="preview" id="mprev" aria-live="polite"></div>
@@ -3324,7 +3352,7 @@ function resSheet(x){const isNew=!x;x=x||{name:'',amt:'',due:addD(today(),14),st
   openSheet(isNew?L('Plan a one-off cost','خطط لمصروف كبير'):esc(x.name),`<form class="sh-form" id="resform" data-id="${x.id||''}" novalidate><div class="sh-scroll">
     <p class="fhelp" style="margin:0 0 12px">${L('Wafr sets this money aside before working out your daily allowance. When you pay, the real amount replaces the reserve.','وفر يخلي هالمبلغ على جنب قبل ما يحسب المسموح اليومي. لما تدفع، المبلغ الحقيقي ياخذ مكانه.')}</p>
     <div class="field"><label class="flabel" for="rname">${t('name')}</label><input class="input" id="rname" name="name" value="${esc(x.name)}" placeholder="${L('e.g. Car service','مثلاً: صيانة السيارة')}" autocomplete="off" data-autofocus>${errHTML('rname-err')}</div>
-    <div class="field"><label class="flabel" for="ramt">${L('Estimated amount','المبلغ المتوقع')}</label><div class="money"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="ramt" name="amt" inputmode="decimal" value="${x.amt}" placeholder="0.00" autocomplete="off"></div>${errHTML('ramt-err')}</div>
+    <div class="field"><label class="flabel" for="ramt">${L('Estimated amount','المبلغ المتوقع')}</label><div class="money big"><span class="cur" aria-hidden="true">AED</span><input class="input num" id="ramt" name="amt" inputmode="decimal" value="${x.amt}" placeholder="0.00" autocomplete="off"></div>${errHTML('ramt-err')}</div>
     <div class="field"><label class="flabel" for="rdue">${L('Due by','آخر موعد')}</label><input class="input" type="date" id="rdue" name="due" value="${x.due}"></div>
     ${x.id?`<dl class="kv"><div><dt>${L('Paid so far','المدفوع لين الحين')}</dt><dd><bdi>${aedC(paid)}</bdi></dd></div><div><dt>${L('Still set aside','باقي على جنب')}</dt><dd><bdi>${aedC(x.status==='open'?left:0)}</bdi></dd></div><div><dt>${L('Status','الحالة')}</dt><dd>${{open:L('Open','مفتوح'),done:L('Paid','مدفوع'),cancelled:L('Cancelled','ملغي')}[x.status]}</dd></div></dl>`:''}
   </div><div class="sh-actions">${x.id&&x.status==='open'?`<button class="btn btn-ghost-danger" type="button" data-a="resCancel" data-id="${x.id}">${L('Cancel reserve','الغ الحجز')}</button><button class="btn btn-sec" type="button" data-a="resPay" data-id="${x.id}">${ic('plus')}${L('Record payment','سجل دفعة')}</button>`:''}<span class="grow"></span><button class="btn btn-pri" type="submit">${L('Save','احفظ')}</button></div></form>`);
@@ -4267,30 +4295,40 @@ const rubber=(o,dim,c=.55)=>(o*dim*c)/(dim+c*Math.abs(o));
 const SH={y:0,anim:null,closing:false,drag:null};
 function shEls(){return{ov:$('#overlay'),sh:$('#sheet')}}
 function shH(){const {sh}=shEls();return Math.max(200,sh.getBoundingClientRect().height)}
-function shSet(y){const {ov,sh}=shEls();SH.y=y;sh.style.transform=`translate3d(0,${Math.max(y,-40)}px,0)`;const p=Math.max(0,Math.min(1,1-y/shH()));ov.style.setProperty('--scrimA',p.toFixed(3))}
-function shStop(){if(SH.anim){SH.anim.stop();SH.anim=null}}
-function shTo(target,v,opt,done){shStop();SH.anim=spring(SH.y,target,v||0,opt,shSet,()=>{SH.anim=null;done&&done()})}
+const SCRIM=()=>document.getElementById('ovscrim');
+function shSet(y){const {sh}=shEls();SH.y=y;sh.style.transform=`translate3d(0,${Math.max(y,-40)}px,0)`;const h=SH.h||(SH.h=shH());const sc=SCRIM();if(sc)sc.style.opacity=Math.max(0,Math.min(1,1-y/h)).toFixed(3)}
+function shStop(){if(SH.anim){SH.anim.stop();SH.anim=null}
+  if(SH.wa){const w=SH.wa;SH.wa=null;const {sh}=shEls();let y=w.to;try{y=new DOMMatrixReadOnly(getComputedStyle(sh).transform).m42}catch(e){}w.a.cancel();w.b&&w.b.cancel();shSet(y)}}
+/* open/close run on the compositor (Web Animations: transform + opacity only), so page work can't make them stutter */
+function shAnim(to,dur,ease,done){shStop();const {sh}=shEls(),sc=SCRIM(),from=SH.y,h=SH.h||(SH.h=shH());
+  if(!sh.animate){shTo(to,0,{damping:1,response:dur/1000},done);return}
+  const op=y=>Math.max(0,Math.min(1,1-y/h));
+  const a=sh.animate([{transform:`translate3d(0,${from}px,0)`},{transform:`translate3d(0,${to}px,0)`}],{duration:dur,easing:ease});
+  const b=sc&&sc.animate([{opacity:op(from)},{opacity:op(to)}],{duration:dur,easing:ease});
+  shSet(to);const w={a,b,to};SH.wa=w;
+  a.onfinish=()=>{if(SH.wa!==w)return;SH.wa=null;a.cancel();b&&b.cancel();done&&done()}}
+function shTo(target,v,opt,done){shStop();SH.h=shH();SH.anim=spring(SH.y,target,v||0,opt,shSet,()=>{SH.anim=null;done&&done()})}
 function shPhoneMode(){return PHONE()&&!RM()}
 const _openSheet=openSheet,_closeSheet=closeSheet;
 openSheet=function(title,inner,o){
-  const wasClosing=SH.closing;SH.closing=false;const {ov}=shEls();const hiddenBefore=ov.hidden;
-  _openSheet(title,inner,o);
+  const wasClosing=SH.closing||!!SH.wa;SH.closing=false;const {ov}=shEls();const hiddenBefore=ov.hidden;
+  _openSheet(title,inner,o);try{kbSync()}catch(e){}
   const {sh}=shEls();sh.insertAdjacentHTML('afterbegin',`<div class="grab" aria-hidden="true"><i></i></div>`);
   if(shPhoneMode()){ov.classList.add('springy');
-    if(hiddenBefore||!wasClosing){shStop();shSet(shH())} /* interrupted close: continue from where it is */
-    shTo(0,SH.anim?SH.anim.velocity:0,{damping:1,response:.38})}
+    if(hiddenBefore||!wasClosing){shStop();SH.h=shH();shSet(SH.h)} /* interrupted close: continue from where it is */
+    if(SH.anim)shTo(0,SH.anim.velocity,{damping:1,response:.38});else shAnim(0,380,'cubic-bezier(.32,.72,0,1)')}
   else{ov.classList.remove('springy');sh.style.transform=''}
 };
 closeSheet=function(force){const {ov,sh}=shEls();if(ov.hidden)return;
   if(!shPhoneMode()){_closeSheet(force);return}
   if(SH.closing)return;SH.closing=true;ov.classList.remove('open');
-  const finish=()=>{if(!SH.closing)return;SH.closing=false;ov.classList.add('open');ov.style.setProperty('--scrimA','0');_closeSheet(force);setTimeout(()=>{if(ov.hidden)sh.style.transform=''},220)};
-  shTo(shH()+24,SH.dragV||0,{damping:1,response:.3},finish);SH.dragV=0;
+  const finish=()=>{if(!SH.closing)return;SH.closing=false;ov.classList.add('open');{const sc=SCRIM();if(sc)sc.style.opacity='0'}_closeSheet(force);setTimeout(()=>{if(ov.hidden)sh.style.transform=''},220)};
+  SH.h=shH();if(SH.dragV)shTo(SH.h+24,SH.dragV,{damping:1,response:.3},finish);else shAnim(SH.h+24,250,'cubic-bezier(.4,0,.9,.6)',finish);SH.dragV=0;
 };
 /* drag the sheet by its handle/header: 1:1, keeps the grab offset, momentum on release, interruptible */
-document.addEventListener('pointerdown',e=>{const moving=!!SH.anim;const g=e.target.closest(moving?'#sheet':'#sheet .grab, #sheet .sh-head');if(!g||!shPhoneMode()||e.button>0)return;if(!moving&&e.target.closest('button,a,input,select,textarea'))return;
+document.addEventListener('pointerdown',e=>{const moving=!!(SH.anim||SH.wa);const g=e.target.closest(moving?'#sheet':'#sheet .grab, #sheet .sh-head');if(!g||!shPhoneMode()||e.button>0)return;if(!moving&&e.target.closest('button,a,input,select,textarea'))return;
   const {ov}=shEls();if(ov.hidden)return;shStop();SH.closing=false;ov.classList.add('open');
-  SH.drag={id:e.pointerId,y0:e.clientY,start:SH.y,hist:[{t:e.timeStamp,y:e.clientY}],moved:false};g.setPointerCapture&&g.setPointerCapture(e.pointerId)});
+  SH.h=shH();SH.drag={id:e.pointerId,y0:e.clientY,start:SH.y,hist:[{t:e.timeStamp,y:e.clientY}],moved:false};g.setPointerCapture&&g.setPointerCapture(e.pointerId)});
 document.addEventListener('pointermove',e=>{const d=SH.drag;if(!d||e.pointerId!==d.id)return;const dy=e.clientY-d.y0;if(!d.moved&&Math.abs(dy)<6)return;d.moved=true;
   let y=d.start+dy;if(y<0)y=rubber(y,shH());shSet(y);d.hist.push({t:e.timeStamp,y:e.clientY});if(d.hist.length>6)d.hist.shift();e.preventDefault()},{passive:false});
 function shRelease(e){const d=SH.drag;if(!d||e.pointerId!==d.id)return;SH.drag=null;if(!d.moved){if(SH.y!==0&&!SH.closing)shTo(0,0,{damping:1,response:.3});return}SH.eatClick=true;setTimeout(()=>{SH.eatClick=false},400);
@@ -4302,7 +4340,7 @@ document.addEventListener('touchstart',e=>{if(!shPhoneMode()||e.touches.length!=
   if(e.target.closest('input[type=range],textarea,select,.no-swipe'))return;const {ov}=shEls();if(ov.hidden)return;
   SH.cd={y0:e.touches[0].clientY,x0:e.touches[0].clientX,sc,mode:null,start:SH.y,hist:[{t:e.timeStamp,y:e.touches[0].clientY}]}},{passive:true});
 document.addEventListener('touchmove',e=>{const d=SH.cd;if(!d)return;const y=e.touches[0].clientY,dy=y-d.y0,dx=e.touches[0].clientX-d.x0;
-  if(!d.mode){if(Math.abs(dy)<6&&Math.abs(dx)<6)return;d.mode=(dy>0&&Math.abs(dy)>Math.abs(dx)&&d.sc.scrollTop<=0)?'sheet':'scroll';if(d.mode==='sheet'){shStop();SH.closing=false;shEls().ov.classList.add('open');d.y0=y}}
+  if(!d.mode){if(Math.abs(dy)<6&&Math.abs(dx)<6)return;d.mode=(dy>0&&Math.abs(dy)>Math.abs(dx)&&d.sc.scrollTop<=0)?'sheet':'scroll';if(d.mode==='sheet'){shStop();SH.h=shH();SH.closing=false;shEls().ov.classList.add('open');d.y0=y}}
   if(d.mode!=='sheet')return;e.preventDefault();let ny=d.start+(y-d.y0);if(ny<0)ny=rubber(ny,shH());shSet(ny);d.hist.push({t:e.timeStamp,y});if(d.hist.length>6)d.hist.shift()},{passive:false});
 function shTouchEnd(){const d=SH.cd;SH.cd=null;if(!d||d.mode!=='sheet')return;SH.eatClick=true;setTimeout(()=>{SH.eatClick=false},400);
   const h=d.hist,a=h[0],b=h[h.length-1];const v=b.t>a.t?(b.y-a.y)/((b.t-a.t)/1000):0;const H=shH(),end=SH.y+projectMomentum(v);
@@ -4310,6 +4348,13 @@ function shTouchEnd(){const d=SH.cd;SH.cd=null;if(!d||d.mode!=='sheet')return;SH
 document.addEventListener('touchend',shTouchEnd);document.addEventListener('touchcancel',shTouchEnd);
 document.addEventListener('pointerup',shRelease);document.addEventListener('pointercancel',shRelease);
 /* keyboard / button alternatives stay: Esc and the × button both close */
+/* ---------- iPhone keyboard: keep the sheet (and its Save button) above it ---------- */
+function kbSync(){const vv=window.visualViewport,ov=document.getElementById('overlay'),sh=document.getElementById('sheet');if(!vv||!ov||!sh)return;
+  if(ov.hidden){if(ov.style.bottom){ov.style.bottom='';sh.style.maxHeight='';ov.classList.remove('kb')}return}
+  const kb=Math.max(0,Math.round(innerHeight-vv.height-vv.offsetTop));const on=kb>80;
+  ov.style.bottom=on?kb+'px':'';ov.style.top=on?Math.round(vv.offsetTop)+'px':'';sh.style.maxHeight=on?Math.round(vv.height*.96)+'px':'';ov.classList.toggle('kb',on)}
+if(window.visualViewport){visualViewport.addEventListener('resize',kbSync);visualViewport.addEventListener('scroll',kbSync)}
+document.addEventListener('focusin',e=>{if(e.target.closest&&e.target.closest('#sheet')&&/^(INPUT|TEXTAREA|SELECT)$/.test(e.target.tagName))setTimeout(()=>{kbSync();e.target.scrollIntoView({block:'nearest'})},250)});
 
 /* ---------- immediate press feedback (commit still happens on click/release) ---------- */
 document.addEventListener('touchstart',()=>{},{passive:true});
@@ -4391,7 +4436,9 @@ function moCount(el,key){if(!el)return;const tn=[...el.childNodes].find(n=>n.nod
   const to=parseFloat(tn.textContent.replace(/[^\d.\-]/g,''));if(!isFinite(to))return;const from=MO.num[key];MO.num[key]=to;if(from==null||from===to||RM())return;
   const t0=performance.now(),dur=Math.min(900,350+Math.abs(to-from)*2);const step=now=>{const k=Math.min(1,(now-t0)/dur),e=1-Math.pow(1-k,3);tn.textContent=fmtN(from+(to-from)*e);if(k<1&&tn.isConnected)requestAnimationFrame(step)};requestAnimationFrame(step)}
 function moBar(el,key){if(!el)return;const to=parseFloat(el.style.width)||0,from=MO.bar[key];MO.bar[key]=to;if(RM()||from===to)return;
-  el.animate([{width:(from==null?0:from)+'%'},{width:to+'%'}],{duration:from==null?900:700,easing:E_OUT})}
+  if(!(to>0))return;/* grow with transform (composited) instead of width (layout every frame) */
+  el.style.transformOrigin=lang()==='ar'?'right center':'left center';
+  el.animate([{transform:`scaleX(${Math.max(0,(from==null?0:from)/to)})`},{transform:'scaleX(1)'}],{duration:from==null?900:700,easing:E_OUT})}
 const _renderAllMO=renderAll;
 renderAll=function(){const prev=MO.view;_renderAllMO();MO.view=S.view;const m=$('#main');if(!m)return;
   if(MO.skip){MO.skip=false}else if(!RM()&&prev!==null&&prev!==S.view){
