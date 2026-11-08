@@ -484,7 +484,7 @@ function manualUpdate() {
 
 /* ---------- voice (only where the browser really supports it) ---------- */
 const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
-const REC_OK = !!SR;
+const REC_OK = !!SR && !window.claude; // the Claude artifact frame blocks the microphone, so no mic button there
 let REC = null;
 const WORDS = { 'صفر': 0, 'واحد': 1, 'اثنين': 2, 'اثنان': 2, 'ثنين': 2, 'ثلاث': 3, 'ثلاثة': 3, 'ثلاثه': 3, 'اربع': 4, 'اربعة': 4, 'اربعه': 4, 'خمس': 5, 'خمسة': 5, 'خمسه': 5,
   'ست': 6, 'ستة': 6, 'سته': 6, 'سبع': 7, 'سبعة': 7, 'سبعه': 7, 'ثمان': 8, 'ثمانية': 8, 'ثمانيه': 8, 'ثمن': 8, 'تسع': 9, 'تسعة': 9, 'تسعه': 9, 'عشر': 10, 'عشرة': 10, 'عشره': 10,
