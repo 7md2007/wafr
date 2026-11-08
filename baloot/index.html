@@ -17,12 +17,24 @@
   --peach:#FFD9C4; --peach-soft:#FFF1E8; --peach-ink:#9A4A22;
   --white:#FFFFFF; --ink:#12354A; --ink-2:#4F6B7C; --line:#DCEBF2;
   --bad:#C2413A; --bad-soft:#FDECEA;
+  --red:#D2453D; --peach-bar:#F0A27A; --on-accent:#FFFFFF; --card:#FFFFFF; --track:rgba(18,53,74,.08);
+  --scrim:rgba(18,53,74,.35); --bg-a:#E9F6FC; --bg-b:#F6FBFD; --bg-c:#FFF1E8;
   --r:18px; --r-s:12px; --sh:0 6px 24px rgba(18,53,74,.08);
 }
+@media (prefers-color-scheme:dark){:root:not([data-theme=light]){
+  --sky:#3A9FD6; --sky-soft:#173447; --sky-line:#24506A; --teal:#1A9E93; --teal-ink:#7FE0D5; --teal-soft:#123A3A;
+  --peach:#6B4535; --peach-soft:#3A2A24; --peach-ink:#FFC7A8; --white:#132B3A; --ink:#EAF4F8; --ink-2:#A6BECB; --line:#24485C;
+  --bad:#FF8A80; --bad-soft:#3E2223; --red:#FF7A70; --peach-bar:#E8946A; --card:#F4F8FA; --track:rgba(255,255,255,.12);
+  --scrim:rgba(0,0,0,.55); --bg-a:#0E2130; --bg-b:#0C1C28; --bg-c:#1C1A1C; --sh:0 6px 24px rgba(0,0,0,.35); color-scheme:dark}}
+:root[data-theme=dark]{
+  --sky:#3A9FD6; --sky-soft:#173447; --sky-line:#24506A; --teal:#1A9E93; --teal-ink:#7FE0D5; --teal-soft:#123A3A;
+  --peach:#6B4535; --peach-soft:#3A2A24; --peach-ink:#FFC7A8; --white:#132B3A; --ink:#EAF4F8; --ink-2:#A6BECB; --line:#24485C;
+  --bad:#FF8A80; --bad-soft:#3E2223; --red:#FF7A70; --peach-bar:#E8946A; --card:#F4F8FA; --track:rgba(255,255,255,.12);
+  --scrim:rgba(0,0,0,.55); --bg-a:#0E2130; --bg-b:#0C1C28; --bg-c:#1C1A1C; --sh:0 6px 24px rgba(0,0,0,.35); color-scheme:dark}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-html,body{margin:0;background:linear-gradient(180deg,var(--sky-soft),#F6FBFD 40%,var(--peach-soft));min-height:100%;color:var(--ink);
+html,body{margin:0;background:var(--bg-b) linear-gradient(180deg,var(--bg-a),var(--bg-b) 40%,var(--bg-c));min-height:100%;color:var(--ink);
   font:400 16px/1.45 Plex,Inter,system-ui,sans-serif}
-body{padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 24px);max-width:560px;margin:0 auto}
+body{padding-block:calc(env(safe-area-inset-top,0px) + 12px) calc(env(safe-area-inset-bottom,0px) + 24px);padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));max-width:560px;margin:0 auto}
 button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
 .num{font-family:Inter,Plex,sans-serif;font-variant-numeric:tabular-nums}
 header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
@@ -35,21 +47,21 @@ h1{font-size:22px;margin:0;font-weight:700}
 .team.us{background:var(--teal-soft)} .team.them{background:var(--peach-soft)}
 .team .lbl{font-size:14px;color:var(--ink-2);font-weight:600}
 .team .big{font-size:34px;font-weight:600;line-height:1.1}
-.track{height:6px;border-radius:3px;background:rgba(18,53,74,.08);overflow:hidden;margin-top:8px}
+.track{height:6px;border-radius:3px;background:var(--track);overflow:hidden;margin-top:8px}
 .track i{display:block;height:100%;transform-origin:right;transition:transform .3s}
-.us .track i{background:var(--teal)} .them .track i{background:#F0A27A}
+.us .track i{background:var(--teal)} .them .track i{background:var(--peach-bar)}
 .target{font-size:13px;color:var(--ink-2);text-align:center;margin-top:8px}
-.win{background:var(--teal);color:#fff;text-align:center;border-radius:var(--r-s);padding:10px;margin-top:10px;font-weight:700}
+.win{background:var(--teal);color:var(--on-accent);text-align:center;border-radius:var(--r-s);padding:10px;margin-top:10px;font-weight:700}
 /* round */
 .step{font-size:13px;color:var(--ink-2);font-weight:600;margin:14px 0 8px}
 .step:first-child{margin-top:0}
 .modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .mode{height:64px;border-radius:var(--r-s);background:var(--sky-soft);border:2px solid transparent;font-size:24px;font-weight:700}
-.mode[aria-pressed=true]{background:var(--sky);color:#fff;border-color:var(--sky)}
+.mode[aria-pressed=true]{background:var(--sky);color:var(--on-accent);border-color:var(--sky)}
 .suits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
 .suit{height:62px;border-radius:var(--r-s);background:var(--white);border:2px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:600}
 .suit b{font-size:24px;line-height:1}
-.suit.red b{color:#D2453D} .suit.blk b{color:var(--ink)}
+.suit.red b{color:var(--red)} .suit.blk b{color:var(--ink)}
 .suit[aria-pressed=true]{border-color:var(--teal);background:var(--teal-soft)}
 .seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--sky-soft);border-radius:var(--r-s);padding:4px;gap:4px}
 .seg button{height:44px;border-radius:9px;font-weight:600;font-size:16px}
@@ -71,7 +83,7 @@ input.amt:focus{outline:none;border-color:var(--sky)}
 .status{font-size:14px;font-weight:600}
 .status.ok{color:var(--teal-ink)} .status.bad{color:var(--bad)} .status.tie{color:var(--peach-ink)}
 .err{background:var(--bad-soft);color:var(--bad);border-radius:var(--r-s);padding:10px;margin-top:10px;font-size:14px}
-.primary{width:100%;height:54px;border-radius:var(--r-s);background:var(--teal);color:#fff;font-size:18px;font-weight:700;margin-top:14px}
+.primary{width:100%;height:54px;border-radius:var(--r-s);background:var(--teal);color:var(--on-accent);font-size:18px;font-weight:700;margin-top:14px}
 .primary:disabled{opacity:.4}
 .ghost{width:100%;height:46px;border-radius:var(--r-s);background:var(--sky-soft);font-weight:600;margin-top:8px}
 /* history */
@@ -82,10 +94,10 @@ input.amt:focus{outline:none;border-color:var(--sky)}
 .hrow .p{font:600 16px Inter,sans-serif;min-width:34px;text-align:center}
 .empty{color:var(--ink-2);font-size:14px;text-align:center;padding:8px}
 /* sheets */
-#scrim{position:fixed;inset:0;background:rgba(18,53,74,.35);opacity:0;pointer-events:none;transition:opacity .2s}
+#scrim{position:fixed;inset:0;background:var(--scrim);opacity:0;pointer-events:none;transition:opacity .2s}
 #scrim.on{opacity:1;pointer-events:auto}
 .sheet{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--white);border-radius:22px 22px 0 0;
-  padding:10px 16px calc(env(safe-area-inset-bottom) + 16px);transform:translateY(105%);visibility:hidden;transition:transform .25s cubic-bezier(.2,.8,.2,1),visibility 0s .25s;max-height:88vh;overflow:auto;box-shadow:0 -8px 30px rgba(18,53,74,.15)}
+  padding:10px max(16px,env(safe-area-inset-right,0px)) calc(env(safe-area-inset-bottom,0px) + 16px) max(16px,env(safe-area-inset-left,0px));transform:translateY(105%);visibility:hidden;transition:transform .25s cubic-bezier(.2,.8,.2,1),visibility 0s .25s;max-height:88vh;overflow:auto;box-shadow:0 -8px 30px rgba(18,53,74,.15)}
 .sheet.on{transform:none;visibility:visible;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
 .grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
 .sheet h3{margin:0 0 4px;font-size:18px}
@@ -100,7 +112,7 @@ input.amt:focus{outline:none;border-color:var(--sky)}
 .stp button:disabled{opacity:.35}
 .stp span{min-width:16px;text-align:center;font:600 16px Inter,sans-serif}
 .cards{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
-.pc{direction:ltr;unicode-bidi:isolate;min-width:40px;height:50px;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font:600 15px Inter,sans-serif;padding:0 6px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.pc{direction:ltr;unicode-bidi:isolate;min-width:40px;height:50px;border-radius:8px;border:1px solid var(--line);background:var(--card);color:#12354A;display:flex;align-items:center;justify-content:center;font:600 15px Inter,sans-serif;padding:0 6px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
 .pc.red{color:#D2453D}
 .found{border-top:1px solid var(--line);padding:10px 0}
 .found .t{font-weight:700;margin-bottom:6px}
@@ -185,8 +197,8 @@ function renderRound() {
         <div class="hint">مجموع الأبناط <span class="num">${M.total}</span> (${m === 'sun' ? '120 + الأرض 10' : '152 + الأرض 10'})</div>`;
     }
     h += `<div class="row kab"><span class="hint" style="margin:0">كبوت؟</span>
-      <button class="chip" data-a="kaboot" data-v="us" ${pressed(R.kaboot === 'us')} style="${R.kaboot === 'us' ? 'background:var(--teal);color:#fff' : ''}">كبوت لنا</button>
-      <button class="chip" data-a="kaboot" data-v="them" ${pressed(R.kaboot === 'them')} style="${R.kaboot === 'them' ? 'background:#F0A27A;color:#fff' : ''}">كبوت لهم</button></div>
+      <button class="chip" data-a="kaboot" data-v="us" ${pressed(R.kaboot === 'us')} style="${R.kaboot === 'us' ? 'background:var(--teal);color:var(--on-accent)' : ''}">كبوت لنا</button>
+      <button class="chip" data-a="kaboot" data-v="them" ${pressed(R.kaboot === 'them')} style="${R.kaboot === 'them' ? 'background:var(--peach-bar);color:var(--on-accent)' : ''}">كبوت لهم</button></div>
       <div id="preview"></div>`;
   }
   $('#round').innerHTML = h;
@@ -228,6 +240,8 @@ const renderAll = () => { renderBoard(); renderRound(); renderHist(); };
 function openSheet(html) { $('#sheetBody').innerHTML = html; $('#scrim').classList.add('on'); $('#sheet').classList.add('on'); }
 function closeSheet() { $('#scrim').classList.remove('on'); $('#sheet').classList.remove('on'); sheetKind = null; }
 let sheetKind = null;
+let ASK = null; // in-page confirm (native confirm() is blocked in some views)
+function ask(q, yes, fn) { sheetKind = 'ask'; ASK = fn; openSheet(`<h3>${q}</h3><button class="primary" data-a="yes" style="background:var(--bad)">${yes}</button><button class="ghost" data-a="close">إلغاء</button>`); }
 
 function projectsSheet() {
   sheetKind = 'projects';
@@ -265,9 +279,9 @@ function settingsSheet() {
     <button data-a="tieRule" data-v="buyerLoses" aria-pressed="${S.tieRule === 'buyerLoses'}">المشتري يخسر</button></div>
     <div class="step">الصكة على</div>
     <div class="seg">${[152, 100, 200].map(v => `<button data-a="target" data-v="${v}" aria-pressed="${S.target === v}">${v}</button>`).join('')}</div>
-    <div class="step">مفتاح Anthropic (لتصوير الأوراق خارج Claude)</div>
+    ${window.claude ? '' : `<div class="step">مفتاح Anthropic (لتصوير الأوراق خارج Claude)</div>
     <input class="key" id="aikey" placeholder="sk-ant-…" value="${esc(getKey())}" autocomplete="off">
-    <div class="hint">يبقى في جهازك فقط. نفس المفتاح اللي في وفر.</div>
+    <div class="hint">يبقى في جهازك فقط. نفس المفتاح اللي في وفر.</div>`}
     <button class="ghost" data-a="newGame">صكة جديدة (تصفير)</button>
     <button class="primary" data-a="saveSettings">حفظ</button>`);
 }
@@ -281,7 +295,8 @@ async function aiCards(file) {
   const prompt = `This photo shows playing cards from a Baloot game (32-card deck: A K Q J 10 9 8 7 in four suits). List every card whose rank AND suit you can clearly see. Do not guess hidden or blurry cards. Reply with only JSON: {"cards":[{"rank":"A|K|Q|J|10|9|8|7","suit":"S|H|D|C"}],"unclear":number (cards visible but not readable)}`;
   if (window.claude && window.claude.use) {
     const f = await window.claude.use('sample');
-    if (f && f.json) return f.json(prompt, { images: [file] });
+    if (f && f.json) return f.json(prompt, { images: [file], modelTier: 'default' });
+    throw new Error('noclaude');
   }
   const key = getKey(); if (!key) throw new Error('nokey');
   const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
@@ -356,8 +371,9 @@ const A = {
       projects: r.valid.map(p => ({ type: p.type, team: p.team })), us: r.us, them: r.them, made: r.made, at: Date.now() });
     save(); R = fresh(); SCAN = null; renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' });
   },
-  undo: () => { if (confirm('تحذف آخر جولة؟')) { S.rounds.pop(); save(); renderAll(); } },
-  newGame: () => { if (confirm('تبدأ صكة جديدة؟ الجولات الحالية تنحذف.')) { S.rounds = []; save(); R = fresh(); closeSheet(); renderAll(); } },
+  undo: () => ask('تحذف آخر جولة؟', 'احذف', () => { S.rounds.pop(); save(); closeSheet(); renderAll(); }),
+  yes: () => { const f = ASK; ASK = null; if (f) f(); },
+  newGame: () => ask('تبدأ صكة جديدة؟ الجولات الحالية تنحذف.', 'ابدأ من جديد', () => { S.rounds = []; save(); R = fresh(); closeSheet(); renderAll(); }),
   scan: () => { SCAN = null; scanSheet(); },
   what: v => { SCAN.what = v; scanSheet(); },
   pick: () => $('#photo').click(),
@@ -373,7 +389,7 @@ const A = {
   useAbnat: () => { const ab = E.handAbnat(SCAN.cards, R.mode, R.trump) + (SCAN.last ? 10 : 0); R.abnat = String(Math.min(ab, E.MODE[R.mode].total)); R.kaboot = null; closeSheet(); renderRound(); },
   tieRule: v => { S.tieRule = v; save(); settingsSheet(); renderRound(); },
   target: v => { S.target = +v; save(); settingsSheet(); renderBoard(); },
-  saveSettings: () => { const k = ($('#aikey') || {}).value || ''; try { if (k.trim()) localStorage.setItem(KEY_LS, k.trim()); else localStorage.removeItem(KEY_LS); } catch (e) {} closeSheet(); },
+  saveSettings: () => { const ke = $('#aikey'); if (ke) { const k = ke.value || ''; try { if (k.trim()) localStorage.setItem(KEY_LS, k.trim()); else localStorage.removeItem(KEY_LS); } catch (e) {} } closeSheet(); },
 };
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-a]'); if (!el) return;
@@ -393,7 +409,7 @@ $('#photo').onchange = async e => {
   const file = e.target.files[0]; e.target.value = ''; if (!file || !SCAN) return;
   SCAN.busy = true; SCAN.err = ''; SCAN.cards = null; SCAN.owners = []; SCAN.last = null; scanSheet();
   try { const r = await aiCards(file); SCAN.cards = cleanCards(r && r.cards); SCAN.unclear = (r && +r.unclear) || 0; }
-  catch (err) { SCAN.err = err.message === 'nokey' ? 'التصوير يحتاج Claude أو مفتاح Anthropic (من ⚙︎ الإعدادات). تقدر تدخل المشاريع يدوياً.' : 'ما قدرنا نقرأ الصورة. جرب صورة أوضح أو أدخل يدوياً.'; }
+  catch (err) { SCAN.err = err.message === 'noclaude' || (err && err.code === 'not_granted') ? 'اسمح للصفحة تستخدم Claude عشان تقرأ الصور، أو أدخل المشاريع يدوياً.' : err.message === 'nokey' ? 'التصوير يحتاج Claude أو مفتاح Anthropic (من ⚙︎ الإعدادات). تقدر تدخل المشاريع يدوياً.' : 'ما قدرنا نقرأ الصورة. جرب صورة أوضح أو أدخل يدوياً.'; }
   SCAN.busy = false; if (sheetKind === 'scan') scanSheet();
 };
 renderAll();
