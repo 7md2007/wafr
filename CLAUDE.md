@@ -118,12 +118,21 @@ Next (in this order):
 Rules: don't invent prices or turn on billing; keep privacy text matching real behaviour; ask before big architecture changes.
 
 ## Baloot score keeper (Nov 8, 2026) — separate page, does not touch Wafr
-- `baloot/index.html` (Arabic RTL, sky-blue/turquoise/white/peach) + `baloot/engine.js` (pure scoring engine). Live at /wafr/baloot/.
-- Flow: صن/حكم → trump suit (Hokm only) → buyer لنا/لهم → المشاريع sheet (only projects valid for the mode) → abnat for لنا or كبوت → confirm.
-  Mode/trump/buyer remembered (`baloot.v1`); projects never carried to the next round.
+- `baloot/index.html` (Arabic RTL, one light look: sky/turquoise/white/soft peach) + `baloot/engine.js` (pure scoring engine).
+  Live at /wafr/baloot/ once merged; artifact copy https://claude.ai/artifact/Q6W5f2T1TPJdG4FbDA8N3f (built from index.html + engine.js inlined, Google Fonts, `sample` capability with images).
+- Home = score (لنا vs لهم, target bars) → current round card (صن/حكم segmented, 4 suit buttons slide in for حكم, buyer لنا/لهم, "+ مشاريع" chip)
+  → big "صوّر الأوراق" button at the bottom + small "إدخال يدوي" and mic. Top icons: history, share, settings (⋯). No confirm step:
+  saving shows a toast with "تراجع". State `baloot.v1` (v2 shape: `{rounds, games, target, tieRule, cur:{mode,trump,buyer,projects,tieWinner}}`, v1 migrated).
+  Projects stay with the current round until it is saved, then are cleared.
+- Scan: photo → AI lists readable cards (Claude `sample` in the artifact, else the user's key `wafr.aikey` outside Claude) → 4×8 card grid
+  with AI cards preselected (tap to fix), duplicates impossible, count must be whole tricks (×4), asks who took الأرض, 32 cards = كبوت.
+  Without AI the same grid works by tapping (no fake AI). More photos can be added to the same pile.
+- Manual: own keypad (no iOS keyboard), "أبناط لنا/لهم", كبوت buttons, impossible values rejected (`isPossibleAbnat`), live result.
+  Voice only where SpeechRecognition exists (`parseSpoken`: digits + Arabic number words, لنا/لهم, كبوت); fills the keypad, never saves by itself.
+- History sheet: per-round delete (toast undo), undo last, past games. Share = Web Share, else copy text.
 - Rules in engine: Sun 130 abnat = 26 pts (÷5), Hokm 162 = 16 (÷10, a 5 rounds down; 86–76 → 9–7). Projects Sun سرا4/خمسين10/مية20/أربعمية40,
   Hokm سرا2/خمسين5/مية10/بلوت2 (4 aces in Hokm = مية). Strongest project cancels the other team's; equal type → user picks; بلوت never cancelled
   and stays with its owner. Buyer must beat the other team (abnat + projects); failing gives the other team the whole round + projects.
   Kaboot 44 / 25. Tie rule is a setting (split / buyer loses). Doubling (دبل/ثري/فور/قهوة) not implemented yet.
-- Photo scan: AI reads visible cards only → engine `detectProjects()` → user picks owner for each; or "our tricks" photo → abnat + asks about الأرض.
-- Tests: `node tests/baloot.test.js` (46, plain node).
+  `pileAbnat()` scores a photographed pile, `possibleAbnat()` lists reachable values.
+- Tests: `node tests/baloot.test.js` (55, plain node).

@@ -96,5 +96,19 @@ ok('a card is not used twice (4 kings + Q-J ♠ only)', names(B.detectProjects(C
 ok('nothing in a plain hand', B.detectProjects(C('AS 9H 7D KC QS 10H 8C JD'), 'sun').length === 0);
 ok('9s/8s/7s four of a kind are not a project', B.detectProjects(C('9S 9H 9D 9C 7S 7H 7D 7C'), 'sun').length === 0);
 
+console.log('#11 photo of collected cards (pile)');
+const pile = C('AS 10S KS QS AH 10H KH QH');
+ok('Sun pile A 10 K Q ×2 = 56, with last trick 66', B.pileAbnat(pile, 'sun', null, false) === 56 && B.pileAbnat(pile, 'sun', null, true) === 66);
+ok('Hokm ♠ pile: trump J + 9 + 7 + 8 = 34', B.pileAbnat(C('JS 9S 7S 8S'), 'hokm', 'S', false) === 34);
+ok('duplicate card is rejected', B.pileAbnat(C('AS AS KS QS'), 'sun', null, false) === null);
+ok('a count that is not whole tricks is rejected', B.pileAbnat(C('AS KS QS'), 'sun', null, false) === null);
+ok('all 32 cards must include the last trick', B.pileAbnat(deck(), 'sun', null, false) === null && B.pileAbnat(deck(), 'sun', null, true) === 130);
+ok('Hokm all 32 cards = 162', B.pileAbnat(deck(), 'hokm', 'D', true) === 162);
+
+console.log('#12 impossible abnat');
+ok('Sun: 1 and 129 are impossible, 0/2/65/130 possible', !B.isPossibleAbnat('sun', 1) && !B.isPossibleAbnat('sun', 129) && [0, 2, 65, 130].every(a => B.isPossibleAbnat('sun', a)));
+ok('Hokm: 1 and 161 are impossible, 81/162 possible', !B.isPossibleAbnat('hokm', 1) && !B.isPossibleAbnat('hokm', 161) && B.isPossibleAbnat('hokm', 81) && B.isPossibleAbnat('hokm', 162));
+ok('out of range is impossible', !B.isPossibleAbnat('sun', 131) && !B.isPossibleAbnat('hokm', -2) && !B.isPossibleAbnat('sun', 2.5));
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);

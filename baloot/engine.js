@@ -231,7 +231,38 @@
     return bestList.filter(p => PROJECTS[p.type].modes.includes(mode));
   }
 
+
+  /* Abnat of a pile of collected cards (one team's tricks). lastTrick = this team took the last trick (+10).
+     Returns null for an impossible pile: duplicate cards or a count that is not whole tricks (4 cards each). */
+  function pileAbnat(cards, mode, trump, lastTrick) {
+    const seen = new Set();
+    for (const c of cards) {
+      const k = c.rank + c.suit;
+      if (!RANKS.includes(c.rank) || !SUITS.includes(c.suit) || seen.has(k)) return null;
+      seen.add(k);
+    }
+    if (cards.length % 4 !== 0) return null;
+    if (cards.length === 0 && lastTrick) return null;
+    if (cards.length === 32 && !lastTrick) return null;
+    return handAbnat(cards, mode, trump) + (lastTrick ? LAST_TRICK : 0);
+  }
+
+  /* Every abnat value one team can really end a round with (any subset of the deck, with or without the last trick,
+     excluding 0 cards + last trick). Used to reject typing mistakes such as 1 or 161. */
+  const _possible = {};
+  function possibleAbnat(mode) {
+    if (_possible[mode]) return _possible[mode];
+    const vals = [];
+    for (const s of SUITS) for (const r of RANKS) vals.push(mode === 'hokm' && s === 'S' ? TRUMP_PTS[r] : SUN_PTS[r]);
+    let can = new Set([0]);
+    for (const v of vals) { const n = new Set(can); for (const x of can) n.add(x + v); can = n; }
+    const out = new Set();
+    for (const x of can) { out.add(x); out.add(x + LAST_TRICK); }
+    return (_possible[mode] = out);
+  }
+  const isPossibleAbnat = (mode, a) => Number.isInteger(a) && a >= 0 && a <= MODE[mode].total && possibleAbnat(mode).has(a);
+
   const api = { SUITS, RANKS, SUN_PTS, TRUMP_PTS, LAST_TRICK, MODE, PROJECTS, PROJECT_ORDER, DEFAULTS,
-    cardAbnat, handAbnat, projectPoints, allowedProjects, toPoints, validateProjects, resolveProjects, scoreRound, detectProjects };
+    cardAbnat, handAbnat, pileAbnat, possibleAbnat, isPossibleAbnat, projectPoints, allowedProjects, toPoints, validateProjects, resolveProjects, scoreRound, detectProjects };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BalootEngine = api;
 })(typeof self !== 'undefined' ? self : this);
