@@ -116,3 +116,14 @@ Next (in this order):
    (and capture ADIB bank notifications / Apple Pay directly), offline storage.
 4. Later: own backend (accounts + sync) and server-side AI with usage limits (AI cost estimate ~AED 0.13/user/month on Claude Haiku 5.5).
 Rules: don't invent prices or turn on billing; keep privacy text matching real behaviour; ask before big architecture changes.
+
+## Baloot score keeper (Nov 8, 2026) — separate page, does not touch Wafr
+- `baloot/index.html` (Arabic RTL, sky-blue/turquoise/white/peach) + `baloot/engine.js` (pure scoring engine). Live at /wafr/baloot/.
+- Flow: صن/حكم → trump suit (Hokm only) → buyer لنا/لهم → المشاريع sheet (only projects valid for the mode) → abnat for لنا or كبوت → confirm.
+  Mode/trump/buyer remembered (`baloot.v1`); projects never carried to the next round.
+- Rules in engine: Sun 130 abnat = 26 pts (÷5), Hokm 162 = 16 (÷10, a 5 rounds down; 86–76 → 9–7). Projects Sun سرا4/خمسين10/مية20/أربعمية40,
+  Hokm سرا2/خمسين5/مية10/بلوت2 (4 aces in Hokm = مية). Strongest project cancels the other team's; equal type → user picks; بلوت never cancelled
+  and stays with its owner. Buyer must beat the other team (abnat + projects); failing gives the other team the whole round + projects.
+  Kaboot 44 / 25. Tie rule is a setting (split / buyer loses). Doubling (دبل/ثري/فور/قهوة) not implemented yet.
+- Photo scan: AI reads visible cards only → engine `detectProjects()` → user picks owner for each; or "our tricks" photo → abnat + asks about الأرض.
+- Tests: `node tests/baloot.test.js` (46, plain node).

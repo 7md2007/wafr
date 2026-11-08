@@ -1,0 +1,402 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#E9F6FC">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>حاسبة البلوت</title>
+<style>
+@font-face{font-family:Plex;src:url(../fonts/ibm-plex-sans-arabic-arabic-400-normal.woff2) format('woff2');font-weight:400;font-display:swap}
+@font-face{font-family:Plex;src:url(../fonts/ibm-plex-sans-arabic-arabic-600-normal.woff2) format('woff2');font-weight:600;font-display:swap}
+@font-face{font-family:Plex;src:url(../fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2) format('woff2');font-weight:700;font-display:swap}
+@font-face{font-family:Inter;src:url(../fonts/inter-latin-600-normal.woff2) format('woff2');font-weight:600;font-display:swap}
+:root{
+  --sky:#4FB3E8; --sky-soft:#E9F6FC; --sky-line:#CBE7F5;
+  --teal:#1FB5A8; --teal-ink:#0B6F68; --teal-soft:#DDF5F2;
+  --peach:#FFD9C4; --peach-soft:#FFF1E8; --peach-ink:#9A4A22;
+  --white:#FFFFFF; --ink:#12354A; --ink-2:#4F6B7C; --line:#DCEBF2;
+  --bad:#C2413A; --bad-soft:#FDECEA;
+  --r:18px; --r-s:12px; --sh:0 6px 24px rgba(18,53,74,.08);
+}
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+html,body{margin:0;background:linear-gradient(180deg,var(--sky-soft),#F6FBFD 40%,var(--peach-soft));min-height:100%;color:var(--ink);
+  font:400 16px/1.45 Plex,Inter,system-ui,sans-serif}
+body{padding:calc(env(safe-area-inset-top) + 12px) 16px calc(env(safe-area-inset-bottom) + 24px);max-width:560px;margin:0 auto}
+button{font:inherit;color:inherit;border:0;background:none;cursor:pointer}
+.num{font-family:Inter,Plex,sans-serif;font-variant-numeric:tabular-nums}
+header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+h1{font-size:22px;margin:0;font-weight:700}
+.icon-btn{width:40px;height:40px;border-radius:50%;background:var(--white);box-shadow:var(--sh);font-size:18px}
+.card{background:var(--white);border-radius:var(--r);box-shadow:var(--sh);padding:16px;margin-bottom:12px}
+/* scoreboard */
+.board{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.team{border-radius:var(--r-s);padding:12px;text-align:center}
+.team.us{background:var(--teal-soft)} .team.them{background:var(--peach-soft)}
+.team .lbl{font-size:14px;color:var(--ink-2);font-weight:600}
+.team .big{font-size:34px;font-weight:600;line-height:1.1}
+.track{height:6px;border-radius:3px;background:rgba(18,53,74,.08);overflow:hidden;margin-top:8px}
+.track i{display:block;height:100%;transform-origin:right;transition:transform .3s}
+.us .track i{background:var(--teal)} .them .track i{background:#F0A27A}
+.target{font-size:13px;color:var(--ink-2);text-align:center;margin-top:8px}
+.win{background:var(--teal);color:#fff;text-align:center;border-radius:var(--r-s);padding:10px;margin-top:10px;font-weight:700}
+/* round */
+.step{font-size:13px;color:var(--ink-2);font-weight:600;margin:14px 0 8px}
+.step:first-child{margin-top:0}
+.modes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.mode{height:64px;border-radius:var(--r-s);background:var(--sky-soft);border:2px solid transparent;font-size:24px;font-weight:700}
+.mode[aria-pressed=true]{background:var(--sky);color:#fff;border-color:var(--sky)}
+.suits{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-top:10px}
+.suit{height:62px;border-radius:var(--r-s);background:var(--white);border:2px solid var(--line);display:flex;flex-direction:column;align-items:center;justify-content:center;font-size:13px;font-weight:600}
+.suit b{font-size:24px;line-height:1}
+.suit.red b{color:#D2453D} .suit.blk b{color:var(--ink)}
+.suit[aria-pressed=true]{border-color:var(--teal);background:var(--teal-soft)}
+.seg{display:grid;grid-auto-flow:column;grid-auto-columns:1fr;background:var(--sky-soft);border-radius:var(--r-s);padding:4px;gap:4px}
+.seg button{height:44px;border-radius:9px;font-weight:600;font-size:16px}
+.seg button[aria-pressed=true]{background:var(--white);box-shadow:0 2px 8px rgba(18,53,74,.12);color:var(--teal-ink)}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.pill{height:40px;padding:0 14px;border-radius:20px;background:var(--peach-soft);color:var(--peach-ink);font-weight:600;font-size:15px;border:1px solid var(--peach)}
+.pill.teal{background:var(--teal-soft);color:var(--teal-ink);border-color:#BDE9E4}
+.chip{font-size:13px;padding:4px 10px;border-radius:14px;background:var(--sky-soft);border:1px solid var(--sky-line)}
+.chip.x{text-decoration:line-through;opacity:.6}
+.entry{display:grid;grid-template-columns:1fr 1fr;gap:10px;align-items:end}
+label.f{display:block;font-size:13px;color:var(--ink-2);font-weight:600;margin-bottom:6px}
+input.amt{width:100%;height:56px;border-radius:var(--r-s);border:2px solid var(--line);background:var(--white);font:600 26px Inter,sans-serif;text-align:center;color:var(--ink)}
+input.amt:focus{outline:none;border-color:var(--sky)}
+.other{height:56px;border-radius:var(--r-s);background:var(--peach-soft);display:flex;align-items:center;justify-content:center;font:600 22px Inter,sans-serif;color:var(--peach-ink)}
+.hint{font-size:13px;color:var(--ink-2);margin-top:6px}
+.kab{margin-top:10px}
+.preview{margin-top:14px;border-radius:var(--r-s);padding:12px;background:var(--sky-soft);display:flex;justify-content:space-between;align-items:center;gap:8px}
+.preview .pts{font-size:18px;font-weight:700}
+.status{font-size:14px;font-weight:600}
+.status.ok{color:var(--teal-ink)} .status.bad{color:var(--bad)} .status.tie{color:var(--peach-ink)}
+.err{background:var(--bad-soft);color:var(--bad);border-radius:var(--r-s);padding:10px;margin-top:10px;font-size:14px}
+.primary{width:100%;height:54px;border-radius:var(--r-s);background:var(--teal);color:#fff;font-size:18px;font-weight:700;margin-top:14px}
+.primary:disabled{opacity:.4}
+.ghost{width:100%;height:46px;border-radius:var(--r-s);background:var(--sky-soft);font-weight:600;margin-top:8px}
+/* history */
+.hist h2{font-size:16px;margin:0 0 8px}
+.hrow{display:grid;grid-template-columns:1fr auto auto;gap:12px;padding:10px 0;border-top:1px solid var(--line);align-items:center;font-size:14px}
+.hrow:first-of-type{border-top:0}
+.hrow .d{color:var(--ink-2);font-size:12px}
+.hrow .p{font:600 16px Inter,sans-serif;min-width:34px;text-align:center}
+.empty{color:var(--ink-2);font-size:14px;text-align:center;padding:8px}
+/* sheets */
+#scrim{position:fixed;inset:0;background:rgba(18,53,74,.35);opacity:0;pointer-events:none;transition:opacity .2s}
+#scrim.on{opacity:1;pointer-events:auto}
+.sheet{position:fixed;left:0;right:0;bottom:0;max-width:560px;margin:0 auto;background:var(--white);border-radius:22px 22px 0 0;
+  padding:10px 16px calc(env(safe-area-inset-bottom) + 16px);transform:translateY(105%);visibility:hidden;transition:transform .25s cubic-bezier(.2,.8,.2,1),visibility 0s .25s;max-height:88vh;overflow:auto;box-shadow:0 -8px 30px rgba(18,53,74,.15)}
+.sheet.on{transform:none;visibility:visible;transition:transform .25s cubic-bezier(.2,.8,.2,1)}
+.grab{width:40px;height:5px;border-radius:3px;background:var(--line);margin:0 auto 10px}
+.sheet h3{margin:0 0 4px;font-size:18px}
+.sub{font-size:13px;color:var(--ink-2);margin:0 0 12px}
+.prow{display:grid;grid-template-columns:1fr 108px 108px;gap:10px;align-items:center;padding:10px 0;border-top:1px solid var(--line)}
+.prow .n{font-weight:700}.prow .v{font-size:12px;color:var(--ink-2)}
+.cols{display:grid;grid-template-columns:1fr 108px 108px;gap:10px;font-size:12px;color:var(--ink-2);font-weight:600;text-align:center}
+.cols span:first-child{text-align:start}
+.stp{display:flex;align-items:center;justify-content:space-between;gap:6px;border-radius:22px;padding:3px}
+.stp.us{background:var(--teal-soft)} .stp.them{background:var(--peach-soft)}
+.stp button{width:32px;height:32px;border-radius:50%;background:var(--white);font-size:18px;font-weight:700}
+.stp button:disabled{opacity:.35}
+.stp span{min-width:16px;text-align:center;font:600 16px Inter,sans-serif}
+.cards{display:flex;flex-wrap:wrap;gap:6px;margin:8px 0}
+.pc{direction:ltr;unicode-bidi:isolate;min-width:40px;height:50px;border-radius:8px;border:1px solid var(--line);background:#fff;display:flex;align-items:center;justify-content:center;font:600 15px Inter,sans-serif;padding:0 6px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.pc.red{color:#D2453D}
+.found{border-top:1px solid var(--line);padding:10px 0}
+.found .t{font-weight:700;margin-bottom:6px}
+.spin{display:inline-block;width:16px;height:16px;border:2px solid var(--sky-line);border-top-color:var(--sky);border-radius:50%;animation:sp 1s linear infinite;vertical-align:middle}
+@keyframes sp{to{transform:rotate(360deg)}}
+input.key{width:100%;height:46px;border-radius:var(--r-s);border:2px solid var(--line);padding:0 12px;font:14px Inter,sans-serif;direction:ltr}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+<header><h1>حاسبة البلوت</h1><button class="icon-btn" id="gear" aria-label="الإعدادات">⚙︎</button></header>
+
+<section class="card" id="board"></section>
+<section class="card" id="round"></section>
+<section class="card hist" id="hist"></section>
+
+<div id="scrim"></div>
+<div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sheetBody"></div></div>
+<input type="file" id="photo" accept="image/*" capture="environment" hidden>
+
+<script src="engine.js"></script>
+<script>
+'use strict';
+const E = BalootEngine;
+const LS = 'baloot.v1';
+const SUIT_INFO = { S: ['♠', 'سبيت', 'blk'], H: ['♥', 'هاص', 'red'], D: ['♦', 'ديمن', 'red'], C: ['♣', 'كلفس', 'blk'] };
+const TEAM = { us: 'لنا', them: 'لهم' };
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' })[c]);
+
+/* ---------- state ---------- */
+// prefs (mode, trump, buyer) are remembered; projects, abnat and kaboot always start empty for a new round.
+let S = { rounds: [], prefs: { mode: null, trump: null, buyer: null }, tieRule: E.DEFAULTS.tieRule, target: 152 };
+try { const s = JSON.parse(localStorage.getItem(LS) || 'null'); if (s) S = Object.assign(S, s); } catch (e) {}
+const save = () => { try { localStorage.setItem(LS, JSON.stringify(S)); } catch (e) {} };
+const fresh = () => ({ mode: S.prefs.mode, trump: S.prefs.trump, buyer: S.prefs.buyer, abnat: '', kaboot: null, projects: [], tieWinner: null });
+let R = fresh();
+
+const totals = () => S.rounds.reduce((t, r) => ({ us: t.us + r.us, them: t.them + r.them }), { us: 0, them: 0 });
+function roundInput() {
+  return { mode: R.mode, trump: R.trump, buyer: R.buyer, abnatUs: R.abnat === '' ? NaN : Number(R.abnat), kaboot: R.kaboot,
+    projects: R.projects, tieWinner: R.tieWinner, tieRule: S.tieRule };
+}
+const projName = t => E.PROJECTS[t].ar;
+const projVal = t => R.mode ? E.projectPoints(t, R.mode) : '';
+
+/* ---------- views ---------- */
+function renderBoard() {
+  const t = totals(), tg = S.target;
+  const bar = v => `<div class="track"><i style="transform:scaleX(${Math.min(1, v / tg)})"></i></div>`;
+  let win = '';
+  if (t.us >= tg || t.them >= tg) {
+    if (t.us !== t.them) win = `<div class="win">🎉 الصكة ${t.us > t.them ? 'لنا' : 'لهم'}</div><button class="ghost" data-a="newGame">صكة جديدة</button>`;
+  }
+  $('#board').innerHTML = `<div class="board">
+    <div class="team us"><div class="lbl">لنا</div><div class="big num">${t.us}</div>${bar(t.us)}</div>
+    <div class="team them"><div class="lbl">لهم</div><div class="big num">${t.them}</div>${bar(t.them)}</div></div>
+    <div class="target">الصكة على <span class="num">${tg}</span> · الجولة <span class="num">${S.rounds.length + 1}</span></div>${win}`;
+}
+
+function renderRound() {
+  const m = R.mode, M = m ? E.MODE[m] : null;
+  const pressed = c => `aria-pressed="${!!c}"`;
+  let h = `<div class="step">١ · نوع اللعب</div>
+    <div class="modes"><button class="mode" data-a="mode" data-v="sun" ${pressed(m === 'sun')}>صن</button>
+    <button class="mode" data-a="mode" data-v="hokm" ${pressed(m === 'hokm')}>حكم</button></div>`;
+  if (m === 'hokm') h += `<div class="suits">${E.SUITS.map(s => `<button class="suit ${SUIT_INFO[s][2]}" data-a="trump" data-v="${s}" ${pressed(R.trump === s)}><b>${SUIT_INFO[s][0]}</b>${SUIT_INFO[s][1]}</button>`).join('')}</div>`;
+  h += `<div class="step">٢ · مين اشترى؟</div>
+    <div class="seg"><button data-a="buyer" data-v="us" ${pressed(R.buyer === 'us')}>لنا</button><button data-a="buyer" data-v="them" ${pressed(R.buyer === 'them')}>لهم</button></div>`;
+  const ready = m && (m === 'sun' || R.trump) && R.buyer;
+  if (ready) {
+    const chips = R.projects.map(p => `<span class="chip">${projName(p.type)} · ${TEAM[p.team]}</span>`).join('');
+    h += `<div class="step">٣ · المشاريع (اختياري)</div>
+      <div class="row"><button class="pill" data-a="projects">المشاريع${R.projects.length ? ` (${R.projects.length})` : ''}</button>
+      <button class="pill teal" data-a="scan">📷 صوّر الأوراق</button>${chips}</div>
+      <div class="step">٤ · النتيجة</div>`;
+    if (!R.kaboot) {
+      const a = R.abnat === '' ? null : Number(R.abnat);
+      h += `<div class="entry"><div><label class="f" for="abnat">أبناط لنا (مع الأرض)</label>
+        <input class="amt" id="abnat" inputmode="numeric" pattern="[0-9]*" value="${esc(R.abnat)}" placeholder="0" autocomplete="off"></div>
+        <div><label class="f">أبناط لهم</label><div class="other" id="themAb">${a == null || isNaN(a) ? '–' : M.total - a}</div></div></div>
+        <div class="hint">مجموع الأبناط <span class="num">${M.total}</span> (${m === 'sun' ? '120 + الأرض 10' : '152 + الأرض 10'})</div>`;
+    }
+    h += `<div class="row kab"><span class="hint" style="margin:0">كبوت؟</span>
+      <button class="chip" data-a="kaboot" data-v="us" ${pressed(R.kaboot === 'us')} style="${R.kaboot === 'us' ? 'background:var(--teal);color:#fff' : ''}">كبوت لنا</button>
+      <button class="chip" data-a="kaboot" data-v="them" ${pressed(R.kaboot === 'them')} style="${R.kaboot === 'them' ? 'background:#F0A27A;color:#fff' : ''}">كبوت لهم</button></div>
+      <div id="preview"></div>`;
+  }
+  $('#round').innerHTML = h;
+  renderPreview();
+}
+
+function renderPreview() {
+  const box = $('#preview'); if (!box) return;
+  const ready = R.kaboot || R.abnat !== '';
+  if (!ready) { box.innerHTML = `<button class="primary" disabled>تأكيد الجولة</button>`; return; }
+  const r = E.scoreRound(roundInput());
+  if (r.error) {
+    const msg = r.error === 'needTie' ? 'نفس نوع المشروع عند الفريقين — افتح «المشاريع» واختر مشروع مين أعلى.'
+      : r.error === 'abnat' ? `أدخل رقم من 0 إلى ${E.MODE[R.mode].total}.` : 'تأكد من المشاريع.';
+    box.innerHTML = `<div class="err">${msg}</div><button class="primary" disabled>تأكيد الجولة</button>`; return;
+  }
+  const st = r.made === true ? ['ok', 'المشتري نجح'] : r.made === 'tie' ? ['tie', 'تعادل — كل فريق ياخذ نقاطه'] : ['bad', `المشتري خسر — الجولة ${TEAM[R.buyer === 'us' ? 'them' : 'us']}`];
+  const canc = r.cancelled.length ? `<div class="hint">ملغي: ${r.cancelled.map(p => projName(p.type) + ' ' + TEAM[p.team]).join('، ')}</div>` : '';
+  box.innerHTML = `<div class="preview"><div><div class="status ${st[0]}">${st[1]}</div>${canc}</div>
+    <div class="pts">لنا <span class="num">+${r.us}</span> · لهم <span class="num">+${r.them}</span></div></div>
+    <button class="primary" data-a="confirm">تأكيد الجولة</button>`;
+}
+
+function renderHist() {
+  const rows = S.rounds.slice().reverse().map((r, i) => {
+    const n = S.rounds.length - i;
+    const kind = r.mode === 'sun' ? 'صن' : `حكم ${SUIT_INFO[r.trump][0]}`;
+    const st = r.made === true ? '✓' : r.made === 'tie' ? '=' : '✗';
+    const pj = r.projects.length ? ' · ' + r.projects.map(p => projName(p.type) + ' ' + TEAM[p.team]).join('، ') : '';
+    return `<div class="hrow"><div><b>${n}. ${kind}</b> · اشترى ${TEAM[r.buyer]} ${st}${r.kaboot ? ' · كبوت' : ''}<div class="d">${pj ? pj.slice(3) : (r.kaboot ? '' : `أبناط لنا ${r.abnat}`)}</div></div>
+      <div class="p" style="color:var(--teal-ink)">${r.us}</div><div class="p" style="color:var(--peach-ink)">${r.them}</div></div>`;
+  }).join('');
+  $('#hist').innerHTML = `<h2>الجولات</h2>${rows || '<div class="empty">ما فيه جولات للحين</div>'}
+    ${S.rounds.length ? '<button class="ghost" data-a="undo">تراجع عن آخر جولة</button>' : ''}`;
+}
+const renderAll = () => { renderBoard(); renderRound(); renderHist(); };
+
+/* ---------- sheets ---------- */
+function openSheet(html) { $('#sheetBody').innerHTML = html; $('#scrim').classList.add('on'); $('#sheet').classList.add('on'); }
+function closeSheet() { $('#scrim').classList.remove('on'); $('#sheet').classList.remove('on'); sheetKind = null; }
+let sheetKind = null;
+
+function projectsSheet() {
+  sheetKind = 'projects';
+  const types = E.allowedProjects(R.mode);
+  const cnt = (t, team) => R.projects.filter(p => p.type === t && p.team === team).length;
+  const can = (t, team) => {
+    const test = R.projects.concat([{ type: t, team }]);
+    return E.validateProjects(R.mode, test).length === 0;
+  };
+  const step = (t, team) => `<div class="stp ${team}"><button data-a="pMinus" data-t="${t}" data-team="${team}" ${cnt(t, team) ? '' : 'disabled'} aria-label="أنقص">−</button>
+    <span>${cnt(t, team)}</span><button data-a="pPlus" data-t="${t}" data-team="${team}" ${can(t, team) ? '' : 'disabled'} aria-label="زد">+</button></div>`;
+  const res = E.resolveProjects(R.mode, R.projects, R.tieWinner);
+  const tieQ = (res.needTie || R.tieWinner) && hasSameBest() ? `<div class="found"><div class="t">نفس المشروع عند الفريقين — مين أعلى؟</div>
+    <div class="sub">الأعلى بالأوراق، وإذا تساوت: اللي يلعب أول.</div>
+    <div class="seg"><button data-a="tieW" data-v="us" aria-pressed="${R.tieWinner === 'us'}">لنا</button><button data-a="tieW" data-v="them" aria-pressed="${R.tieWinner === 'them'}">لهم</button></div></div>` : '';
+  const note = R.mode === 'sun' ? 'في الصن: سرا 4 · خمسين 10 · مية 20 · أربعمية 40. لا يوجد بلوت.'
+    : 'في الحكم: سرا 2 · خمسين 5 · مية 10 · بلوت 2. أربع إكك = مية.';
+  openSheet(`<h3>المشاريع</h3><p class="sub">${note} المشروع الأكبر يلغي مشاريع الفريق الثاني، والبلوت ما يلغى.</p>
+    <div class="cols"><span></span><span>لنا</span><span>لهم</span></div>
+    ${types.map(t => `<div class="prow"><div><div class="n">${projName(t)}</div><div class="v">${projVal(t)} نقاط</div></div>${step(t, 'us')}${step(t, 'them')}</div>`).join('')}
+    ${tieQ}<button class="primary" data-a="close">تم</button>`);
+}
+function hasSameBest() {
+  const big = R.projects.filter(p => p.type !== 'baloot');
+  const best = team => Math.max(0, ...big.filter(p => p.team === team).map(p => E.PROJECTS[p.type].rank));
+  const u = best('us'), t = best('them');
+  return u > 0 && u === t;
+}
+
+function settingsSheet() {
+  sheetKind = 'settings';
+  openSheet(`<h3>الإعدادات</h3><p class="sub">قوانين تختلف بين الجلسات — اتفقوا عليها قبل اللعب.</p>
+    <div class="step">إذا تعادل المشتري مع الفريق الثاني (81–81 حكم، 65–65 صن)</div>
+    <div class="seg"><button data-a="tieRule" data-v="split" aria-pressed="${S.tieRule === 'split'}">كل فريق ياخذ نقاطه</button>
+    <button data-a="tieRule" data-v="buyerLoses" aria-pressed="${S.tieRule === 'buyerLoses'}">المشتري يخسر</button></div>
+    <div class="step">الصكة على</div>
+    <div class="seg">${[152, 100, 200].map(v => `<button data-a="target" data-v="${v}" aria-pressed="${S.target === v}">${v}</button>`).join('')}</div>
+    <div class="step">مفتاح Anthropic (لتصوير الأوراق خارج Claude)</div>
+    <input class="key" id="aikey" placeholder="sk-ant-…" value="${esc(getKey())}" autocomplete="off">
+    <div class="hint">يبقى في جهازك فقط. نفس المفتاح اللي في وفر.</div>
+    <button class="ghost" data-a="newGame">صكة جديدة (تصفير)</button>
+    <button class="primary" data-a="saveSettings">حفظ</button>`);
+}
+
+/* ---------- AI card scan ---------- */
+const KEY_LS = 'wafr.aikey';
+const getKey = () => { try { return localStorage.getItem(KEY_LS) || ''; } catch (e) { return ''; } };
+let SCAN = null; // {what:'hand'|'tricks', busy, cards, err, owners:[], last:null|bool}
+
+async function aiCards(file) {
+  const prompt = `This photo shows playing cards from a Baloot game (32-card deck: A K Q J 10 9 8 7 in four suits). List every card whose rank AND suit you can clearly see. Do not guess hidden or blurry cards. Reply with only JSON: {"cards":[{"rank":"A|K|Q|J|10|9|8|7","suit":"S|H|D|C"}],"unclear":number (cards visible but not readable)}`;
+  if (window.claude && window.claude.use) {
+    const f = await window.claude.use('sample');
+    if (f && f.json) return f.json(prompt, { images: [file] });
+  }
+  const key = getKey(); if (!key) throw new Error('nokey');
+  const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
+  const resp = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': key,
+    'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
+    body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 1200, messages: [{ role: 'user', content: [
+      { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data } }, { type: 'text', text: prompt }] }] }) });
+  if (!resp.ok) throw new Error('api' + resp.status);
+  const d = await resp.json();
+  const t = (d.content || []).filter(p => p.type === 'text').map(p => p.text).join('');
+  const m = t.match(/\{[\s\S]*\}/); return JSON.parse(m ? m[0] : t);
+}
+const cleanCards = list => {
+  const out = [];
+  for (const c of (list || [])) {
+    const rank = String(c.rank || '').toUpperCase().replace('T', '10'), suit = String(c.suit || '').toUpperCase().slice(0, 1);
+    if (E.RANKS.includes(rank) && E.SUITS.includes(suit) && !out.some(o => o.rank === rank && o.suit === suit)) out.push({ rank, suit });
+  }
+  return out;
+};
+
+function scanSheet() {
+  sheetKind = 'scan';
+  if (!SCAN) SCAN = { what: 'hand', busy: false, cards: null, err: '', owners: [], last: null };
+  const s = SCAN;
+  const pc = c => `<button class="pc ${SUIT_INFO[c.suit][2] === 'red' ? 'red' : ''}" data-a="dropCard" data-v="${c.rank}${c.suit}" title="اضغط للحذف">${c.rank}${SUIT_INFO[c.suit][0]}</button>`;
+  let h = `<h3>تصوير الأوراق</h3><p class="sub">${R.mode === 'sun' ? 'صن' : 'حكم ' + SUIT_INFO[R.trump][0] + ' ' + SUIT_INFO[R.trump][1]} · الصورة ما تكشف نتيجة الجولة كاملة، بنسألك عن الباقي.</p>
+    <div class="seg"><button data-a="what" data-v="hand" aria-pressed="${s.what === 'hand'}">يد لاعب (مشاريع)</button>
+    <button data-a="what" data-v="tricks" aria-pressed="${s.what === 'tricks'}">أكلاتنا (أبناط)</button></div>
+    <button class="primary" data-a="pick" ${s.busy ? 'disabled' : ''}>${s.busy ? '<span class="spin"></span> نقرأ الأوراق…' : '📷 التقط / اختر صورة'}</button>`;
+  if (s.err) h += `<div class="err">${s.err}</div>`;
+  if (s.cards) {
+    h += `<div class="step">الأوراق اللي شفناها (${s.cards.length}) — اضغط على ورقة غلط لحذفها</div><div class="cards">${s.cards.map(pc).join('') || '<span class="hint">ما قدرنا نقرأ أي ورقة.</span>'}</div>`;
+    if (s.unclear) h += `<div class="hint">فيه ${s.unclear} ورقة ما انقرت بوضوح.</div>`;
+    if (s.what === 'hand') {
+      const found = E.detectProjects(s.cards, R.mode, R.trump);
+      s.found = found;
+      if (!found.length) h += `<div class="hint">ما فيه مشاريع في هذي الأوراق.</div>`;
+      else {
+        h += `<div class="step">مشاريع محتملة — لمين؟</div>` + found.map((p, i) => `<div class="found"><div class="t">${projName(p.type)} <span class="hint" dir="ltr" style="unicode-bidi:isolate">(${p.cards.map(x => x.replace(/[SHDC]$/, m => SUIT_INFO[m][0])).join(' ')})</span></div>
+          <div class="seg"><button data-a="own" data-i="${i}" data-v="us" aria-pressed="${s.owners[i] === 'us'}">لنا</button>
+          <button data-a="own" data-i="${i}" data-v="them" aria-pressed="${s.owners[i] === 'them'}">لهم</button>
+          <button data-a="own" data-i="${i}" data-v="no" aria-pressed="${s.owners[i] === 'no'}">ما انعلن</button></div></div>`).join('');
+        const allSet = found.every((_, i) => s.owners[i]);
+        h += `<button class="primary" data-a="addFound" ${allSet ? '' : 'disabled'}>أضف للمشاريع</button>`;
+      }
+    } else {
+      const ab = E.handAbnat(s.cards, R.mode, R.trump);
+      h += `<div class="found"><div class="t">أبناط الأوراق: <span class="num">${ab}</span></div>
+        <div class="sub">صوّر كل أكلاتكم. الأرض (آخر أكلة) لكم؟</div>
+        <div class="seg"><button data-a="last" data-v="1" aria-pressed="${s.last === true}">إي (+10)</button><button data-a="last" data-v="0" aria-pressed="${s.last === false}">لا</button></div></div>
+        <button class="primary" data-a="useAbnat" ${s.last === null ? 'disabled' : ''}>استخدم ${s.last === null ? '' : ab + (s.last ? 10 : 0)} كأبناط لنا</button>`;
+    }
+  }
+  openSheet(h);
+}
+
+/* ---------- actions ---------- */
+const A = {
+  mode: v => { R.mode = v; if (v === 'sun') R.trump = null; R.projects = R.projects.filter(p => E.PROJECTS[p.type].modes.includes(v)); R.tieWinner = null; S.prefs.mode = v; save(); renderRound(); },
+  trump: v => { R.trump = v; S.prefs.trump = v; save(); renderRound(); },
+  buyer: v => { R.buyer = v; S.prefs.buyer = v; save(); renderRound(); },
+  kaboot: v => { R.kaboot = R.kaboot === v ? null : v; renderRound(); },
+  projects: () => projectsSheet(),
+  pPlus: (v, el) => { R.projects.push({ type: el.dataset.t, team: el.dataset.team }); if (!hasSameBest()) R.tieWinner = null; projectsSheet(); renderRound(); },
+  pMinus: (v, el) => { const i = R.projects.map(p => p.type + p.team).lastIndexOf(el.dataset.t + el.dataset.team); if (i > -1) R.projects.splice(i, 1); if (!hasSameBest()) R.tieWinner = null; projectsSheet(); renderRound(); },
+  tieW: v => { R.tieWinner = v; projectsSheet(); renderRound(); },
+  close: () => closeSheet(),
+  confirm: () => {
+    const r = E.scoreRound(roundInput()); if (r.error) return;
+    S.rounds.push({ mode: R.mode, trump: R.trump, buyer: R.buyer, abnat: R.kaboot ? null : Number(R.abnat), kaboot: R.kaboot,
+      projects: r.valid.map(p => ({ type: p.type, team: p.team })), us: r.us, them: r.them, made: r.made, at: Date.now() });
+    save(); R = fresh(); SCAN = null; renderAll(); window.scrollTo({ top: 0, behavior: 'smooth' });
+  },
+  undo: () => { if (confirm('تحذف آخر جولة؟')) { S.rounds.pop(); save(); renderAll(); } },
+  newGame: () => { if (confirm('تبدأ صكة جديدة؟ الجولات الحالية تنحذف.')) { S.rounds = []; save(); R = fresh(); closeSheet(); renderAll(); } },
+  scan: () => { SCAN = null; scanSheet(); },
+  what: v => { SCAN.what = v; scanSheet(); },
+  pick: () => $('#photo').click(),
+  dropCard: v => { SCAN.cards = SCAN.cards.filter(c => c.rank + c.suit !== v); SCAN.owners = []; scanSheet(); },
+  own: (v, el) => { SCAN.owners[+el.dataset.i] = v; scanSheet(); },
+  addFound: () => {
+    SCAN.found.forEach((p, i) => { const o = SCAN.owners[i]; if (o === 'us' || o === 'them') R.projects.push({ type: p.type, team: o, top: p.top }); });
+    // keep only what the rules allow (e.g. a second baloot is dropped)
+    const ok = []; for (const p of R.projects) { if (E.validateProjects(R.mode, ok.concat([p])).length === 0) ok.push(p); } R.projects = ok;
+    closeSheet(); renderRound(); if (hasSameBest() && E.resolveProjects(R.mode, R.projects).needTie) projectsSheet();
+  },
+  last: v => { SCAN.last = v === '1'; scanSheet(); },
+  useAbnat: () => { const ab = E.handAbnat(SCAN.cards, R.mode, R.trump) + (SCAN.last ? 10 : 0); R.abnat = String(Math.min(ab, E.MODE[R.mode].total)); R.kaboot = null; closeSheet(); renderRound(); },
+  tieRule: v => { S.tieRule = v; save(); settingsSheet(); renderRound(); },
+  target: v => { S.target = +v; save(); settingsSheet(); renderBoard(); },
+  saveSettings: () => { const k = ($('#aikey') || {}).value || ''; try { if (k.trim()) localStorage.setItem(KEY_LS, k.trim()); else localStorage.removeItem(KEY_LS); } catch (e) {} closeSheet(); },
+};
+document.addEventListener('click', e => {
+  const el = e.target.closest('[data-a]'); if (!el) return;
+  const f = A[el.dataset.a]; if (f) f(el.dataset.v, el);
+});
+$('#gear').onclick = settingsSheet;
+$('#scrim').onclick = closeSheet;
+document.addEventListener('input', e => {
+  if (e.target.id !== 'abnat') return;
+  const v = e.target.value.replace(/[^\d٠-٩]/g, '').replace(/[٠-٩]/g, d => '٠١٢٣٤٥٦٧٨٩'.indexOf(d)).slice(0, 3);
+  e.target.value = v; R.abnat = v;
+  const a = v === '' ? null : Number(v), M = E.MODE[R.mode];
+  $('#themAb').textContent = a == null || a > M.total ? '–' : M.total - a;
+  renderPreview();
+});
+$('#photo').onchange = async e => {
+  const file = e.target.files[0]; e.target.value = ''; if (!file || !SCAN) return;
+  SCAN.busy = true; SCAN.err = ''; SCAN.cards = null; SCAN.owners = []; SCAN.last = null; scanSheet();
+  try { const r = await aiCards(file); SCAN.cards = cleanCards(r && r.cards); SCAN.unclear = (r && +r.unclear) || 0; }
+  catch (err) { SCAN.err = err.message === 'nokey' ? 'التصوير يحتاج Claude أو مفتاح Anthropic (من ⚙︎ الإعدادات). تقدر تدخل المشاريع يدوياً.' : 'ما قدرنا نقرأ الصورة. جرب صورة أوضح أو أدخل يدوياً.'; }
+  SCAN.busy = false; if (sheetKind === 'scan') scanSheet();
+};
+renderAll();
+</script>
+</body>
+</html>
