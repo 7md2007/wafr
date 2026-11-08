@@ -8,6 +8,7 @@
    Rules that differ between groups are options (see DEFAULTS), never hidden guesses. */
 (function (root) {
   'use strict';
+  const other = t => (t === 'us' ? 'them' : 'us');
 
   const SUITS = ['S', 'H', 'D', 'C']; // ♠ سبيت · ♥ هاص · ♦ ديمن · ♣ كلفس
   const RANKS = ['A', 'K', 'Q', 'J', '10', '9', '8', '7']; // natural order used for sequences (سرا/خمسين/مية)
@@ -32,13 +33,42 @@
   };
   const PROJECT_ORDER = ['sira', 'fifty', 'hundred', 'fourHundred', 'baloot'];
 
+  /* Doubling (الدبل). Levels in order: عادي → دبل (×2) → ثري (×3) → فور (×4) → قهوة (whoever wins the round wins the game).
+     Hokm: all levels. Sun: only دبل, and only when the buyer is on 100+ and the other team under 100 (the team behind may double).
+     A doubled round is all-or-nothing: the winner takes the doubled round and all projects (×level); بلوت stays 2 with its owner. */
+  const LEVELS = {
+    normal: { ar: 'عادي', mult: 1 },
+    double: { ar: 'دبل',  mult: 2 },
+    three:  { ar: 'ثري',  mult: 3 },
+    four:   { ar: 'فور',  mult: 4 },
+    gahwa:  { ar: 'قهوة', mult: 1 },
+  };
+  const LEVEL_ORDER = ['normal', 'double', 'three', 'four', 'gahwa'];
+
   const DEFAULTS = {
-    // What happens when the buyer's total equals the other team's (e.g. 81–81 in Hokm, 65–65 in Sun):
+    // What happens when the buyer's total equals the other team's (e.g. 81–81 in Hokm, 65–65 in Sun) in a normal round:
     // 'split' = each team keeps its own points (tournament rule), 'buyerLoses' = treated as a lost contract.
     tieRule: 'split',
+    // Sun doubling: 'over100' = buyer has 100+ and the other team is under 100; 'always'; 'off'.
+    sunDouble: 'over100',
+    // Projects in ثري/فور: 'mult' = multiplied like the round (default); 'double' = never more than ×2 (some groups).
+    projMult: 'mult',
+    // Kaboot in a doubled round: true = 44/25 × level (default); false = 44/25 as it is.
+    kabootMult: true,
   };
+  const ruleOf = (r, k) => (r && r[k] !== undefined ? r[k] : DEFAULTS[k]);
 
-  const other = t => (t === 'us' ? 'them' : 'us');
+  /* Which doubling levels can be chosen. totals = match score before this round. */
+  function doublingOptions(mode, buyer, totals, rules) {
+    if (mode === 'hokm') return LEVEL_ORDER.slice();
+    const sd = ruleOf(rules, 'sunDouble');
+    if (sd === 'off') return ['normal'];
+    if (sd === 'always') return ['normal', 'double'];
+    const t = totals || { us: 0, them: 0 };
+    const b = buyer === 'them' ? 'them' : 'us', o = other(b);
+    return t[b] >= 100 && t[o] < 100 ? ['normal', 'double'] : ['normal'];
+  }
+
 
   function cardAbnat(card, mode, trump) {
     if (mode === 'hokm' && card.suit === trump) return TRUMP_PTS[card.rank];
@@ -129,12 +159,17 @@
 
   /* Score one round.
      r = { mode:'sun'|'hokm', trump, buyer:'us'|'them', abnatUs (trick abnat incl. last trick, 0..total),
-           kaboot: null|'us'|'them', projects:[{type,team,top?}], tieWinner, tieRule } */
+           kaboot: null|'us'|'them', projects:[{type,team,top?}], tieWinner, tieRule,
+           level: 'normal'|'double'|'three'|'four'|'gahwa', rules:{projMult,kabootMult},
+           match:{us,them,target} (needed for قهوة) } */
   function scoreRound(r) {
     const mode = r.mode, M = MODE[mode];
     if (!M) return { error: 'mode' };
     if (mode === 'hokm' && !SUITS.includes(r.trump)) return { error: 'trump' };
     if (r.buyer !== 'us' && r.buyer !== 'them') return { error: 'buyer' };
+    const level = r.level || 'normal';
+    if (!LEVELS[level]) return { error: 'level' };
+    if (mode === 'sun' && level !== 'normal' && level !== 'double') return { error: 'level' };
     const projects = (r.projects || []).filter(Boolean);
     const errs = validateProjects(mode, projects);
     if (errs.length) return { error: 'projects', errors: errs };
@@ -149,15 +184,49 @@
       else pPts[p.team] += projectPoints(p.type, mode);
     }
     const buyer = r.buyer, opp = other(buyer);
-    const out = { us: 0, them: 0, made: null, kaboot: r.kaboot || null, valid: res.valid, cancelled: res.cancelled };
+    const out = { us: 0, them: 0, made: null, kaboot: null, level, mult: LEVELS[level].mult, valid: res.valid, cancelled: res.cancelled };
 
+    // Kaboot: one team took every trick. A pile/score of all abnat is always a kaboot (all 32 cards).
+    let kaboot = r.kaboot === 'us' || r.kaboot === 'them' ? r.kaboot : null;
+    let ab = null;
+    if (!kaboot) {
+      const a = Number(r.abnatUs);
+      if (!Number.isInteger(a) || a < 0 || a > M.total) return { error: 'abnat' };
+      if (a === M.total) kaboot = 'us';
+      else ab = { us: a, them: M.total - a };
+    }
+    out.kaboot = kaboot;
+    out.abnat = kaboot ? { us: kaboot === 'us' ? M.total : 0, them: kaboot === 'them' ? M.total : 0 } : ab;
+    const sum = { us: out.abnat.us + pAb.us, them: out.abnat.them + pAb.them };
+    out.sums = sum;
+
+    /* ---- doubled rounds (دبل/ثري/فور/قهوة): all or nothing ---- */
+    if (level !== 'normal') {
+      // the buyer must beat the other team outright; a tie in a doubled round goes against the buyer
+      const winner = kaboot || (sum[buyer] > sum[opp] ? buyer : opp);
+      out.made = winner === buyer;
+      out.winner = winner;
+      if (level === 'gahwa') { // the round decides the whole game
+        const m = r.match || {}, tg = Number(m.target) || 152, cur = { us: Number(m.us) || 0, them: Number(m.them) || 0 };
+        out.gahwa = winner;
+        out[winner] = Math.max(tg - cur[winner], 0, cur[other(winner)] - cur[winner] + 1);
+        return out;
+      }
+      const k = out.mult;
+      const pm = ruleOf(r.rules, 'projMult') === 'double' ? Math.min(k, 2) : k;
+      const base = kaboot ? (ruleOf(r.rules, 'kabootMult') ? M.kaboot * k : M.kaboot) : M.points * k;
+      out[winner] = base + (pPts.us + pPts.them) * pm;
+      out.us += bal.us; out.them += bal.them;
+      return out;
+    }
+
+    /* ---- normal round ---- */
     const lostTo = winnerTeam => { // the winner takes the whole round and every project; baloot stays with its owner
       out[winnerTeam] = M.points + pPts.us + pPts.them;
       out.us += bal.us; out.them += bal.them;
     };
-
-    if (r.kaboot === 'us' || r.kaboot === 'them') {
-      const k = r.kaboot;
+    if (kaboot) {
+      const k = kaboot;
       if (k === buyer) {
         out.made = true;
         out[k] = M.kaboot + pPts[k] + bal[k];
@@ -167,18 +236,9 @@
         out[k] = M.kaboot + pPts.us + pPts.them;
         out.us += bal.us; out.them += bal.them;
       }
-      out.abnat = { us: k === 'us' ? M.total : 0, them: k === 'them' ? M.total : 0 };
       return out;
     }
-
-    const a = Number(r.abnatUs);
-    if (!Number.isInteger(a) || a < 0 || a > M.total) return { error: 'abnat' };
-    const ab = { us: a, them: M.total - a };
-    out.abnat = ab;
-    const sum = { us: ab.us + pAb.us, them: ab.them + pAb.them };
-    out.sums = sum;
-    const base = toPoints(mode, a);
-
+    const base = toPoints(mode, ab.us);
     if (sum[buyer] > sum[opp] || (sum[buyer] === sum[opp] && tieRule === 'split')) {
       out.made = sum[buyer] === sum[opp] ? 'tie' : true;
       out.us = base.us + pPts.us + bal.us;
@@ -262,7 +322,7 @@
   }
   const isPossibleAbnat = (mode, a) => Number.isInteger(a) && a >= 0 && a <= MODE[mode].total && possibleAbnat(mode).has(a);
 
-  const api = { SUITS, RANKS, SUN_PTS, TRUMP_PTS, LAST_TRICK, MODE, PROJECTS, PROJECT_ORDER, DEFAULTS,
+  const api = { LEVELS, LEVEL_ORDER, doublingOptions, SUITS, RANKS, SUN_PTS, TRUMP_PTS, LAST_TRICK, MODE, PROJECTS, PROJECT_ORDER, DEFAULTS,
     cardAbnat, handAbnat, pileAbnat, possibleAbnat, isPossibleAbnat, projectPoints, allowedProjects, toPoints, validateProjects, resolveProjects, scoreRound, detectProjects };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BalootEngine = api;
 })(typeof self !== 'undefined' ? self : this);

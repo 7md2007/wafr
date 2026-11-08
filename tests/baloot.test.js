@@ -110,5 +110,64 @@ ok('Sun: 1 and 129 are impossible, 0/2/65/130 possible', !B.isPossibleAbnat('sun
 ok('Hokm: 1 and 161 are impossible, 81/162 possible', !B.isPossibleAbnat('hokm', 1) && !B.isPossibleAbnat('hokm', 161) && B.isPossibleAbnat('hokm', 81) && B.isPossibleAbnat('hokm', 162));
 ok('out of range is impossible', !B.isPossibleAbnat('sun', 131) && !B.isPossibleAbnat('hokm', -2) && !B.isPossibleAbnat('sun', 2.5));
 
+console.log('#13 doubling: which levels can be chosen');
+const opts = (m, b, t, rules) => B.doublingOptions(m, b, t, rules).join(',');
+ok('Hokm: عادي دبل ثري فور قهوة', opts('hokm', 'us', { us: 0, them: 0 }) === 'normal,double,three,four,gahwa');
+ok('Sun at the start: no doubling', opts('sun', 'us', { us: 0, them: 0 }) === 'normal');
+ok('Sun: buyer 100+ and the other team under 100 → دبل only', opts('sun', 'us', { us: 104, them: 60 }) === 'normal,double' && opts('sun', 'them', { us: 60, them: 100 }) === 'normal,double');
+ok('Sun: both over 100, or buyer behind → no doubling', opts('sun', 'us', { us: 110, them: 120 }) === 'normal' && opts('sun', 'us', { us: 60, them: 120 }) === 'normal');
+ok('Sun rule options: always / off', opts('sun', 'us', { us: 0, them: 0 }, { sunDouble: 'always' }) === 'normal,double' && opts('sun', 'us', { us: 120, them: 0 }, { sunDouble: 'off' }) === 'normal');
+ok('Sun never allows ثري/فور/قهوة in the engine', R({ mode: 'sun', buyer: 'us', abnatUs: 80, level: 'three' }).error === 'level' && R({ mode: 'sun', buyer: 'us', abnatUs: 80, level: 'gahwa' }).error === 'level');
+
+console.log('#14 doubling: scoring');
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', abnatUs: 100, level: 'double' });
+ok('Hokm دبل, buyer wins 100–62 → takes all 16×2 = 32, other 0', r.made === true && r.us === 32 && r.them === 0, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', abnatUs: 70, level: 'double' });
+ok('Hokm دبل, buyer loses 70–92 → other team 32', r.made === false && r.us === 0 && r.them === 32, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', abnatUs: 81, level: 'double' });
+ok('Hokm دبل 81–81 → buyer loses (tie goes against the buyer when doubled)', r.made === false && r.them === 32, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'them', abnatUs: 40, level: 'three' });
+ok('Hokm ثري → 16×3 = 48 to the winner', r.them === 48 && r.us === 0, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'them', abnatUs: 40, level: 'four' });
+ok('Hokm فور → 16×4 = 64', r.them === 64 && r.us === 0, r);
+r = R({ mode: 'sun', buyer: 'us', abnatUs: 70, level: 'double' });
+ok('Sun دبل, buyer wins 70–60 → 26×2 = 52', r.made === true && r.us === 52 && r.them === 0, r);
+r = R({ mode: 'sun', buyer: 'us', abnatUs: 60, level: 'double' });
+ok('Sun دبل, buyer loses 60–70 → other team 52', r.made === false && r.them === 52 && r.us === 0, r);
+
+console.log('#15 doubling: projects, baloot, kaboot, gahwa');
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', abnatUs: 100, level: 'double', projects: [{ type: 'fifty', team: 'us' }, { type: 'baloot', team: 'them' }] });
+ok('دبل: خمسين ×2 = 10 to the winner; بلوت stays 2 with its owner', r.us === 32 + 10 && r.them === 2, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', abnatUs: 100, level: 'three', projects: [{ type: 'sira', team: 'us' }] });
+ok('ثري: سرا ×3 = 6 (default)', r.us === 48 + 6, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', abnatUs: 100, level: 'three', projects: [{ type: 'sira', team: 'us' }], rules: { projMult: 'double' } });
+ok('ثري with "projects at most ×2" option: سرا = 4', r.us === 48 + 4, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', abnatUs: 70, level: 'double', projects: [{ type: 'sira', team: 'us' }] });
+ok('دبل: the buyer\'s project goes to the winner when the buyer loses (70+20 < 92)', r.made === false && r.them === 32 + 4 && r.us === 0, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', abnatUs: 72, level: 'double', projects: [{ type: 'baloot', team: 'us' }] });
+ok('دبل: بلوت still counts toward winning (72+20 = 92 > 90) and stays 2', r.made === true && r.us === 32 + 2 && r.them === 0, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', kaboot: 'us', level: 'double' });
+ok('دبل + كبوت → 25×2 = 50 (default)', r.us === 50, r);
+r = R({ mode: 'hokm', trump: 'S', buyer: 'us', kaboot: 'us', level: 'double', rules: { kabootMult: false } });
+ok('دبل + كبوت with "kaboot not multiplied" option → 25', r.us === 25, r);
+r = R({ mode: 'sun', buyer: 'us', kaboot: 'them', level: 'double' });
+ok('Sun دبل, other team كبوت → 44×2 = 88', r.made === false && r.them === 88, r);
+r = R({ mode: 'hokm', trump: 'H', buyer: 'us', abnatUs: 100, level: 'gahwa', match: { us: 90, them: 120, target: 152 } });
+ok('قهوة: the round winner jumps to the target and wins the game', r.gahwa === 'us' && r.us === 62 && r.them === 0, r);
+r = R({ mode: 'hokm', trump: 'H', buyer: 'us', abnatUs: 60, level: 'gahwa', match: { us: 90, them: 120, target: 152 } });
+ok('قهوة lost by the buyer → the other team wins the game', r.gahwa === 'them' && r.them === 32 && r.us === 0, r);
+
+console.log('#16 round total always equals what is shown');
+let allOk = true;
+for (const mode of ['sun', 'hokm']) for (const level of B.doublingOptions(mode, 'us', { us: 120, them: 10 })) for (let a = 0; a <= B.MODE[mode].total; a += 7) {
+  const x = R({ mode, trump: 'C', buyer: 'us', abnatUs: a, level, match: { us: 120, them: 10, target: 152 } });
+  if (x.error || !Number.isInteger(x.us) || !Number.isInteger(x.them) || x.us < 0 || x.them < 0) allOk = false;
+  if (level === 'normal' && x.made !== false && x.us + x.them !== B.MODE[mode].points) allOk = false;
+  if (level !== 'normal' && level !== 'gahwa' && x.us + x.them !== B.MODE[mode].points * B.LEVELS[level].mult) allOk = false;
+}
+ok('every abnat × level gives whole, non-negative points that add up to the round total', allOk);
+r = R({ mode: 'sun', buyer: 'us', abnatUs: 130 });
+ok('all 130 abnat is treated as كبوت (44)', r.kaboot === 'us' && r.us === 44, r);
+
 console.log(`\n${pass} passed, ${fail} failed`);
 process.exit(fail ? 1 : 0);
