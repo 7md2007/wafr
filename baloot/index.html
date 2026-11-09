@@ -195,6 +195,32 @@ svg{display:block;flex:none}
 .pthumbs img{width:100%;height:100%;object-fit:cover;display:block}
 
 .found{border-top:1px solid var(--line);padding:10px 0 4px}
+/* photo with card boxes + correction */
+.pv{display:block}
+.pvin{position:relative;margin:0 auto;border-radius:14px;overflow:hidden;background:#0E2A3A}
+.pvin img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;max-height:none}
+.bx{position:absolute;border:2px solid #2FD3C2;border-radius:6px;background:transparent;padding:0;min-width:18px;min-height:18px}
+.bx span{position:absolute;top:-2px;left:-2px;background:#0B8B82;color:#fff;font:700 11px/16px var(--f-num);padding:0 4px;border-radius:5px 0 5px 0;white-space:nowrap}
+.bx.s-check{border-color:#FFB020}.bx.s-check span{background:#B86E00}
+.bx.s-unreadable{border:2px dashed #FF5A5A}.bx.s-unreadable span{background:#C0362C}
+.bx.sel{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--sky);z-index:2}
+.pvzoom{position:absolute;top:8px;inset-inline-end:8px;width:34px;height:34px;border-radius:50%;background:rgba(14,42,58,.7);color:#fff;font:700 20px/34px var(--f-num);z-index:3}
+.pv{position:relative}
+.fix{background:var(--surface-2);border-radius:16px;padding:10px;display:flex;flex-direction:column;gap:8px}
+.fixtop{display:flex;gap:10px;align-items:center}
+.fixtop img{width:96px;height:96px;object-fit:contain;border-radius:10px;background:#0E2A3A;flex:none}
+.fixtx b{display:block;font-size:15px}.fixtx small{display:block;color:var(--ink-2);font-size:13px}
+.fixopts{display:flex;flex-wrap:wrap;gap:6px}
+.fixopts button{height:42px;min-width:56px;padding:0 12px;border-radius:12px;background:var(--surface);font:700 17px var(--f-num);border:1.5px solid var(--line)}
+.fixopts button.on{border-color:var(--teal-deep);color:var(--teal-deep)}
+.fixopts .other{font:600 14px var(--f-ar);color:var(--ink-2)}
+.fixpick{display:flex;flex-direction:column;gap:6px}
+.fixpick .fr{display:flex;gap:4px;direction:ltr}
+.fixpick button{flex:1;height:40px;border-radius:10px;background:var(--surface);font:700 15px var(--f-num);border:1.5px solid var(--line)}
+.fixpick button.r{color:var(--red-suit)}
+.fixpick button.on{border-color:var(--teal-deep);background:var(--teal-soft)}
+.fixacts{display:flex;flex-direction:column;gap:6px}
+.fixacts .go{height:48px;font-size:16px}.fixacts .soft{height:42px;font-size:14px}
 /* manual keypad */
 .display{display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0}
 .display .big{font:700 54px/1.05 var(--f-num);letter-spacing:-1.5px;color:var(--ink);min-height:57px}
@@ -304,6 +330,8 @@ input.key{width:100%;height:48px;border-radius:12px;border:1.5px solid var(--lin
 <input type="file" id="photoLib" accept="image/*,.heic,.heif,.jpg,.jpeg,.png" hidden>
 
 <script src="engine.js"></script>
+<script src="vision.js"></script>
+<script src="synth.js"></script>
 <script>
 'use strict';
 const E = BalootEngine;
@@ -709,19 +737,22 @@ let AIF = null, AIMODE = 'none';
 async function initAI() {
   AIMODE = 'none'; AIF = null;
   if (window.claude && window.claude.use) {
-    try { const f = await window.claude.use('sample'); if (f) { const lim = await f.limits().catch(() => null); if (lim && lim.images) { AIF = f; AIMODE = 'claude'; } } } catch (e) {}
+    try { const f = await window.claude.use('sample'); if (f) { const lim = await f.limits().catch(() => null); if (lim && lim.images) { AIF = f; AIMODE = 'claude'; AIMAX = Math.max(1, Math.min(8, lim.images.maxCount || 8)); } } } catch (e) {}
   } else if (getKey()) AIMODE = 'key';
   $('#scanSub').textContent = AIMODE === 'none' ? 'اختر أوراق الأكلات ونحسب الجولة' : 'صوّر أكلات فريقك ونحسب الجولة';
 }
-const PROMPT = `Photo of playing cards collected in a Baloot round (32-card deck: A K Q J 10 9 8 7 in spades S, hearts H, diamonds D, clubs C). Cards may overlap or be fanned. List every card whose rank AND suit you can clearly read. Never guess a card you cannot read. If the photo shows no playing cards, return an empty list. Reply with only JSON: {"cards":[{"rank":"A|K|Q|J|10|9|8|7","suit":"S|H|D|C"}],"unreadable":number}`;
-async function readCards(file) {
-  if (AIMODE === 'claude') return AIF.json(PROMPT, { images: [file], modelTier: 'default' });
+let AIMAX = 8; // images per AI call
+/* one AI call with one or more images → parsed JSON. Inside Claude: the viewer's Claude; outside: the user's key. */
+async function aiJSON(prompt, blobs) {
+  if (AIMODE === 'claude') return AIF.json(prompt, { images: blobs, modelTier: 'default' });
   const key = getKey(); if (!key) throw new Error('noai');
-  const data = await new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(file); });
+  const b64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(b); });
+  const content = [];
+  for (const b of blobs) content.push({ type: 'image', source: { type: 'base64', media_type: b.type || 'image/jpeg', data: await b64(b) } });
+  content.push({ type: 'text', text: prompt });
   const resp = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': key,
     'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
-    body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 1500, messages: [{ role: 'user', content: [
-      { type: 'image', source: { type: 'base64', media_type: file.type || 'image/jpeg', data } }, { type: 'text', text: PROMPT }] }] }) });
+    body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4000, messages: [{ role: 'user', content }] }) });
   if (resp.status === 401 || resp.status === 403) throw new Error('badkey');
   if (!resp.ok) throw new Error('api');
   const d = await resp.json(); const t = (d.content || []).filter(p => p.type === 'text').map(p => p.text).join('');
@@ -742,8 +773,18 @@ function shrink(file) {
     img.src = url;
   });
 }
-let P = null; // pile: {team, cards:Set('AS'), ai:Set, last, err, photos:[{id,url,src,state,err,cards:Set}], cur, unread}
-const pileNew = () => ({ kind: null, team: null, owners: [], cards: new Set(), ai: new Set(), last: null, err: '', photos: [], cur: -1, unread: 0 });
+/* pile: photos[{id,url,src,state,err,w,h,ms,dets:[{id,box,rank,suit,conf,alts,status:'ok'|'check'|'unreadable'|'removed',zoom,user}]}],
+   manual = cards tapped in on the grid. cards/ai are derived by rebuild(). */
+let P = null;
+const pileNew = () => ({ kind: null, team: null, owners: [], cards: new Set(), ai: new Set(), manual: new Set(), last: null, err: '', photos: [], cur: -1, sel: null, big: false });
+const dkey = d => (d.rank && d.suit ? d.rank + d.suit : null);
+const liveDets = () => P.photos.flatMap(ph => (ph.dets || []).filter(d => d.status !== 'removed').map(d => Object.assign(d, { ph: ph.id })));
+const pending = () => liveDets().filter(d => d.status === 'check' || d.status === 'unreadable');
+function rebuild() { // the card list = what the photos show (each card once) + what was tapped in by hand
+  const ai = new Set(liveDets().map(dkey).filter(Boolean));
+  P.ai = ai; P.cards = new Set([...ai, ...P.manual]);
+}
+const cardName = k => k ? k.slice(0, -1) + SUIT[k.slice(-1)][0] : '?';
 const busy = () => P && P.photos.some(x => x.state === 'reading');
 const CAM_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="4"/></svg>';
 const LIB_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>';
@@ -777,38 +818,26 @@ async function onPicked(e) {
   const { blob, url } = await shrink(file);
   if (!blob) return bad(/heic|heif/i.test(file.type + file.name) ? 'هذا المتصفح ما يفتح صور HEIC. اختر الصورة من «الصور» (تتحول JPG تلقائياً) أو صدّرها JPG.' : 'ما قدرنا نفتح الصورة. جرّب صورة ثانية.');
   let ph;
-  if (rep != null && P.photos.some(x => x.id === rep)) { ph = P.photos.find(x => x.id === rep); dropPhotoCards(ph); ph.url = url; ph.src = src; }
+  if (rep != null && P.photos.some(x => x.id === rep)) { ph = P.photos.find(x => x.id === rep); ph.url = url; ph.src = src; }
   else { ph = { id: Date.now() + Math.random(), url, src }; P.photos.push(ph); }
-  Object.assign(ph, { state: 'reading', err: '', cards: new Set() });
-  P.err = ''; P.cur = P.photos.indexOf(ph);
+  Object.assign(ph, { state: 'reading', err: '', dets: [], ms: 0 });
+  P.err = ''; P.cur = P.photos.indexOf(ph); P.sel = null; rebuild();
   pileSheet();
   try {
-    const r = await readCards(blob); // the same recognition call for camera and library photos
-    if (!P.photos.includes(ph)) return; // removed while reading
-    const list = (r && Array.isArray(r.cards)) ? r.cards : [];
-    for (const c of list) {
-      const rank = String(c.rank || '').toUpperCase().replace(/^T$/, '10'), suit = String(c.suit || '').toUpperCase().slice(0, 1);
-      if (!E.RANKS.includes(rank) || !E.SUITS.includes(suit)) continue;
-      const k = rank + suit; ph.cards.add(k);
-      if (!P.cards.has(k)) { P.cards.add(k); P.ai.add(k); } // a card is only counted once, even if two photos show it
-    }
-    P.unread += Math.max(0, Number(r && r.unreadable) || 0);
-    ph.state = 'done';
-    if (!list.length) { ph.state = 'err'; ph.err = 'ما لقينا أوراق واضحة في الصورة. جرّب صورة أقرب بإضاءة أحسن، أو اختر الأوراق بنفسك.'; }
+    // the same pipeline for camera and library photos: local card-region analysis + overview + zoomed crops, merged
+    const r = await BalootVision.scanPhoto(blob, aiJSON, { maxImages: AIMAX });
+    if (!P || !P.photos.includes(ph)) return; // removed while reading
+    Object.assign(ph, { dets: r.cards, w: r.width, h: r.height, ms: r.ms, state: 'done' });
+    if (!r.cards.length) { ph.state = 'err'; ph.err = 'ما لقينا أوراق لعب في الصورة. جرّب صورة أقرب بإضاءة أحسن، أو اختر الأوراق من الجدول.'; }
+    else if (!r.passA || !r.passB) ph.note = 'جزء من القراءة ما اكتمل — راجع الأوراق.';
+    const first = r.cards.find(d => d.status !== 'ok'); P.sel = first ? { ph: ph.id, id: first.id } : null;
   } catch (err) {
     ph.state = 'err';
     ph.err = err.message === 'badkey' ? 'مفتاح Anthropic غير صحيح — غيّره من ⋯' : (err && (err.code === 'not_granted' || err.code === 'images_unavailable')) ? 'لازم تسمح للصفحة تستخدم Claude لقراءة الصور.'
       : (err && err.code === 'rate_limited') ? 'وصلت حد الاستخدام مؤقتاً. جرّب بعد شوي أو اختر الأوراق بنفسك.' : 'ما قدرنا نقرأ الصورة. جرّب مرة ثانية أو اختر الأوراق بنفسك.';
   }
+  rebuild();
   if (SK === 'pile') pileSheet();
-}
-// remove the cards a photo added, unless another photo also shows them (cards the user tapped in stay)
-function dropPhotoCards(ph) {
-  for (const k of ph.cards || []) {
-    if (!P.ai.has(k)) continue;
-    if (P.photos.some(o => o !== ph && o.cards && o.cards.has(k))) continue;
-    P.cards.delete(k); P.ai.delete(k);
-  }
 }
 $('#photoCam').onchange = onPicked;
 $('#photoLib').onchange = onPicked;
@@ -816,6 +845,8 @@ function pileCalc() {
   const c = C(), Mx = E.MODE[c.mode], n = P.cards.size;
   if (needTrump()) return { err: 'اختر الحكم أول' };
   if (!P.kind) return { needKind: true };
+  const pend = pending().length;
+  if (pend) return { pending: pend };
   const cards = [...P.cards].map(k => ({ rank: k.slice(0, -1), suit: k.slice(-1) }));
   if (P.kind === 'hand') { // a hand shows projects only; it says nothing about who won which trick
     if (n > 8) return { warn: `${n} ورقة — يد اللاعب 8 أوراق بالكثير. صحّح بالضغط على الأوراق أو اختر «كل أكلات فريق».` };
@@ -840,15 +871,23 @@ function pileSheet() {
   const reading = busy();
   const status = reading ? '<span class="spin"></span>نقرأ الأوراق…' : (P.photos.length ? '' : 'اضغط على أوراق الأكلات');
   const lvl = c.level !== 'normal' ? ' · ' + LV[c.level].ar : '';
-  const ov = !ph ? '' : ph.state === 'reading' ? '<span class="ov"><span class="spin"></span>نقرأ الأوراق…</span>' : ph.state === 'err' ? '<span class="ov bad">ما انقرت</span>' : `<span class="ov">${ph.cards.size} ورقة من هذي الصورة</span>`;
-  const preview = ph ? `<div class="pv"><img src="${ph.url}" alt="صورة الأوراق">${ov}</div>
+  const dets = ph && ph.dets ? ph.dets.filter(d => d.status !== 'removed') : [];
+  const pend = ph ? dets.filter(d => d.status !== 'ok').length : 0;
+  const ov = !ph ? '' : ph.state === 'reading' ? '<span class="ov"><span class="spin"></span>نقرأ الأوراق…</span>' : ph.state === 'err' ? '<span class="ov bad">ما انقرت</span>'
+    : `<span class="ov">${dets.length} ورقة${pend ? ` · ${pend} تحتاج تأكيد` : ''}${ph.ms ? ` · ${(ph.ms / 1000).toFixed(1)} ث` : ''}</span>`;
+  const boxes = ph && ph.state === 'done' ? dets.map(d => { const b = d.box, sel = P.sel && P.sel.ph === ph.id && P.sel.id === d.id;
+    return `<button class="bx s-${d.status}${sel ? ' sel' : ''}" data-a="selDet" data-v="${d.id}" style="left:${(b[0] * 100).toFixed(2)}%;top:${(b[1] * 100).toFixed(2)}%;width:${((b[2] - b[0]) * 100).toFixed(2)}%;height:${((b[3] - b[1]) * 100).toFixed(2)}%" aria-label="${d.status === 'ok' ? cardName(dkey(d)) : 'ورقة تحتاج تأكيد'}"><span dir="ltr">${d.status === 'unreadable' ? '?' : cardName(dkey(d)) + (d.status === 'check' ? '?' : '')}</span></button>`; }).join('') : '';
+  const W = (ph && ph.w) || 4, H = (ph && ph.h) || 3, maxH = P.big ? 560 : 260;
+  const preview = ph ? `<div class="pv"><div class="pvin" style="width:min(100%, ${Math.round(maxH * W / H)}px);aspect-ratio:${W}/${H}"><img src="${ph.url}" alt="صورة الأوراق">${boxes}${ov}</div>
+      ${ph.state === 'done' ? `<button class="pvzoom" data-a="pvBig" aria-label="${P.big ? 'تصغير' : 'تكبير'} الصورة">${P.big ? '−' : '+'}</button>` : ''}</div>
       ${P.photos.length > 1 ? `<div class="pthumbs">${P.photos.map((x, i) => `<button class="${x === ph ? 'on' : ''}" data-a="showPhoto" data-v="${i}" aria-label="صورة ${i + 1}"><img src="${x.url}" alt=""></button>`).join('')}</div>` : ''}
+      <div id="pFix"></div>
       <div class="pvacts">
         <button class="press" data-a="retake" data-v="${ph.id}">${ph.src === 'cam' ? CAM_SVG.replace(/24/g, '18') + 'إعادة التصوير' : LIB_SVG.replace(/24/g, '18') + 'صورة ثانية بدلها'}</button>
         <button class="press" data-a="addPhoto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>صورة إضافية</button>
         <button class="press del" data-a="delPhoto" data-v="${ph.id}" aria-label="احذف الصورة"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
       </div>
-      ${ph.state === 'err' ? `<div class="err">${ph.err}</div>` : ''}` : (noAI ? '' : `<button class="soft press" data-a="addPhoto">صوّر أو اختر صورة</button>`);
+      ${ph.state === 'err' ? `<div class="err">${ph.err}</div>` : ''}${ph.note ? `<div class="warn">${ph.note}</div>` : ''}` : (noAI ? '' : `<button class="soft press" data-a="addPhoto">صوّر أو اختر صورة</button>`);
   openSheet('pile', `${head(`الأكلات <span class="hint" style="font-size:13px;font-weight:600">· ${modeLabel(c)}${lvl}</span>`)}
     <div class="stack">
       ${preview}
@@ -857,13 +896,14 @@ function pileSheet() {
       <div id="pTeamBox"></div>
       <span class="stat" id="pStat">${status}</span>
       ${noAI ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? '' : ' أو مفتاح Anthropic (من ⋯)'}. اختر الأوراق هنا وتنحسب مباشرة.</div>` : ''}
-      ${P.err ? `<div class="err">${P.err}</div>` : ''}${P.unread ? `<div class="warn">فيه ${P.unread} ورقة ما انقرت — أضفها بالضغط عليها.</div>` : ''}
-      ${P.cards.size || P.photos.length ? '<div class="note">تحقق من الأوراق: اضغط على ورقة غلط لإلغائها، أو على ورقة ناقصة لإضافتها. النقطة الزرقاء = قرأها الذكاء.</div>' : ''}
+      ${P.err ? `<div class="err">${P.err}</div>` : ''}
+      ${P.photos.length ? '<div class="note">الجدول = كل الأوراق المحسوبة. ورقة ناقصة؟ اضغطها هنا. النقطة الزرقاء = من الصورة.</div>' : ''}
       <div class="grid" id="pGrid">${cells}</div>
       <div id="pLast"></div>
       <div id="pRes"></div>
       <button class="go press" id="pGo" data-a="pSave">سجّل الجولة</button>
     </div>`);
+  fixPanel();
   pileUpdate();
 }
 function pileUpdate() {
@@ -876,7 +916,8 @@ function pileUpdate() {
   const o = pileCalc(), n = P.cards.size;
   $('#pLast').innerHTML = (P.kind === 'tricks' && P.team && n && n % 4 === 0 && n < 32) ? `<div class="opt"><span class="lb">الأرض (آخر أكلة +10) — مين أخذها؟</span><div class="seg alt" id="segLast"><button data-a="pLast" data-v="us">لنا</button><button data-a="pLast" data-v="them">لهم</button></div></div>` : '';
   const sl = $('#segLast'); if (sl) setSeg(sl, P.last, ['us', 'them']);
-  if (!busy() && n) $('#pStat').innerHTML = `<b>${n}</b> ورقة` + (P.kind === 'tricks' && o.ab != null ? ` · <b>${o.ab}</b> بنط` : '');
+  const pd = pending().length;
+  if (!busy() && n) $('#pStat').innerHTML = `<b>${n}</b> ورقة` + (pd ? ` · <span style="color:var(--peach-ink)">${pd} تحتاج تأكيد</span>` : '') + (P.kind === 'tricks' && o.ab != null ? ` · <b>${o.ab}</b> بنط` : '');
   const go = $('#pGo');
   if (o.hand) {
     $('#pRes').innerHTML = o.hand.length ? `<div class="opt"><span class="lb">مشاريع في هذي اليد — لمين؟</span>${o.hand.map((p, i) => `<div class="found"><b>${projName(p.type)}</b> <span class="hint" dir="ltr" style="unicode-bidi:isolate">${p.cards.map(k => k.slice(0, -1) + SUIT[k.slice(-1)][0]).join(' ')}</span>
@@ -889,10 +930,30 @@ function pileUpdate() {
     return;
   }
   go.dataset.a = 'pSave';
-  $('#pRes').innerHTML = o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : (o.needLast || o.needKind || o.needTeam) ? '' : resultHTML(o.r);
+  $('#pRes').innerHTML = o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : o.pending ? `<div class="warn">قبل الحساب: أكّد ${o.pending === 1 ? 'الورقة المعلّمة' : o.pending + ' أوراق معلّمة'} على الصورة (اضغط عليها).</div>` : (o.needLast || o.needKind || o.needTeam) ? '' : resultHTML(o.r);
   go.disabled = !(o.r && !o.r.error) || busy();
-  go.textContent = o.needKind ? 'حدد وش في الصورة' : o.needTeam ? 'حدد أكلات مين' : o.needLast ? 'حدد مين أخذ الأرض' : (S.edit ? 'احفظ التعديل' : 'سجّل الجولة');
+  go.textContent = o.pending ? `أكّد ${o.pending === 1 ? 'الورقة المعلّمة' : o.pending + ' أوراق'} أول` : o.needKind ? 'حدد وش في الصورة' : o.needTeam ? 'حدد أكلات مين' : o.needLast ? 'حدد مين أخذ الأرض' : (S.edit ? 'احفظ التعديل' : 'سجّل الجولة');
 }
+/* tap a card on the photo → its zoom, the AI's best reading and alternatives, one-tap fix */
+function selDet() { if (!P || !P.sel) return null; const ph = P.photos.find(x => x.id === P.sel.ph); return ph && (ph.dets || []).find(d => d.id === P.sel.id) || null; }
+function fixPanel() {
+  const box = $('#pFix'); if (!box) return;
+  const d = selDet(); if (!d || d.status === 'removed') { box.innerHTML = ''; return; }
+  const best = dkey(d), opts = [...new Set([best].concat(d.alts || []).filter(Boolean))].slice(0, 4);
+  const used = k => liveDets().some(o => o !== d && o.ph === d.ph && dkey(o) === k);
+  const title = d.status === 'unreadable' ? 'ورقة هنا ما انقرت بوضوح' : d.status === 'check' ? (d.dupOf ? `مكررة؟ ${cardName(d.dupOf)} موجودة في مكان ثاني` : 'متأكدين منها؟') : 'الورقة';
+  box.innerHTML = `<div class="fix"><div class="fixtop">${d.zoom ? `<img src="${d.zoom}" alt="تكبير الورقة">` : ''}<div class="fixtx"><b>${title}</b>
+      <small>${best ? `قراءة الذكاء: <bdi dir="ltr">${cardName(best)}</bdi> · ثقة ${Math.round((d.conf || 0) * 100)}%` : 'اختر الورقة الصحيحة، أو صوّرها من قريب'}</small></div></div>
+    <div class="fixopts">${opts.map(k => `<button class="press${k === best && d.status === 'ok' ? ' on' : ''}" data-a="detPick" data-v="${k}" dir="ltr">${cardName(k)}${used(k) ? ' ⚠︎' : ''}</button>`).join('')}
+      <button class="press other" data-a="detOther">ورقة ثانية…</button></div>
+    <div class="fixpick" id="fixPick" hidden><div class="fr">${E.RANKS.map(r => `<button data-a="fxRank" data-v="${r}">${r}</button>`).join('')}</div>
+      <div class="fr">${E.SUITS.map(x => `<button class="${SUIT[x][2]}" data-a="fxSuit" data-v="${x}">${SUIT[x][0]}</button>`).join('')}</div></div>
+    <div class="fixacts">${best && d.status !== 'ok' ? `<button class="go press" data-a="detPick" data-v="${best}">تمام، ${cardName(best)}</button>` : ''}
+      <button class="soft press" data-a="detRemove">مو ورقة / مخفية — تجاهلها</button>
+      ${d.status === 'unreadable' ? '<button class="soft press" data-a="detRetake">صوّرها من قريب</button>' : ''}</div></div>`;
+}
+function nextPending() { const nx = pending()[0]; P.sel = nx ? { ph: nx.ph, id: nx.id } : null; if (nx) P.cur = P.photos.findIndex(x => x.id === nx.ph); }
+let FX = { rank: null, suit: null };
 function nudgeSuits() {
   const s = $('#suits'); s.classList.remove('need'); void s.offsetWidth; s.classList.add('need');
   toast('اختر الحكم أول');
@@ -924,6 +985,7 @@ function moreSheet() {
     <div class="opt"><span class="lb">المشاريع في الثري والفور</span><div class="seg alt" id="segPM"><button data-a="projMult" data-v="mult">تتضاعف مثل الجولة</button><button data-a="projMult" data-v="double">×2 بس</button></div></div>
     <div class="opt"><span class="lb">الكبوت في الدبل</span><div class="seg alt" id="segKM"><button data-a="kabootMult" data-v="1">يتضاعف</button><button data-a="kabootMult" data-v="0">ما يتضاعف</button></div></div>
     ${window.claude ? '' : `<div class="opt"><span class="lb">مفتاح Anthropic لقراءة الصور (يبقى في جهازك)</span><input class="key" id="aikey" placeholder="sk-ant-…" value="${esc(getKey())}" autocomplete="off" spellcheck="false" autocapitalize="off"></div>`}
+    <button class="soft press" data-a="bench">اختبار دقة قراءة الأوراق</button>
     <button class="soft press" data-a="newGame">صكة جديدة</button>
     <div class="note">الحساب: صن 130 بنط = 26 نقطة، حكم 162 بنط = 16 نقطة (الخمسة تنزل). الكبوت 44 صن و25 حكم. الدبل: الفائز ياخذ الجولة كاملة ×2/×3/×4 مع المشاريع، والبلوت يبقى 2 لصاحبه. القهوة: اللي يكسب الجولة يكسب الصكة.</div>
   </div>`);
@@ -936,6 +998,46 @@ function moreSheet() {
   };
   sync(); moreSheet.sync = sync;
   const k = $('#aikey'); if (k) k.onchange = () => { try { const v = k.value.trim(); if (v) localStorage.setItem(KEY_LS, v); else localStorage.removeItem(KEY_LS); } catch (e) {} initAI(); toast(k.value.trim() ? 'حفظنا المفتاح' : 'حذفنا المفتاح'); };
+}
+/* accuracy test: synthetic photos with known cards → the real recognition pipeline → measured results */
+let BENCH = null;
+function benchSheet() {
+  let last = null; try { last = JSON.parse(localStorage.getItem('baloot.bench') || 'null'); } catch (e) {}
+  const R = BENCH && BENCH.rows.length ? BENCH : last;
+  const sum = R ? benchSum(R.rows) : null;
+  const pct = (a, b) => (b ? Math.round(a / b * 100) + '%' : '—');
+  openSheet('bench', `${head('اختبار دقة القراءة')}<div class="stack">
+    <div class="note">نصنع ${BalootSynth.SCENES.length} صورة فيها أوراق معروفة (واضحة، متداخلة، مدوّرة، مغطاة جزئياً، ظل، إضاءة ضعيفة، من بعيد، 1–32 ورقة، طاولات مختلفة) ونقرأها بنفس طريقة التطبيق، ثم نقارن بالجواب الصحيح. ${AIMODE === 'none' ? '<b>يحتاج Claude أو مفتاح Anthropic.</b>' : 'كل صورة = طلبين للذكاء.'}</div>
+    ${BENCH && BENCH.running ? `<div class="warn"><span class="spin"></span>صورة ${BENCH.rows.length + 1} من ${BalootSynth.SCENES.length}…</div>` : ''}
+    ${sum ? `<div class="ptot" style="flex-wrap:wrap"><div class="u"><small>اكتشاف الأوراق</small><b>${pct(sum.found, sum.ident)}</b></div><div class="t"><small>أوراق غلط زايدة</small><b>${sum.falseDet}</b></div></div>
+      <div class="note">الرقم: ${pct(sum.rankOK, sum.located)} · النوع (الشكل): ${pct(sum.suitOK, sum.located)} · صور كاملة صح: ${sum.complete}/${sum.n} · متوسط الوقت ${(sum.ms / sum.n / 1000).toFixed(1)} ث · تحتاج تأكيد: ${sum.check}${R.at ? ' · ' + new Date(R.at).toLocaleString('ar') : ''}</div>
+      <div class="hl">${R.rows.map(r => `<div class="hr" style="grid-template-columns:1fr auto auto"><span class="d">${r.name}<small>${r.err ? 'خطأ: ' + esc(r.err) : `${r.found}/${r.ident} · زايد ${r.falseDet} · رقم ${r.rankOK}/${r.located} · نوع ${r.suitOK}/${r.located} · تأكيد ${r.check}`}</small></span><span class="p ${r.complete ? 'u' : 't'}">${r.complete ? '✓' : '✗'}</span><span class="i">${(r.ms / 1000).toFixed(1)}ث</span></div>`).join('')}</div>` : ''}
+    ${BENCH && BENCH.running ? '<button class="soft press" data-a="benchStop">إيقاف</button>' : `<button class="go press" data-a="benchRun" ${AIMODE === 'none' ? 'disabled' : ''}>${R ? 'أعد الاختبار' : 'ابدأ الاختبار'}</button>`}
+  </div>`);
+}
+function benchSum(rows) {
+  const ok = rows.filter(r => !r.err);
+  return ok.reduce((t, r) => ({ n: t.n + 1, ident: t.ident + r.ident, found: t.found + r.found, falseDet: t.falseDet + r.falseDet, located: t.located + r.located,
+    rankOK: t.rankOK + r.rankOK, suitOK: t.suitOK + r.suitOK, complete: t.complete + (r.complete ? 1 : 0), ms: t.ms + r.ms, check: t.check + r.check }),
+    { n: 0, ident: 0, found: 0, falseDet: 0, located: 0, rankOK: 0, suitOK: 0, complete: 0, ms: 0, check: 0 });
+}
+async function benchRun() {
+  if (AIMODE === 'none' || (BENCH && BENCH.running)) return;
+  BENCH = { running: true, rows: [], at: Date.now() }; benchSheet();
+  for (const sc of BalootSynth.SCENES) {
+    if (!BENCH.running) break;
+    const { canvas, truth } = BalootSynth.makeScene(sc);
+    const blob = await new Promise(r => canvas.toBlob(r, 'image/jpeg', 0.9));
+    try {
+      const r = await BalootVision.scanPhoto(blob, aiJSON, { maxImages: AIMAX });
+      const m = BalootSynth.score(truth, r.cards);
+      BENCH.rows.push(Object.assign({ name: sc.name, ms: r.ms, check: r.cards.filter(c => c.status !== 'ok').length, ident: m.identifiable }, m));
+    } catch (e) { BENCH.rows.push({ name: sc.name, err: (e && (e.code || e.message)) || 'error', ms: 0 }); if (e && e.code === 'not_granted') break; }
+    if (SK === 'bench') benchSheet();
+  }
+  BENCH.running = false;
+  try { localStorage.setItem('baloot.bench', JSON.stringify({ rows: BENCH.rows, at: BENCH.at })); } catch (e) {}
+  if (SK === 'bench') benchSheet();
 }
 function shareText() {
   const t = totals();
@@ -963,7 +1065,7 @@ const A = {
   kab: v => { M.kaboot = M.kaboot === v ? null : v; M.val = ''; haptic(); manualUpdate(); },
   voice: () => listen(),
   mSave: () => { const o = manualCalc(); if (o.r && !o.r.error) commit(o.r, M.heard ? 'voice' : 'manual'); },
-  card: v => { if (P.cards.has(v)) { P.cards.delete(v); P.ai.delete(v); } else P.cards.add(v);
+  card: v => { if (P.cards.has(v)) { P.manual.delete(v); liveDets().filter(d => dkey(d) === v).forEach(d => { d.status = 'removed'; }); } else P.manual.add(v); rebuild();
     const b = document.querySelector(`.cd[data-v="${v}"]`); if (b) { b.classList.toggle('on', P.cards.has(v)); b.classList.toggle('ai', P.ai.has(v)); b.setAttribute('aria-pressed', String(P.cards.has(v))); }
     pileUpdate(); },
   pTeam: v => { P.team = v; pileUpdate(); },
@@ -985,9 +1087,20 @@ const A = {
   pickLib: () => $('#photoLib').click(),
   pickGrid: () => { P.kind = 'tricks'; pileSheet(); },
   addPhoto: () => srcSheet(),
-  retake: v => { const ph = P.photos.find(x => String(x.id) === v); if (!ph) return; PICK.replace = ph.id; $(ph.src === 'cam' ? '#photoCam' : '#photoLib').click(); },
-  delPhoto: v => { const i = P.photos.findIndex(x => String(x.id) === v); if (i < 0) return; dropPhotoCards(P.photos[i]); P.photos.splice(i, 1); P.cur = P.photos.length - 1; pileSheet(); },
-  showPhoto: v => { P.cur = +v; pileSheet(); },
+  retake: v => { const ph = P.photos.find(x => String(x.id) === v); if (!ph) return; PICK.replace = ph.id; P.sel = null; $(ph.src === 'cam' ? '#photoCam' : '#photoLib').click(); },
+  delPhoto: v => { const i = P.photos.findIndex(x => String(x.id) === v); if (i < 0) return; P.photos.splice(i, 1); P.cur = P.photos.length - 1; P.sel = null; rebuild(); pileSheet(); },
+  selDet: v => { const ph = P.photos[P.cur] || P.photos[P.photos.length - 1]; P.sel = { ph: ph.id, id: +v }; FX = { rank: null, suit: null }; pileSheet(); },
+  pvBig: () => { P.big = !P.big; pileSheet(); },
+  detPick: v => { const d = selDet(); if (!d) return; d.rank = v.slice(0, -1); d.suit = v.slice(-1); d.status = 'ok'; d.user = true; d.dupOf = null;
+    // the deck has one of each card: another box in this photo with the same reading must be looked at again
+    liveDets().forEach(o => { if (o !== d && o.ph === d.ph && dkey(o) === v) { o.status = 'check'; o.dupOf = v; } });
+    rebuild(); nextPending(); haptic(); pileSheet(); },
+  detRemove: () => { const d = selDet(); if (!d) return; d.status = 'removed'; rebuild(); nextPending(); pileSheet(); },
+  detOther: () => { const el = $('#fixPick'); if (el) el.hidden = !el.hidden; },
+  fxRank: (v, el) => { FX.rank = v; el.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el)); if (FX.suit) A.detPick(FX.rank + FX.suit); },
+  fxSuit: (v, el) => { FX.suit = v; el.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el)); if (FX.rank) A.detPick(FX.rank + FX.suit); },
+  detRetake: () => { toast('قرّب الكاميرا على الورقة المعلّمة'); srcSheet(); },
+  showPhoto: v => { P.cur = +v; P.sel = null; pileSheet(); },
   pSave: () => { const o = pileCalc(); if (o.r && !o.r.error) { commit(o.r, 'scan'); P = null; } },
   edit: v => startEdit(+v),
   editOpen: () => { const r = S.edit && S.rounds[S.edit.i]; manualSheet(r && r.kaboot ? { kaboot: r.kaboot } : { team: 'us', val: r && r.abnat != null ? String(r.abnat) : '' }); },
@@ -1000,6 +1113,9 @@ const A = {
   },
   undo: () => { undoLast(); if (SK === 'hist') histSheet(); },
   newGame: () => newGame(),
+  bench: () => benchSheet(),
+  benchRun: () => benchRun(),
+  benchStop: () => { if (BENCH) BENCH.running = false; },
   newGameNow: () => newGame(true),
   target: v => { S.target = +v; save(); moreSheet.sync(); renderHome(); },
   tieRule: v => { S.tieRule = v; save(); moreSheet.sync(); },

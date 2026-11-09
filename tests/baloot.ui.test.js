@@ -13,7 +13,14 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   const p = await ctx.newPage(); const errs = []; p.on('pageerror', e => errs.push(e.message));
   await p.addInitScript(() => {
     window.__cards = [['A', 'S'], ['10', 'S'], ['K', 'S'], ['Q', 'S'], ['A', 'H'], ['10', 'H'], ['K', 'H'], ['Q', 'H'], ['A', 'S']];
-    window.claude = { use: async n => n === 'sample' ? Object.assign(async () => ({ text: '' }), { limits: async () => ({ images: {} }), json: async () => ({ cards: window.__cards.map(([rank, suit]) => ({ rank, suit })), unreadable: 0 }) }) : null };
+    // stub in the shape the real model answers: the overview lists cards with boxes; the crop pass answers per crop.
+    // A card listed twice gets the same box (one physical card read twice). window.__conf can lower one card's confidence.
+    const boxOf = (k, keys) => { const i = keys.indexOf(k); return [40 + (i % 8) * 120, 100 + Math.floor(i / 8) * 400, 140 + (i % 8) * 120, 450 + Math.floor(i / 8) * 400]; };
+    window.claude = { use: async n => n === 'sample' ? Object.assign(async () => ({ text: '' }), { limits: async () => ({ images: { maxCount: 8 } }), json: async (prompt) => {
+      const keys = window.__cards.map(([r, s]) => r + s);
+      if (/zoomed crop/.test(prompt)) return { crops: [] };
+      return { cards: window.__cards.map(([rank, suit]) => ({ box: boxOf(rank + suit, keys), rank, suit, conf: (window.__conf && window.__conf[rank + suit]) || 0.95, alts: (window.__alts && window.__alts[rank + suit]) || [] })) };
+    } }) : null };
   });
   await p.goto(URL); await p.waitForTimeout(300);
   const txt = s => p.textContent(s);
@@ -102,8 +109,8 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   await p.click('[data-a=addPhoto]'); await wait(380);
   [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=pickLib]')]);
   await fc.setFiles({ name: 'cards.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
-  ok('library photo: preview shown and sent to the same recognition call', await p.isVisible('.pv img') && await p.evaluate(() => window.__calls) === 1);
-  t = await txt('#pStat'); ok('8 cards from the reply (duplicate ignored)', t.includes('8'), t);
+  ok('library photo: preview shown and sent to the same recognition pipeline (overview + zoom crops = 2 calls)', await p.isVisible('.pv img') && await p.evaluate(() => window.__calls) === 2);
+  t = await txt('#pStat'); ok('8 cards from the reply (a card read twice is counted once)', t.includes('8'), t);
   ok('no score until you say what the photo shows', (await txt('#pGo')).includes('وش في الصورة') && await p.isDisabled('#pGo') && !(await p.$('#pRes .result')));
   // a HAND photo never becomes a score: it only offers its projects and then asks for the trick result
   await p.click('#segKind [data-v=hand]');
@@ -142,6 +149,28 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   ok('recognition can be corrected by tapping cards', added7 && removed7);
   await p.click('#pGo'); await wait(600);
   ok('scan saved: 108–30', await score() === '108-30', await score());
+
+  console.log('uncertain cards: shown on the photo, fixed with one tap');
+  await p.evaluate(() => { window.__cards = [['K', 'S'], ['Q', 'H'], ['7', 'C'], ['8', 'D']]; window.__conf = { QH: 0.55 }; window.__alts = { QH: [{ rank: 'Q', suit: 'D' }] }; });
+  await p.click('#bScan'); await wait(380);
+  [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=pickCam]')]);
+  await fc.setFiles({ name: 'u.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  ok('every recognised card is boxed on the photo (4 boxes)', (await p.$$('.pvin .bx')).length === 4);
+  ok('the unsure card is marked and opened for checking, with its zoom and the AI\'s best guess', (await p.$$('.bx.s-check')).length === 1 && await p.isVisible('.fix img') && (await txt('.fix')).includes('Q♥'));
+  await p.click('#segKind [data-v=tricks]'); await p.click('#segPile [data-v=us]');
+  ok('no score while a card still needs checking', !(await p.$('#pRes .result')) && await p.isDisabled('#pGo') && (await txt('#pGo')).includes('أكّد'));
+  await p.click('.fixopts [data-v=QD]');
+  ok('one tap on the alternative (Q♦) fixes it; the card list updates', await p.evaluate(() => P.cards.has('QD') && !P.cards.has('QH')) && (await p.$$('.bx.s-check')).length === 0);
+  ok('then the round can be scored (asks for الأرض next)', (await txt('#pGo')).includes('الأرض'));
+  await p.click('.bx >> nth=0'); await wait(150);
+  await p.click('[data-a=detOther]'); await p.click('[data-a=fxRank][data-v=A]'); await p.click('[data-a=fxSuit][data-v=C]');
+  ok('"ورقة ثانية…": pick rank + suit to change any card', await p.evaluate(() => P.cards.has('AC')));
+  await p.click('.bx >> nth=1'); await wait(150); await p.click('[data-a=detRemove]');
+  ok('"مو ورقة": the box is ignored and the card leaves the list', await p.evaluate(() => P.cards.size) === 3 && (await p.$$('.pvin .bx')).length === 3);
+  await p.click('.cd[data-v="9C"]');
+  ok('a missing card is added from the grid without re-scanning', await p.evaluate(() => P.cards.has('9C') && P.cards.size === 4));
+  await closeSh();
+  await p.evaluate(() => { window.__conf = null; window.__alts = null; });
 
   console.log('hand photo flow');
   await p.evaluate(() => { window.__cards = [['K', 'H'], ['Q', 'H'], ['J', 'H'], ['7', 'S'], ['8', 'S'], ['9', 'D'], ['8', 'C'], ['A', 'C']]; });

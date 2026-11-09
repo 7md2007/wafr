@@ -119,7 +119,7 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
 
 ## Baloot score keeper (Nov 8, 2026) — separate page, does not touch Wafr
 - `baloot/index.html` (Arabic RTL, one light look: sky/turquoise/white/soft peach) + `baloot/engine.js` (pure scoring engine).
-  Live at /wafr/baloot/ once merged; artifact copy https://claude.ai/artifact/Q6W5f2T1TPJdG4FbDA8N3f (built from index.html with engine.js inlined,
+  Live at /wafr/baloot/ once merged; artifact copy https://claude.ai/artifact/Q6W5f2T1TPJdG4FbDA8N3f (built from index.html with engine.js, vision.js and synth.js inlined,
   Google Fonts instead of ../fonts, `sample` capability with images; build script lives in the session scratchpad — inline engine.js, drop @font-face, drop the safe-area top/bottom padding).
 - Home = score → round card (صن/حكم, 4 suits for حكم, المشتري لنا/لهم, الدبل row, المشاريع row) → big "صوّر الأوراق" + "إدخال يدوي" + mic.
   Selected options are filled turquoise. Top icons: history, share, settings (⋯). Saving shows a toast with "تراجع" (no confirm step); a 600 ms guard stops double saves.
@@ -137,8 +137,18 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   A hand NEVER becomes a score (that caused +16/+0: a hand counted as all our tricks → buyer "failed"): it lists `detectProjects()` with
   owner لنا/لهم/ما انعلن, adds them, then opens the keypad for the trick result. Every result has "كيف انحسبت؟" from `r.detail`
   (engine: raw abnat, project abnat/points, sums, base rounding, rule split/lost/kaboot/kabootLost/doubled/gahwa).
-- Scan: photo → AI lists readable cards (Claude `sample` in the artifact, else the user's key `wafr.aikey`) → 4×8 grid with AI cards preselected (tap to fix),
-  duplicates impossible, count must be whole tricks, asks who took الأرض, 32 cards = كبوت. No AI → same grid by tapping, and it says so.
+- Recognition (`baloot/vision.js`, Nov 9 2026): `scanPhoto(file, aiJSON)` = local card-region analysis `findCardBlobs()` (near-white +
+  local-contrast mask, hole fill, connected regions; ~30–70 ms) → `cropPlan()` (zoom crops from the FULL-res photo, min ~1 card size, tiled
+  when there are more regions than crops, 2×2 tiles when the table is white) → AI pass A (whole photo 2048px: boxes + rank/suit + conf + alts)
+  and pass B (crops) IN PARALLEL → `mergeDetections()` (one answer lists each card once, so its entries are never fused; same identity
+  nearby = one card; votes; one-of-each-card deck rule; status ok/check/unreadable). Root causes fixed: single small-image prompt missed
+  overlapping/far cards; the model's free "unreadable" number was shown as fact. AI = Claude `sample` (modelTier default, ≤ maxCount images)
+  or the user's key `wafr.aikey` (claude-sonnet-5-5). Photo shows a box per card; tap → zoom + best guess + alts + "ورقة ثانية…" (rank+suit)
+  + "مو ورقة"; scoring blocked until every orange/red box is confirmed. Grid still adds missing cards (`P.manual`); `rebuild()` derives P.cards.
+  Count rules: hand ≤ 8; tricks multiple of 4 (no claim of "missing" cards otherwise). 32 cards = كبوت.
+- Accuracy test (⋯ → اختبار دقة قراءة الأوراق): `baloot/synth.js` draws 16 scenes with exact truth (clear, fan, rotated, covered, mixed,
+  low light, shadow, far, pile, tilted, felt/wood/white tables, 1–32 cards) → real pipeline → recall, false cards, rank/suit accuracy,
+  complete images, time (saved in `baloot.bench`). Real photos for tests: `tests/vision-data/real1.png`, `real2.png` (10 cards each).
 - Rules (engine): Sun 130 abnat = 26 pts (÷5), Hokm 162 = 16 (÷10, a 5 rounds down; 86–76 → 9–7). Projects Sun سرا4/خمسين10/مية20/أربعمية40,
   Hokm سرا2/خمسين5/مية10/بلوت2 (4 aces in Hokm = مية). Strongest project cancels the other team's; equal type → user picks; بلوت never cancelled.
   Normal round: buyer must beat the other team (abnat + projects); failing gives the other team 26/16 + all projects. Kaboot 44/25.
@@ -146,4 +156,4 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   Doubled round = winner takes all: 26 or 16 × level + all projects × level (setting: ×2 max in ثري/فور), بلوت 2 to its owner; tie → buyer loses;
   kaboot × level (setting: not multiplied). قهوة: round winner gets enough points to reach the target and wins the game.
 - Tests: `node tests/baloot.test.js` (80, plain node), `node tests/baloot.examples.test.js` (36 hand-calculated worked examples;
-  `--write` regenerates `baloot/SCORING-EXAMPLES.md`) and `node tests/baloot.ui.test.js` (69, Playwright; AI reply is a stub).
+  `--write` regenerates `baloot/SCORING-EXAMPLES.md`), `node tests/baloot.vision.test.js` (18) and `node tests/baloot.ui.test.js` (77, Playwright; AI reply is a stub).
