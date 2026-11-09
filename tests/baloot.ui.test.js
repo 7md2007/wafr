@@ -28,6 +28,17 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   ok('no horizontal scroll', await p.evaluate(() => document.documentElement.scrollWidth <= innerWidth));
 
   console.log('manual entry');
+  await p.click('#bManual'); await wait(380);
+  const order = await p.$$eval('.keys button', x => x.map(b => b.textContent.trim()).join(' '));
+  ok('keypad order 1 2 3 / 4 5 6 / 7 8 9 / مسح 0 ⌫', order === '1 2 3 4 5 6 7 8 9 مسح 0 ⌫', order);
+  const pos = await p.$$eval('.keys button', x => x.map(b => Math.round(b.getBoundingClientRect().left)));
+  ok('1 is on the left, 3 on the right (not reversed by RTL)', pos[0] < pos[1] && pos[1] < pos[2] && pos[9] < pos[10] && pos[10] < pos[11], pos);
+  for (const d of '1234567890') await p.click(`.keys [data-v="${d}"]`);
+  ok('digits type in order, max 3', (await txt('#mBig')) === '123');
+  await p.click('[data-a=back]'); ok('⌫ removes the last digit', (await txt('#mBig')) === '12');
+  await p.click('[data-a=clr]'); await p.click('.keys [data-v="0"]'); await p.click('.keys [data-v="5"]');
+  ok('مسح clears; a leading 0 is dropped', (await txt('#mBig')) === '5');
+  await closeSh();
   await manual('us', '70');
   let t = await txt('#mRes'); ok('Sun 70 → +14 / +12', t.includes('+14') && t.includes('+12'), t);
   ok('shows both teams\' abnat', (await txt('#mSplit')).includes('لنا 70') && (await txt('#mSplit')).includes('لهم 60'));
@@ -79,14 +90,47 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   console.log('scan');
   await p.click('#segMode [data-v=hokm]'); await p.click('.suit[data-v=H]');
   await p.click('#bProj'); await wait(350); await p.click('.ptile[data-v=baloot]'); await p.click('.go[data-a=close]'); await wait(350);
-  const [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('#bScan')]);
-  await fc.setFiles({ name: 'a.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  await p.click('#bScan'); await wait(380);
+  ok('scan opens a sheet with camera + photos options', await p.isVisible('[data-a=pickCam]') && await p.isVisible('[data-a=pickLib]'));
+  ok('camera input uses the back camera; library input takes JPG/PNG/HEIC',
+    await p.getAttribute('#photoCam', 'capture') === 'environment' && /heic/.test(await p.getAttribute('#photoLib', 'accept')) && await p.getAttribute('#photoLib', 'capture') === null);
+  // library: a non-image file is refused and nothing is sent to the AI
+  await p.evaluate(() => { window.__calls = 0; const f = AIF.json; AIF.json = async (...a) => { window.__calls++; return f(...a); }; });
+  let [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=pickLib]')]);
+  await fc.setFiles({ name: 'notes.txt', mimeType: 'text/plain', buffer: Buffer.from('hi') }); await wait(400);
+  ok('non-image file: clear error, AI not called', (await txt('#sb')).includes('مو صورة') && await p.evaluate(() => window.__calls) === 0);
+  await p.click('[data-a=addPhoto]'); await wait(380);
+  [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=pickLib]')]);
+  await fc.setFiles({ name: 'cards.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  ok('library photo: preview shown and sent to the same recognition call', await p.isVisible('.pv img') && await p.evaluate(() => window.__calls) === 1);
   t = await txt('#pStat'); ok('8 cards from the reply (duplicate ignored)', t.includes('8'), t);
   ok('asks who took الأرض before saving', (await txt('#pGo')).includes('الأرض') && await p.isDisabled('#pGo'));
   await p.click('#segLast [data-v=us]'); t = await txt('#pRes');
   ok('pile 66 + بلوت 20 = 86 < 96 → buyer loses: us +2, them +16', t.includes('خسر') && t.includes('+2') && t.includes('+16'), t);
   await p.click('.cd[data-v=QH]'); ok('7 cards: warns about whole tricks', (await txt('#pRes')).includes('4'));
-  await p.click('.cd[data-v=QH]'); await p.click('#pGo'); await wait(600);
+  await p.click('.cd[data-v=QH]');
+  // replace the photo: its cards are removed, then the new photo's cards come in
+  await p.evaluate(() => { window.__cards = [['J', 'H'], ['9', 'H'], ['7', 'H'], ['8', 'H']]; });
+  [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=retake]')]);
+  await fc.setFiles({ name: 'b.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  ok('replaced photo: its cards swapped for the new 4 (Q♥ kept: tapped in by hand)', (await p.evaluate(() => [...P.cards].sort().join(','))) === '7H,8H,9H,JH,QH' && (await p.$$('.pv')).length === 1);
+  // add a camera photo, then delete it again
+  await p.evaluate(() => { window.__cards = [['A', 'S'], ['10', 'S'], ['K', 'S'], ['Q', 'S']]; });
+  await p.click('[data-a=addPhoto]'); await wait(380);
+  [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=pickCam]')]);
+  await fc.setFiles({ name: 'c.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  ok('second (camera) photo adds its 4 cards, 2 thumbnails', await p.evaluate(() => P.cards.size) === 9 && (await p.$$('.pthumbs button')).length === 2);
+  await p.click('[data-a=delPhoto]'); await wait(200);
+  ok('deleting that photo removes only its cards', await p.evaluate(() => P.cards.size) === 5);
+  // back to the original 8 cards for the score check
+  await p.evaluate(() => { window.__cards = [['A', 'S'], ['10', 'S'], ['K', 'S'], ['Q', 'S'], ['A', 'H'], ['10', 'H'], ['K', 'H'], ['Q', 'H']]; });
+  [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=retake]')]);
+  await fc.setFiles({ name: 'd.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  await p.click('#segLast [data-v=us]');
+  await p.click('.cd[data-v="7D"]'); const added7 = await p.evaluate(() => P.cards.has('7D'));
+  await p.click('.cd[data-v="7D"]'); const removed7 = !(await p.evaluate(() => P.cards.has('7D')));
+  ok('recognition can be corrected by tapping cards', added7 && removed7);
+  await p.click('#pGo'); await wait(600);
   ok('scan saved: 108–30', await score() === '108-30', await score());
 
   console.log('history, edit, undo, refresh');

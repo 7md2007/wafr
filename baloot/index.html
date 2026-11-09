@@ -168,6 +168,26 @@ svg{display:block;flex:none}
 .spin{display:inline-block;width:15px;height:15px;border:2px solid var(--sky-soft);border-top-color:var(--sky);border-radius:50%;animation:sp 1s linear infinite;vertical-align:-2px;margin-inline-end:6px}
 @keyframes sp{to{transform:rotate(360deg)}}
 
+/* photo source sheet + preview */
+.srcs{display:flex;flex-direction:column;gap:10px}
+.src{display:flex;align-items:center;gap:14px;min-height:68px;border-radius:18px;background:var(--surface-2);padding:10px 14px;text-align:start;width:100%}
+.src .ic{width:46px;height:46px;border-radius:14px;background:var(--teal-soft);color:var(--teal-deep);display:grid;place-items:center;flex:none}
+.src b{display:block;font-size:17px;font-weight:700}
+.src small{display:block;font-size:13px;color:var(--ink-2)}
+.src:disabled{opacity:.45}
+.src.plain .ic{background:var(--surface);color:var(--ink-2)}
+.pv{position:relative;border-radius:18px;overflow:hidden;background:var(--surface-2);min-height:120px;display:grid;place-items:center}
+.pv img{display:block;width:100%;max-height:200px;object-fit:contain;background:#0E2A3A}
+.pv .ov{position:absolute;inset-inline-start:10px;bottom:10px;background:rgba(14,42,58,.78);color:var(--on);border-radius:10px;padding:4px 10px;font-size:13px;font-weight:600}
+.pv .ov.bad{background:var(--bad)}
+.pvacts{display:flex;gap:8px;flex-wrap:wrap}
+.pvacts button{flex:1;min-width:0;height:42px;border-radius:12px;background:var(--surface-2);font-size:14px;font-weight:600;color:var(--ink);display:flex;align-items:center;justify-content:center;gap:6px;white-space:nowrap;padding:0 8px}
+.pvacts .del{flex:0 0 42px;color:var(--bad)}
+.pthumbs{display:flex;gap:6px;overflow-x:auto}
+.pthumbs button{width:52px;height:52px;border-radius:10px;overflow:hidden;flex:none;border:2px solid transparent;padding:0;background:var(--surface-2)}
+.pthumbs button.on{border-color:var(--teal-deep)}
+.pthumbs img{width:100%;height:100%;object-fit:cover;display:block}
+
 /* manual keypad */
 .display{display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0}
 .display .big{font:700 54px/1.05 var(--f-num);letter-spacing:-1.5px;color:var(--ink);min-height:57px}
@@ -180,7 +200,7 @@ svg{display:block;flex:none}
 .kabrow{display:grid;grid-template-columns:1fr 1fr;gap:8px}
 .kabrow button{height:44px;border-radius:12px;background:var(--surface-2);font-weight:600;color:var(--ink-2);font-size:15px;transition:background .15s,color .15s}
 .kabrow button[aria-pressed=true]{background:var(--teal-deep);color:var(--on)}
-.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;direction:ltr}
+.keys{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;direction:ltr} /* ltr on purpose: 1 2 3 left to right, مسح 0 ⌫ on the last row */
 .keys button{height:58px;border-radius:15px;background:var(--surface-2);font:600 26px var(--f-num);color:var(--ink);transition:background .08s,transform .1s var(--ease)}
 .keys button:active{background:var(--surface-3);transform:scale(.95)}
 .keys .k2{font:600 16px var(--f-ar);color:var(--ink-2)}
@@ -273,7 +293,8 @@ input.key{width:100%;height:48px;border-radius:12px;border:1.5px solid var(--lin
 <div id="scrim"></div>
 <div class="sheet" id="sheet" role="dialog" aria-modal="true"><div class="grab"></div><div id="sb"></div></div>
 <div id="toast" role="status" aria-live="polite"><span id="tMsg"></span><button id="tAct" hidden></button></div>
-<input type="file" id="photo" accept="image/*" capture="environment" hidden>
+<input type="file" id="photoCam" accept="image/*" capture="environment" hidden>
+<input type="file" id="photoLib" accept="image/*,.heic,.heif,.jpg,.jpeg,.png" hidden>
 
 <script src="engine.js"></script>
 <script>
@@ -557,7 +578,7 @@ let M = null; // {team, val, kaboot, heard}
 function manualSheet(prefill) {
   if (needTrump()) { nudgeSuits(); return; }
   M = Object.assign({ team: 'us', val: '', kaboot: null, heard: '' }, prefill || {});
-  const keys = [7, 8, 9, 4, 5, 6, 1, 2, 3].map(k => `<button data-a="key" data-v="${k}">${k}</button>`).join('');
+  const keys = [1, 2, 3, 4, 5, 6, 7, 8, 9].map(k => `<button data-a="key" data-v="${k}">${k}</button>`).join('');
   const lvl = C().level !== 'normal' ? ` · ${LV[C().level].ar}` : '';
   openSheet('manual', `${head((S.edit ? `تعديل الجولة ${S.edit.i + 1}` : 'إدخال يدوي') + `<span class="hint" style="font-size:13px;font-weight:600"> · ${modeLabel(C())}${lvl}</span>`,
     REC_OK ? `<button class="pillbtn press" data-a="voice" aria-label="إدخال بالصوت"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>صوت</button>` : '')}
@@ -688,39 +709,76 @@ function shrink(file) {
     img.src = url;
   });
 }
-let P = null; // pile: {team, cards:Set('AS'), ai:Set, last:null|'us'|'them', busy, err, photos:[], unread}
-const pileNew = () => ({ team: C().buyer, cards: new Set(), ai: new Set(), last: null, busy: 0, err: '', photos: [], unread: 0 });
+let P = null; // pile: {team, cards:Set('AS'), ai:Set, last, err, photos:[{id,url,src,state,err,cards:Set}], cur, unread}
+const pileNew = () => ({ team: C().buyer, cards: new Set(), ai: new Set(), last: null, err: '', photos: [], cur: -1, unread: 0 });
+const busy = () => P && P.photos.some(x => x.state === 'reading');
+const CAM_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="4"/></svg>';
+const LIB_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>';
+let PICK = { replace: null }; // which photo a new pick replaces (null = add)
 function startScan() {
   if (needTrump()) { nudgeSuits(); return; }
   if (!P || SK !== 'pile') P = pileNew();
-  if (AIMODE === 'none') { pileSheet(); return; }
-  $('#photo').click(); // iPhone offers Camera or Photo Library; cancelling simply does nothing
+  srcSheet();
 }
-$('#photo').onchange = async e => {
-  const file = e.target.files[0]; e.target.value = ''; if (!file) return;
+/* bottom sheet: camera or photo library / Files */
+function srcSheet(replaceId) {
+  PICK.replace = replaceId == null ? null : replaceId;
+  const noAI = AIMODE === 'none';
+  openSheet('src', `${head(replaceId != null ? 'استبدال الصورة' : 'صوّر الورق')}<div class="srcs">
+    <button class="src press" data-a="pickCam" ${noAI ? 'disabled' : ''}><span class="ic">${CAM_SVG}</span><span><b>تصوير بالكاميرا</b><small>صورة جديدة لأكلات الفريق</small></span></button>
+    <button class="src press" data-a="pickLib" ${noAI ? 'disabled' : ''}><span class="ic">${LIB_SVG}</span><span><b>اختيار من الصور</b><small>من الصور أو تطبيق الملفات · JPG و PNG و HEIC</small></span></button>
+    ${noAI ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? ' (اسمح للصفحة تستخدمه)' : ' أو مفتاح Anthropic من ⋯ الإعدادات'}. تقدر تختار الأوراق بنفسك:</div>` : ''}
+    ${replaceId == null ? `<button class="src plain press" data-a="pickGrid"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span><b>اختيار الأوراق يدوياً</b><small>بدون صورة</small></span></button>` : ''}
+    <div class="note">إذا ما انفتحت الكاميرا: إعدادات الآيفون ← التطبيق اللي فاتح الصفحة (Safari أو Claude) ← الكاميرا ← اسمح.</div>
+  </div>`);
+}
+const OK_TYPES = /^image\/(jpe?g|png|heic|heif|webp|gif)$/i, OK_EXT = /\.(jpe?g|png|heic|heif|webp)$/i;
+async function onPicked(e) {
+  const input = e.target, file = input.files && input.files[0], src = input.id === 'photoCam' ? 'cam' : 'lib';
+  input.value = ''; if (!file) return; // cancelled: nothing changes
   if (!P) P = pileNew();
-  P.busy++; P.err = '';
-  pileSheet();
+  const rep = PICK.replace; PICK.replace = null;
+  const bad = msg => { P.err = msg; pileSheet(); };
+  if (!(OK_TYPES.test(file.type) || (!file.type && OK_EXT.test(file.name)) || OK_EXT.test(file.name))) return bad('هذا الملف مو صورة. اختر صورة JPG أو PNG أو HEIC.');
+  if (file.size > 30e6) return bad('الصورة كبيرة جداً (أكثر من 30 ميغا). اختر صورة أصغر.');
   const { blob, url } = await shrink(file);
-  if (!blob) { P.busy--; P.err = 'ما قدرنا نفتح الصورة. جرّب صورة ثانية (JPG أو PNG).'; if (SK === 'pile') pileSheet(); return; }
-  P.photos.push(url); if (SK === 'pile') pileSheet();
+  if (!blob) return bad(/heic|heif/i.test(file.type + file.name) ? 'هذا المتصفح ما يفتح صور HEIC. اختر الصورة من «الصور» (تتحول JPG تلقائياً) أو صدّرها JPG.' : 'ما قدرنا نفتح الصورة. جرّب صورة ثانية.');
+  let ph;
+  if (rep != null && P.photos.some(x => x.id === rep)) { ph = P.photos.find(x => x.id === rep); dropPhotoCards(ph); ph.url = url; ph.src = src; }
+  else { ph = { id: Date.now() + Math.random(), url, src }; P.photos.push(ph); }
+  Object.assign(ph, { state: 'reading', err: '', cards: new Set() });
+  P.err = ''; P.cur = P.photos.indexOf(ph);
+  pileSheet();
   try {
-    const r = await readCards(blob);
+    const r = await readCards(blob); // the same recognition call for camera and library photos
+    if (!P.photos.includes(ph)) return; // removed while reading
     const list = (r && Array.isArray(r.cards)) ? r.cards : [];
-    let added = 0;
     for (const c of list) {
       const rank = String(c.rank || '').toUpperCase().replace(/^T$/, '10'), suit = String(c.suit || '').toUpperCase().slice(0, 1);
       if (!E.RANKS.includes(rank) || !E.SUITS.includes(suit)) continue;
-      const k = rank + suit; if (!P.cards.has(k)) { P.cards.add(k); P.ai.add(k); added++; } // a card is only counted once
+      const k = rank + suit; ph.cards.add(k);
+      if (!P.cards.has(k)) { P.cards.add(k); P.ai.add(k); } // a card is only counted once, even if two photos show it
     }
     P.unread += Math.max(0, Number(r && r.unreadable) || 0);
-    if (!list.length) P.err = 'ما لقينا أوراق واضحة في الصورة. جرّب صورة أقرب بإضاءة أحسن، أو اختر الأوراق بنفسك.';
+    ph.state = 'done';
+    if (!list.length) { ph.state = 'err'; ph.err = 'ما لقينا أوراق واضحة في الصورة. جرّب صورة أقرب بإضاءة أحسن، أو اختر الأوراق بنفسك.'; }
   } catch (err) {
-    P.err = err.message === 'badkey' ? 'مفتاح Anthropic غير صحيح — غيّره من ⋯' : (err && (err.code === 'not_granted' || err.code === 'images_unavailable')) ? 'لازم تسمح للصفحة تستخدم Claude لقراءة الصور.'
+    ph.state = 'err';
+    ph.err = err.message === 'badkey' ? 'مفتاح Anthropic غير صحيح — غيّره من ⋯' : (err && (err.code === 'not_granted' || err.code === 'images_unavailable')) ? 'لازم تسمح للصفحة تستخدم Claude لقراءة الصور.'
       : (err && err.code === 'rate_limited') ? 'وصلت حد الاستخدام مؤقتاً. جرّب بعد شوي أو اختر الأوراق بنفسك.' : 'ما قدرنا نقرأ الصورة. جرّب مرة ثانية أو اختر الأوراق بنفسك.';
   }
-  P.busy--; if (SK === 'pile') pileSheet();
-};
+  if (SK === 'pile') pileSheet();
+}
+// remove the cards a photo added, unless another photo also shows them (cards the user tapped in stay)
+function dropPhotoCards(ph) {
+  for (const k of ph.cards || []) {
+    if (!P.ai.has(k)) continue;
+    if (P.photos.some(o => o !== ph && o.cards && o.cards.has(k))) continue;
+    P.cards.delete(k); P.ai.delete(k);
+  }
+}
+$('#photoCam').onchange = onPicked;
+$('#photoLib').onchange = onPicked;
 function pileCalc() {
   const c = C(), Mx = E.MODE[c.mode], n = P.cards.size;
   if (needTrump()) return { err: 'اختر الحكم أول' };
@@ -739,15 +797,27 @@ function pileSheet() {
   const cells = E.SUITS.map(s => `<span class="sl ${SUIT[s][2]}">${SUIT[s][0]}</span>` + E.RANKS.map(rk => {
     const k = rk + s; return `<button class="cd ${SUIT[s][2]}${P.cards.has(k) ? ' on' : ''}${P.ai.has(k) ? ' ai' : ''}" data-a="card" data-v="${k}" aria-label="${rk} ${SUIT[s][1]}" aria-pressed="${P.cards.has(k)}">${rk}</button>`;
   }).join('')).join('');
-  const thumbs = P.photos.map(u => `<img src="${u}" alt="">`).join('');
-  const status = P.busy ? '<span class="spin"></span>نقرأ الأوراق…' : (noAI ? 'اضغط على أوراق الأكلات' : 'صوّر الأكلات أو اختر الأوراق');
+  const ph = P.photos[P.cur] || P.photos[P.photos.length - 1];
+  const reading = busy();
+  const status = reading ? '<span class="spin"></span>نقرأ الأوراق…' : (P.photos.length ? '' : 'اضغط على أوراق الأكلات');
   const lvl = c.level !== 'normal' ? ' · ' + LV[c.level].ar : '';
+  const ov = !ph ? '' : ph.state === 'reading' ? '<span class="ov"><span class="spin"></span>نقرأ الأوراق…</span>' : ph.state === 'err' ? '<span class="ov bad">ما انقرت</span>' : `<span class="ov">${ph.cards.size} ورقة من هذي الصورة</span>`;
+  const preview = ph ? `<div class="pv"><img src="${ph.url}" alt="صورة الأوراق">${ov}</div>
+      ${P.photos.length > 1 ? `<div class="pthumbs">${P.photos.map((x, i) => `<button class="${x === ph ? 'on' : ''}" data-a="showPhoto" data-v="${i}" aria-label="صورة ${i + 1}"><img src="${x.url}" alt=""></button>`).join('')}</div>` : ''}
+      <div class="pvacts">
+        <button class="press" data-a="retake" data-v="${ph.id}">${ph.src === 'cam' ? CAM_SVG.replace(/24/g, '18') + 'إعادة التصوير' : LIB_SVG.replace(/24/g, '18') + 'صورة ثانية بدلها'}</button>
+        <button class="press" data-a="addPhoto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>صورة إضافية</button>
+        <button class="press del" data-a="delPhoto" data-v="${ph.id}" aria-label="احذف الصورة"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
+      </div>
+      ${ph.state === 'err' ? `<div class="err">${ph.err}</div>` : ''}` : (noAI ? '' : `<button class="soft press" data-a="addPhoto">صوّر أو اختر صورة</button>`);
   openSheet('pile', `${head(`الأكلات <span class="hint" style="font-size:13px;font-weight:600">· ${modeLabel(c)}${lvl}</span>`)}
     <div class="stack">
       <div class="seg alt" id="segPile"><button data-a="pTeam" data-v="us">أكلاتنا</button><button data-a="pTeam" data-v="them">أكلاتهم</button></div>
-      <div class="pilehead"><div class="thumbs">${thumbs}</div>${noAI ? '' : `<button class="addph press" data-a="morePhoto" aria-label="صورة ثانية"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg></button>`}<span class="stat" id="pStat">${status}</span></div>
+      ${preview}
+      <span class="stat" id="pStat">${status}</span>
       ${noAI ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? '' : ' أو مفتاح Anthropic (من ⋯)'}. اختر الأوراق هنا وتنحسب مباشرة.</div>` : ''}
       ${P.err ? `<div class="err">${P.err}</div>` : ''}${P.unread ? `<div class="warn">فيه ${P.unread} ورقة ما انقرت — أضفها بالضغط عليها.</div>` : ''}
+      ${P.cards.size || P.photos.length ? '<div class="note">تحقق من الأوراق: اضغط على ورقة غلط لإلغائها، أو على ورقة ناقصة لإضافتها. النقطة الزرقاء = قرأها الذكاء.</div>' : ''}
       <div class="grid" id="pGrid">${cells}</div>
       <div id="pLast"></div>
       <div id="pRes"></div>
@@ -761,9 +831,9 @@ function pileUpdate() {
   const o = pileCalc(), n = P.cards.size;
   $('#pLast').innerHTML = (n && n % 4 === 0 && n < 32) ? `<div class="opt"><span class="lb">الأرض (آخر أكلة +10) — مين أخذها؟</span><div class="seg alt" id="segLast"><button data-a="pLast" data-v="us">لنا</button><button data-a="pLast" data-v="them">لهم</button></div></div>` : '';
   const sl = $('#segLast'); if (sl) setSeg(sl, P.last, ['us', 'them']);
-  if (!P.busy && n) $('#pStat').innerHTML = `<b>${n}</b> ورقة · <b>${o.ab != null ? o.ab : '…'}</b> بنط${P.ai.size ? ' · <span style="color:var(--sky)">●</span> قرأها الذكاء' : ''}`;
+  if (!busy() && n) $('#pStat').innerHTML = `<b>${n}</b> ورقة · <b>${o.ab != null ? o.ab : '…'}</b> بنط`;
   $('#pRes').innerHTML = o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : o.needLast ? '' : resultHTML(o.r);
-  const go = $('#pGo'); go.disabled = !(o.r && !o.r.error) || P.busy > 0;
+  const go = $('#pGo'); go.disabled = !(o.r && !o.r.error) || busy();
   go.textContent = o.needLast ? 'حدد مين أخذ الأرض' : (S.edit ? 'احفظ التعديل' : 'سجّل الجولة');
 }
 function nudgeSuits() {
@@ -841,7 +911,13 @@ const A = {
     pileUpdate(); },
   pTeam: v => { P.team = v; pileUpdate(); },
   pLast: v => { P.last = v; pileUpdate(); },
-  morePhoto: () => $('#photo').click(),
+  pickCam: () => $('#photoCam').click(),
+  pickLib: () => $('#photoLib').click(),
+  pickGrid: () => pileSheet(),
+  addPhoto: () => srcSheet(),
+  retake: v => { const ph = P.photos.find(x => String(x.id) === v); if (!ph) return; PICK.replace = ph.id; $(ph.src === 'cam' ? '#photoCam' : '#photoLib').click(); },
+  delPhoto: v => { const i = P.photos.findIndex(x => String(x.id) === v); if (i < 0) return; dropPhotoCards(P.photos[i]); P.photos.splice(i, 1); P.cur = P.photos.length - 1; pileSheet(); },
+  showPhoto: v => { P.cur = +v; pileSheet(); },
   pSave: () => { const o = pileCalc(); if (o.r && !o.r.error) { commit(o.r, 'scan'); P = null; } },
   edit: v => startEdit(+v),
   editOpen: () => { const r = S.edit && S.rounds[S.edit.i]; manualSheet(r && r.kaboot ? { kaboot: r.kaboot } : { team: 'us', val: r && r.abnat != null ? String(r.abnat) : '' }); },

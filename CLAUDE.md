@@ -128,7 +128,11 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   After a round: projects, tie winner and doubling reset; mode/trump/buyer kept. Round = `{mode,trump,buyer,level,abnat,kaboot,entered,projects,tieWinner,us,them,made,gahwa,how,at}`.
 - Edit a round: history → tap row → its setup loads into the round card (blue bar "تعدّل الجولة N") + keypad; save replaces it in place; undo restores it.
 - Projects sheet: choose لنا/لهم, tap big tiles (only valid ones enabled), chips with × to remove, per-team totals, tie question when needed.
-- Manual: own keypad (7-8-9 on top), shows both teams' abnat, كبوت buttons; impossible values rejected (`isPossibleAbnat`); typing the full total = كبوت.
+- Manual: own keypad 1-2-3 / 4-5-6 / 7-8-9 / مسح-0-⌫ (`.keys` is direction:ltr on purpose so RTL doesn't flip it), shows both teams' abnat, كبوت buttons; impossible values rejected (`isPossibleAbnat`); typing the full total = كبوت.
+- Scan button → source sheet (`srcSheet()`): تصوير بالكاميرا (`#photoCam`, capture=environment) / اختيار من الصور (`#photoLib`, Photos or Files,
+  accept image/* + .heic/.heif) / اختيار الأوراق يدوياً. Both inputs go through `onPicked()` → type/size check → `shrink()` (re-encodes to JPEG,
+  so HEIC works where the browser can decode it; otherwise a clear message) → the same `readCards()`. Each photo `{id,url,src,state,cards}`:
+  large preview, thumbnails, Retake/Replace (swaps that photo's AI cards), Add photo, Delete photo (removes only its AI cards; hand-tapped cards stay).
 - Scan: photo → AI lists readable cards (Claude `sample` in the artifact, else the user's key `wafr.aikey`) → 4×8 grid with AI cards preselected (tap to fix),
   duplicates impossible, count must be whole tricks, asks who took الأرض, 32 cards = كبوت. No AI → same grid by tapping, and it says so.
 - Rules (engine): Sun 130 abnat = 26 pts (÷5), Hokm 162 = 16 (÷10, a 5 rounds down; 86–76 → 9–7). Projects Sun سرا4/خمسين10/مية20/أربعمية40,
@@ -137,4 +141,4 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   Doubling (`LEVELS`, `doublingOptions()`): Hokm عادي/دبل/ثري/فور/قهوة; Sun only دبل when buyer ≥100 and other <100 (setting: after 100 / always / off).
   Doubled round = winner takes all: 26 or 16 × level + all projects × level (setting: ×2 max in ثري/فور), بلوت 2 to its owner; tie → buyer loses;
   kaboot × level (setting: not multiplied). قهوة: round winner gets enough points to reach the target and wins the game.
-- Tests: `node tests/baloot.test.js` (80, plain node) and `node tests/baloot.ui.test.js` (48, Playwright; AI reply is a stub).
+- Tests: `node tests/baloot.test.js` (80, plain node) and `node tests/baloot.ui.test.js` (61, Playwright; AI reply is a stub).
