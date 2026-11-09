@@ -18,7 +18,10 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     const boxOf = (k, keys) => { const i = keys.indexOf(k); return [40 + (i % 8) * 120, 100 + Math.floor(i / 8) * 400, 140 + (i % 8) * 120, 450 + Math.floor(i / 8) * 400]; };
     window.claude = { use: async n => n === 'sample' ? Object.assign(async () => ({ text: '' }), { limits: async () => ({ images: { maxCount: 8 } }), json: async (prompt) => {
       const keys = window.__cards.map(([r, s]) => r + s);
-      if (/zoomed crop/.test(prompt)) return { crops: [] };
+      window.__prompts = (window.__prompts || []).concat([/turquoise frame/.test(prompt) ? 'C' : /zoomed crop/.test(prompt) ? 'B' : 'A']);
+      if (/turquoise frame/.test(prompt)) return window.__recheck ? window.__recheck() : { cards: [] };
+      if (/zoomed crop/.test(prompt)) return window.__passB ? window.__passB() : { crops: [] };
+      if (window.__passA) return window.__passA();
       return { cards: window.__cards.map(([rank, suit]) => ({ box: boxOf(rank + suit, keys), rank, suit, conf: (window.__conf && window.__conf[rank + suit]) || 0.95, alts: (window.__alts && window.__alts[rank + suit]) || [] })) };
     } }) : null };
   });
@@ -26,6 +29,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   const txt = s => p.textContent(s);
   const score = async () => [await txt('#sUs'), await txt('#sThem')].join('-');
   const wait = ms => p.waitForTimeout(ms);
+  const openGrid = async () => { await p.evaluate(() => { const g = document.querySelector('.gridbox'); if (g && !g.open) { g.open = true; P.gridOpen = true; } }); };
   const closeSh = async () => { await p.click('.sh-x[data-a=close]'); await wait(380); };
   const manual = async (team, digits) => { await p.click('#bManual'); await wait(380); if (team) await p.click(`#segTeam [data-v=${team}]`); for (const d of digits) await p.click(`.keys [data-v="${d}"]`); };
 
@@ -124,7 +128,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   await p.click('#segLast [data-v=us]'); t = await txt('#pRes');
   ok('pile 66 + بلوت 20 = 86 < 96 → buyer loses: us +2, them +16', t.includes('خسر') && t.includes('+2') && t.includes('+16'), t);
   ok('"how it was scored" shows the same numbers', t.includes('كيف انحسبت') && t.includes('66') && t.includes('96') && t.includes('كل نقاط الجولة 16'), t);
-  await p.click('.cd[data-v=QH]'); ok('7 cards: warns about whole tricks', (await txt('#pRes')).includes('4'));
+  await openGrid(); await p.click('.cd[data-v=QH]'); ok('7 cards: warns about whole tricks', (await txt('#pRes')).includes('4'));
   await p.click('.cd[data-v=QH]');
   // replace the photo: its cards are removed, then the new photo's cards come in
   await p.evaluate(() => { window.__cards = [['J', 'H'], ['9', 'H'], ['7', 'H'], ['8', 'H']]; });
@@ -163,14 +167,62 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   ok('one tap on the alternative (Q♦) fixes it; the card list updates', await p.evaluate(() => P.cards.has('QD') && !P.cards.has('QH')) && (await p.$$('.bx.s-check')).length === 0);
   ok('then the round can be scored (asks for الأرض next)', (await txt('#pGo')).includes('الأرض'));
   await p.click('.bx >> nth=0'); await wait(150);
-  await p.click('[data-a=detOther]'); await p.click('[data-a=fxRank][data-v=A]'); await p.click('[data-a=fxSuit][data-v=C]');
-  ok('"ورقة ثانية…": pick rank + suit to change any card', await p.evaluate(() => P.cards.has('AC')));
+  await p.click('[data-a=fxRank][data-v=A]'); await p.click('[data-a=fxSuit][data-v=C]'); await p.click('.fixacts .go');
+  ok('big rank + suit buttons then تأكيد change any card', await p.evaluate(() => P.cards.has('AC')));
   await p.click('.bx >> nth=1'); await wait(150); await p.click('[data-a=detRemove]');
   ok('"مو ورقة": the box is ignored and the card leaves the list', await p.evaluate(() => P.cards.size) === 3 && (await p.$$('.pvin .bx')).length === 3);
-  await p.click('.cd[data-v="9C"]');
+  await openGrid(); await p.click('.cd[data-v="9C"]');
   ok('a missing card is added from the grid without re-scanning', await p.evaluate(() => P.cards.has('9C') && P.cards.size === 4));
   await closeSh();
   await p.evaluate(() => { window.__conf = null; window.__alts = null; });
+
+  console.log('regressions: one count everywhere, duplicate A♣, re-check keeps confirmations');
+  // pass A reads A♣ at one place, the zoom pass reads A♣ with a drifted box, plus 3 other cards → 4 physical cards
+  await p.evaluate(() => {
+    window.__passA = () => ({ cards: [{ box: [50, 100, 150, 400], rank: 'A', suit: 'C', conf: 0.9 }, { box: [300, 100, 400, 400], rank: 'K', suit: 'D', conf: 0.95 }, { box: [500, 100, 600, 400], rank: '7', suit: 'S', conf: 0.95 }, { box: [700, 100, 800, 400], rank: '9', suit: 'H', conf: 0.95 }] });
+    window.__passB = () => ({ crops: [{ i: 1, cards: [{ box: [500, 600, 700, 900], rank: 'A', suit: 'C', conf: 0.9 }] }] });
+  });
+  await p.click('#bScan'); await wait(380);
+  [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=pickCam]')]);
+  await fc.setFiles({ name: 'r1.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  const counts = async () => ({ ov: (await txt('.ov')).match(/\d+/)[0], list: (await txt('.clh b')).match(/\d+/)[0], stat: (await txt('#pStat')).match(/\d+/)[0], boxes: (await p.$$('.pvin .bx')).length });
+  let cn = await counts();
+  ok('drifted duplicate of A♣ is one card: photo, list and status all say 4', cn.ov === '4' && cn.list === '4' && cn.stat === '4' && cn.boxes === 4, cn);
+  ok('no conflict shown for it', (await p.$$('.ch.conf')).length === 0);
+  await p.click('#segKind [data-v=loose]');
+  ok('"أوراق متفرقة": counted, never scored', (await txt('#pGo')).includes('للعدّ') && await p.isDisabled('#pGo'));
+  await p.click('#segKind [data-v=some]');
+  ok('"بعض الأكلات": 4 cards = 1 trick, no score yet', (await txt('#pRes')).includes('1 أكلة') && await p.isDisabled('#pGo'));
+  await p.click('#segKind [data-v=tricks]');
+  ok('missing info is listed clearly', (await txt('#pRes')).includes('أكلات مين'));
+  await closeSh();
+  // the same answer lists A♣ twice → real conflict: both flagged, nothing renamed, nothing added
+  await p.evaluate(() => {
+    window.__passA = () => ({ cards: [{ box: [50, 100, 150, 400], rank: 'A', suit: 'C', conf: 0.9 }, { box: [700, 500, 800, 900], rank: 'A', suit: 'C', conf: 0.6, alts: [{ rank: 'A', suit: 'S' }] }, { box: [300, 100, 400, 400], rank: 'K', suit: 'D', conf: 0.95 }] });
+    window.__passB = null; window.__recheck = () => ({ cards: [] });
+  });
+  await p.click('#bScan'); await wait(380);
+  [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=pickCam]')]);
+  await fc.setFiles({ name: 'r2.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  cn = await counts();
+  ok('A♣ in two places: count stays 3 (nothing invented), both A♣ marked red, K♦ not marked', cn.list === '3' && cn.boxes === 3 && (await p.$$('.ch.conf')).length === 2 && (await p.$$('.bx.s-conf')).length === 2 && (await p.$$('.ch.att')).length === 0, cn);
+  ok('identities were not silently replaced (both still read A♣)', await p.evaluate(() => P.photos[0].dets.filter(d => d.rank + d.suit === 'AC').length === 2));
+  ok('the panel compares the two places side by side', (await p.$$('.cmp img')).length === 2);
+  const otherId = await p.evaluate(() => P.photos[0].dets.find(d => d.rank + d.suit === 'AC' && d.id !== P.sel.id).id);
+  const selId = await p.evaluate(() => P.sel.id);
+  await p.click(`[data-a=keepAs][data-v="${selId}"]`); await wait(100);
+  ok('choose which one is A♣ → the other now asks for its real identity', await p.evaluate(id => { const d = P.photos[0].dets.find(x => x.id === id); return d.rank === null && d.status === 'check' && P.sel && P.sel.id === id; }, otherId));
+  await p.click('.fixopts [data-v=AS]');
+  ok('one tap on the suggestion (A♠) resolves it; still 3 cards, none flagged', (await counts()).list === '3' && (await p.$$('.ch.att, .ch.conf')).length === 0);
+  // re-check never changes what the user confirmed, and never changes the count
+  await p.evaluate(() => { const d = P.photos[0].dets.find(x => x.rank === 'K'); d.status = 'check'; d.conf = 0.5; window.__recheck = () => ({ cards: [{ i: 1, card: true, rank: 'Q', suit: 'D', conf: 0.95 }] }); pileSheet(); });
+  await p.click('[data-a=recheck]'); await wait(700);
+  ok('re-check: only the unconfirmed card is re-read (K♦ → Q♦, shown as corrected); confirmed A♣/A♠ untouched; count 3',
+    await p.evaluate(() => { const ds = P.photos[0].dets; return ds.some(d => d.rank + d.suit === 'QD' && d.reread && d.prev === 'KD') && ds.some(d => d.rank + d.suit === 'AC' && d.user) && ds.some(d => d.rank + d.suit === 'AS' && d.user); }) && (await counts()).list === '3');
+  const before = await counts(); await closeSh(); await p.evaluate(() => { SK = null; pileSheet(); }); await wait(300);
+  ok('closing and reopening the sheet does not change any count', JSON.stringify(await counts()) === JSON.stringify(before));
+  await closeSh();
+  await p.evaluate(() => { window.__passA = null; window.__passB = null; window.__recheck = null; });
 
   console.log('hand photo flow');
   await p.evaluate(() => { window.__cards = [['K', 'H'], ['Q', 'H'], ['J', 'H'], ['7', 'S'], ['8', 'S'], ['9', 'D'], ['8', 'C'], ['A', 'C']]; });

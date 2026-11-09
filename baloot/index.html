@@ -199,8 +199,10 @@ svg{display:block;flex:none}
 .pv{display:block}
 .pvin{position:relative;margin:0 auto;border-radius:14px;overflow:hidden;background:#0E2A3A}
 .pvin img{position:absolute;inset:0;width:100%;height:100%;object-fit:fill;max-height:none}
-.bx{position:absolute;border:2px solid #2FD3C2;border-radius:6px;background:transparent;padding:0;min-width:18px;min-height:18px}
-.bx span{position:absolute;top:-2px;left:-2px;background:#0B8B82;color:#fff;font:700 11px/16px var(--f-num);padding:0 4px;border-radius:5px 0 5px 0;white-space:nowrap}
+.bx{position:absolute;border:1.5px solid rgba(47,211,194,.7);border-radius:6px;background:transparent;padding:0;min-width:22px;min-height:22px}
+.bx.s-check,.bx.s-unreadable,.bx.s-conf{border-width:2.5px}
+.bx.s-conf{border-color:#FF5A5A}.bx.s-conf span{background:#C0362C}
+.bx span{position:absolute;top:-9px;left:-9px;width:20px;height:20px;border-radius:10px;background:#0B8B82;color:#fff;font:700 13px/20px var(--f-num);text-align:center;box-shadow:0 1px 3px rgba(0,0,0,.4)}
 .bx.s-check{border-color:#FFB020}.bx.s-check span{background:#B86E00}
 .bx.s-unreadable{border:2px dashed #FF5A5A}.bx.s-unreadable span{background:#C0362C}
 .bx.sel{box-shadow:0 0 0 3px #fff,0 0 0 5px var(--sky);z-index:2}
@@ -221,6 +223,37 @@ svg{display:block;flex:none}
 .fixpick button.on{border-color:var(--teal-deep);background:var(--teal-soft)}
 .fixacts{display:flex;flex-direction:column;gap:6px}
 .fixacts .go{height:48px;font-size:16px}.fixacts .soft{height:42px;font-size:14px}
+/* card list + correction (Nov 9 b) */
+.clist{display:flex;flex-direction:column;gap:8px}
+.clh{display:flex;align-items:center;gap:8px;font-size:14px}.clh b{flex:1}
+.clh .need{color:var(--peach-ink);font-weight:600;font-size:13px}.clh .okk{color:var(--teal-deep);font-size:13px;font-weight:600}
+.chips{display:flex;flex-wrap:wrap;gap:6px}
+.ch{height:36px;min-width:46px;padding:0 10px;border-radius:10px;background:var(--surface-2);font:700 15px var(--f-num);color:var(--ink);display:inline-flex;align-items:center;justify-content:center;gap:3px;border:1.5px solid transparent}
+.ch i{font-style:normal;font-size:11px;font-weight:700}
+.ch.att{background:#FFF3DF;color:#8A5200;border-color:#FFB020}.ch.conf{background:#FDECEA;color:#B42318;border-color:#FF5A5A}
+.ch.man{background:var(--sky-soft)}.ch.man i{color:var(--sky)}
+.ch.rr{border-color:var(--sky)}
+.ch.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--sky)}
+.rem{font-size:13px;color:var(--ink-2)}.rem button{color:var(--ink-2);text-decoration:line-through;margin-inline-start:4px;font:600 13px var(--f-num)}
+.soft.slim{height:40px;font-size:14px}
+.kinds{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.kinds button{height:44px;border-radius:12px;background:var(--surface-2);font-weight:600;font-size:15px;color:var(--ink-2);border:1.5px solid transparent}
+.kinds button[aria-pressed=true]{background:var(--teal-soft);color:var(--teal-deep);border-color:var(--teal-deep)}
+.missing{font-size:13px;color:var(--ink-2);background:var(--surface-2);border-radius:12px;padding:8px 12px}
+.gridbox summary{cursor:pointer;color:var(--teal-deep);font-weight:600;font-size:14px;padding:4px 0;list-style:none}
+.gridbox summary::-webkit-details-marker{display:none}
+.gridbox[open] summary{margin-bottom:8px}
+.fixtop img{width:120px;height:120px}
+.cmp{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:8px}
+.cmp div{display:flex;flex-direction:column;gap:6px}.cmp img{width:100%;height:110px;object-fit:contain;border-radius:10px;background:#0E2A3A}
+.cmp .soft{height:40px;font-size:14px}
+.fsel{display:flex;flex-direction:column;gap:6px}.fsel>span{font-size:13px;color:var(--ink-2);font-weight:600}
+.frk{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;direction:ltr}
+.fsu{display:grid;grid-template-columns:repeat(4,1fr);gap:6px;direction:ltr}
+.frk button,.fsu button{height:52px;border-radius:12px;background:var(--surface);border:1.5px solid var(--line);font:700 20px var(--f-num);color:var(--ink)}
+.fsu button{font-size:28px;font-family:system-ui,sans-serif}.fsu button.r{color:var(--red-suit)}
+.frk button.on,.fsu button.on{border:2.5px solid var(--teal-deep);background:var(--teal-soft)}
+.fl{display:flex;justify-content:center;gap:16px;flex-wrap:wrap}.fl button{color:var(--ink-2);font-size:14px;font-weight:600;padding:6px 4px;text-decoration:underline;text-underline-offset:3px}
 /* manual keypad */
 .display{display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0}
 .display .big{font:700 54px/1.05 var(--f-num);letter-spacing:-1.5px;color:var(--ink);min-height:57px}
@@ -332,6 +365,7 @@ input.key{width:100%;height:48px;border-radius:12px;border:1.5px solid var(--lin
 <script src="engine.js"></script>
 <script src="vision.js"></script>
 <script src="synth.js"></script>
+<script src="bench-real.js"></script>
 <script>
 'use strict';
 const E = BalootEngine;
@@ -780,10 +814,19 @@ const pileNew = () => ({ kind: null, team: null, owners: [], cards: new Set(), a
 const dkey = d => (d.rank && d.suit ? d.rank + d.suit : null);
 const liveDets = () => P.photos.flatMap(ph => (ph.dets || []).filter(d => d.status !== 'removed').map(d => Object.assign(d, { ph: ph.id })));
 const pending = () => liveDets().filter(d => d.status === 'check' || d.status === 'unreadable');
-function rebuild() { // the card list = what the photos show (each card once) + what was tapped in by hand
+/* every physical card once: a card read the same way in two photos is the same card (the deck has one of each);
+   unreadable cards count on their own; cards tapped in by hand are added if no photo shows them */
+function physCards() {
+  const out = [], seen = new Set();
+  for (const d of liveDets()) { const k = dkey(d); if (k && d.status === 'ok' && seen.has(k)) continue; if (k && d.status === 'ok') seen.add(k); out.push({ d, k }); }
+  for (const k of P.manual) if (!seen.has(k) && !liveDets().some(d => dkey(d) === k)) out.push({ k, manual: true });
+  return out;
+}
+function rebuild() { // identities used for scoring (only once nothing needs checking)
   const ai = new Set(liveDets().map(dkey).filter(Boolean));
   P.ai = ai; P.cards = new Set([...ai, ...P.manual]);
 }
+function conflictsIn(phId) { const ph = P.photos.find(x => x.id === phId); if (ph && ph.dets) BalootVision.markConflicts(ph.dets); }
 const cardName = k => k ? k.slice(0, -1) + SUIT[k.slice(-1)][0] : '?';
 const busy = () => P && P.photos.some(x => x.state === 'reading');
 const CAM_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="4"/></svg>';
@@ -827,10 +870,10 @@ async function onPicked(e) {
     // the same pipeline for camera and library photos: local card-region analysis + overview + zoomed crops, merged
     const r = await BalootVision.scanPhoto(blob, aiJSON, { maxImages: AIMAX });
     if (!P || !P.photos.includes(ph)) return; // removed while reading
-    Object.assign(ph, { dets: r.cards, w: r.width, h: r.height, ms: r.ms, state: 'done' });
+    Object.assign(ph, { dets: r.cards, w: r.width, h: r.height, ms: r.ms, state: 'done', img: r.img });
     if (!r.cards.length) { ph.state = 'err'; ph.err = 'ما لقينا أوراق لعب في الصورة. جرّب صورة أقرب بإضاءة أحسن، أو اختر الأوراق من الجدول.'; }
     else if (!r.passA || !r.passB) ph.note = 'جزء من القراءة ما اكتمل — راجع الأوراق.';
-    const first = r.cards.find(d => d.status !== 'ok'); P.sel = first ? { ph: ph.id, id: first.id } : null;
+    const first = r.cards.find(d => d.status !== 'ok'); P.sel = first ? { ph: ph.id, id: first.id } : null; FX = { rank: null, suit: null };
   } catch (err) {
     ph.state = 'err';
     ph.err = err.message === 'badkey' ? 'مفتاح Anthropic غير صحيح — غيّره من ⋯' : (err && (err.code === 'not_granted' || err.code === 'images_unavailable')) ? 'لازم تسمح للصفحة تستخدم Claude لقراءة الصور.'
@@ -841,20 +884,23 @@ async function onPicked(e) {
 }
 $('#photoCam').onchange = onPicked;
 $('#photoLib').onchange = onPicked;
+const KINDS = [['tricks', 'كل أكلات فريق'], ['some', 'بعض الأكلات'], ['hand', 'يد لاعب'], ['loose', 'أوراق متفرقة']];
 function pileCalc() {
-  const c = C(), Mx = E.MODE[c.mode], n = P.cards.size;
+  const c = C(), Mx = E.MODE[c.mode], n = physCards().length;
   if (needTrump()) return { err: 'اختر الحكم أول' };
   if (!P.kind) return { needKind: true };
   const pend = pending().length;
   if (pend) return { pending: pend };
   const cards = [...P.cards].map(k => ({ rank: k.slice(0, -1), suit: k.slice(-1) }));
+  if (P.kind === 'loose') return { loose: true }; // any group of cards: counted, never scored
   if (P.kind === 'hand') { // a hand shows projects only; it says nothing about who won which trick
-    if (n > 8) return { warn: `${n} ورقة — يد اللاعب 8 أوراق بالكثير. صحّح بالضغط على الأوراق أو اختر «كل أكلات فريق».` };
+    if (n > 8) return { warn: `الصورة فيها ${n} ورقة، ويد اللاعب 8 بالكثير. صحّح الأوراق أو اختر نوع ثاني.` };
     return { hand: E.detectProjects(cards, c.mode, c.trump) };
   }
-  if (!P.team) return { needTeam: true };
   if (!n) return {};
-  if (n % 4) return { warn: `${n} ورقة — كل أكلة 4 أوراق، فالعدد لازم يكون 4 أو 8 أو 12… صحّح بالضغط على الأوراق.` };
+  if (n % 4) return { warn: `${n} ورقة — الأكلات تكون 4 أوراق لكل أكلة (4، 8، 12 … 32). يمكن فيه ورقة مخفية أو زايدة: راجع الصورة.` };
+  if (P.kind === 'some') return { some: true, ab: E.handAbnat(cards, c.mode, c.trump), tricks: n / 4 };
+  if (!P.team) return { needTeam: true };
   if (n === 32) return { r: score({ kaboot: P.team }), ab: Mx.total };
   if (!P.last) return { needLast: true, ab: E.handAbnat(cards, c.mode, c.trump) };
   const ab = E.pileAbnat(cards, c.mode, c.trump, P.last === P.team);
@@ -868,56 +914,74 @@ function pileSheet() {
     const k = rk + s; return `<button class="cd ${SUIT[s][2]}${P.cards.has(k) ? ' on' : ''}${P.ai.has(k) ? ' ai' : ''}" data-a="card" data-v="${k}" aria-label="${rk} ${SUIT[s][1]}" aria-pressed="${P.cards.has(k)}">${rk}</button>`;
   }).join('')).join('');
   const ph = P.photos[P.cur] || P.photos[P.photos.length - 1];
-  const reading = busy();
-  const status = reading ? '<span class="spin"></span>نقرأ الأوراق…' : (P.photos.length ? '' : 'اضغط على أوراق الأكلات');
   const lvl = c.level !== 'normal' ? ' · ' + LV[c.level].ar : '';
   const dets = ph && ph.dets ? ph.dets.filter(d => d.status !== 'removed') : [];
-  const pend = ph ? dets.filter(d => d.status !== 'ok').length : 0;
-  const ov = !ph ? '' : ph.state === 'reading' ? '<span class="ov"><span class="spin"></span>نقرأ الأوراق…</span>' : ph.state === 'err' ? '<span class="ov bad">ما انقرت</span>'
-    : `<span class="ov">${dets.length} ورقة${pend ? ` · ${pend} تحتاج تأكيد` : ''}${ph.ms ? ` · ${(ph.ms / 1000).toFixed(1)} ث` : ''}</span>`;
-  const boxes = ph && ph.state === 'done' ? dets.map(d => { const b = d.box, sel = P.sel && P.sel.ph === ph.id && P.sel.id === d.id;
-    return `<button class="bx s-${d.status}${sel ? ' sel' : ''}" data-a="selDet" data-v="${d.id}" style="left:${(b[0] * 100).toFixed(2)}%;top:${(b[1] * 100).toFixed(2)}%;width:${((b[2] - b[0]) * 100).toFixed(2)}%;height:${((b[3] - b[1]) * 100).toFixed(2)}%" aria-label="${d.status === 'ok' ? cardName(dkey(d)) : 'ورقة تحتاج تأكيد'}"><span dir="ltr">${d.status === 'unreadable' ? '?' : cardName(dkey(d)) + (d.status === 'check' ? '?' : '')}</span></button>`; }).join('') : '';
-  const W = (ph && ph.w) || 4, H = (ph && ph.h) || 3, maxH = P.big ? 560 : 260;
+  const att = dets.filter(d => d.status !== 'ok').length;
+  const ov = !ph ? '' : ph.state === 'reading' ? '<span class="ov"><span class="spin"></span>نقرأ الأوراق…</span>' : ph.state === 'rechecking' ? '<span class="ov"><span class="spin"></span>نفحص المعلّمة مكبّرة…</span>' : ph.state === 'err' ? '<span class="ov bad">ما انقرت</span>'
+    : `<span class="ov">هذي الصورة: ${dets.length} ورقة${ph.ms ? ` · ${(ph.ms / 1000).toFixed(1)} ث` : ''}</span>`;
+  const boxes = ph && (ph.state === 'done' || ph.state === 'rechecking') ? dets.map(d => { const b = d.box, sel = P.sel && P.sel.ph === ph.id && P.sel.id === d.id, need = d.status !== 'ok';
+    return `<button class="bx ${need ? (d.conflict ? 's-conf' : 's-' + d.status) : 's-ok'}${sel ? ' sel' : ''}" data-a="selDet" data-v="${d.id}" style="left:${(b[0] * 100).toFixed(2)}%;top:${(b[1] * 100).toFixed(2)}%;width:${((b[2] - b[0]) * 100).toFixed(2)}%;height:${((b[3] - b[1]) * 100).toFixed(2)}%" aria-label="${need ? 'ورقة تحتاج تأكيد' : cardName(dkey(d))}">${need ? '<span>!</span>' : ''}</button>`; }).join('') : '';
+  const W = (ph && ph.w) || 4, H = (ph && ph.h) || 3, maxH = P.big ? 560 : 250;
   const preview = ph ? `<div class="pv"><div class="pvin" style="width:min(100%, ${Math.round(maxH * W / H)}px);aspect-ratio:${W}/${H}"><img src="${ph.url}" alt="صورة الأوراق">${boxes}${ov}</div>
       ${ph.state === 'done' ? `<button class="pvzoom" data-a="pvBig" aria-label="${P.big ? 'تصغير' : 'تكبير'} الصورة">${P.big ? '−' : '+'}</button>` : ''}</div>
       ${P.photos.length > 1 ? `<div class="pthumbs">${P.photos.map((x, i) => `<button class="${x === ph ? 'on' : ''}" data-a="showPhoto" data-v="${i}" aria-label="صورة ${i + 1}"><img src="${x.url}" alt=""></button>`).join('')}</div>` : ''}
-      <div id="pFix"></div>
-      <div class="pvacts">
+      ${ph.state === 'err' ? `<div class="err">${ph.err}</div>` : ''}${ph.note ? `<div class="warn">${ph.note}</div>` : ''}` : (noAI ? '' : `<button class="soft press" data-a="addPhoto">صوّر أو اختر صورة</button>`);
+  const acts = ph ? `<div class="pvacts">
         <button class="press" data-a="retake" data-v="${ph.id}">${ph.src === 'cam' ? CAM_SVG.replace(/24/g, '18') + 'إعادة التصوير' : LIB_SVG.replace(/24/g, '18') + 'صورة ثانية بدلها'}</button>
         <button class="press" data-a="addPhoto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>صورة إضافية</button>
         <button class="press del" data-a="delPhoto" data-v="${ph.id}" aria-label="احذف الصورة"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
-      </div>
-      ${ph.state === 'err' ? `<div class="err">${ph.err}</div>` : ''}${ph.note ? `<div class="warn">${ph.note}</div>` : ''}` : (noAI ? '' : `<button class="soft press" data-a="addPhoto">صوّر أو اختر صورة</button>`);
-  openSheet('pile', `${head(`الأكلات <span class="hint" style="font-size:13px;font-weight:600">· ${modeLabel(c)}${lvl}</span>`)}
+      </div>` : '';
+  openSheet('pile', `${head(`الأوراق <span class="hint" style="font-size:13px;font-weight:600">· ${modeLabel(c)}${lvl}</span>`)}
     <div class="stack">
       ${preview}
+      <div id="pList"></div>
+      <div id="pFix"></div>
+      ${acts}
       <div class="opt"><span class="lb">وش في الصورة؟</span>
-        <div class="seg alt" id="segKind"><button data-a="pKind" data-v="tricks">كل أكلات فريق</button><button data-a="pKind" data-v="hand">يد لاعب</button></div></div>
+        <div class="kinds" id="segKind">${KINDS.map(([v, t]) => `<button data-a="pKind" data-v="${v}" aria-pressed="${P.kind === v}">${t}</button>`).join('')}</div></div>
       <div id="pTeamBox"></div>
-      <span class="stat" id="pStat">${status}</span>
-      ${noAI ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? '' : ' أو مفتاح Anthropic (من ⋯)'}. اختر الأوراق هنا وتنحسب مباشرة.</div>` : ''}
+      <span class="stat" id="pStat"></span>
+      ${noAI ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? '' : ' أو مفتاح Anthropic (من ⋯)'}. اختر الأوراق من الجدول وتنحسب مباشرة.</div>` : ''}
       ${P.err ? `<div class="err">${P.err}</div>` : ''}
-      ${P.photos.length ? '<div class="note">الجدول = كل الأوراق المحسوبة. ورقة ناقصة؟ اضغطها هنا. النقطة الزرقاء = من الصورة.</div>' : ''}
-      <div class="grid" id="pGrid">${cells}</div>
+      <details class="gridbox"${P.gridOpen || !P.photos.length ? ' open' : ''}><summary>${P.photos.length ? 'ورقة ناقصة؟ أضفها من الجدول' : 'اختر الأوراق'}</summary><div class="grid" id="pGrid">${cells}</div></details>
       <div id="pLast"></div>
       <div id="pRes"></div>
       <button class="go press" id="pGo" data-a="pSave">سجّل الجولة</button>
     </div>`);
-  fixPanel();
+  listPanel(); fixPanel();
   pileUpdate();
+}
+/* the clean list: every card once; only the ones that need attention are coloured */
+function listPanel() {
+  const box = $('#pList'); if (!box) return;
+  const list = physCards(), removed = P.photos.flatMap(ph => (ph.dets || []).filter(d => d.status === 'removed').map(d => Object.assign(d, { ph: ph.id })));
+  if (!list.length && !removed.length) { box.innerHTML = ''; return; }
+  const sel = d => P.sel && d && P.sel.ph === d.ph && P.sel.id === d.id;
+  const att = list.filter(x => x.d && x.d.status !== 'ok').length;
+  box.innerHTML = `<div class="clist"><div class="clh"><b>الأوراق (${list.length})</b>${att ? `<span class="need">${att} تحتاج نظرة</span>` : (busy() ? '' : '<span class="okk">كلها مؤكدة</span>')}</div>
+    <div class="chips">${list.map(x => x.manual ? `<button class="ch man" data-a="card" data-v="${x.k}" dir="ltr" aria-label="${cardName(x.k)} مضافة يدوياً — اضغط للحذف">${cardName(x.k)}<i>+</i></button>`
+      : `<button class="ch ${x.d.status !== 'ok' ? (x.d.conflict ? 'conf' : 'att') : ''}${sel(x.d) ? ' sel' : ''}${x.d.reread ? ' rr' : ''}" data-a="selCard" data-v="${x.d.ph}|${x.d.id}" dir="ltr">${x.k && x.d.status !== 'unreadable' ? cardName(x.k) : '?'}${x.d.status !== 'ok' ? '<i>!</i>' : ''}</button>`).join('')}</div>
+    ${removed.length ? `<div class="rem">مستبعدة: ${removed.map(d => `<button data-a="restore" data-v="${d.ph}|${d.id}" dir="ltr">${dkey(d) ? cardName(dkey(d)) : '?'} ↺</button>`).join(' ')}</div>` : ''}
+    ${att && AIMODE !== 'none' && P.photos.some(ph => ph.img && ph.state === 'done') ? '<button class="soft press slim" data-a="recheck">افحص المعلّمة مرة ثانية (مكبّرة)</button>' : ''}</div>`;
 }
 function pileUpdate() {
   if (SK !== 'pile') return;
-  setSeg($('#segKind'), P.kind, ['tricks', 'hand']);
+  $('#segKind').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === P.kind)));
   $('#pTeamBox').innerHTML = P.kind === 'tricks' ? `<div class="opt"><span class="lb">أكلات مين؟ (لازم تكون كل الأوراق اللي أكلها الفريق، مو يد لاعب)</span>
     <div class="seg alt" id="segPile"><button data-a="pTeam" data-v="us">أكلاتنا</button><button data-a="pTeam" data-v="them">أكلاتهم</button></div></div>`
-    : P.kind === 'hand' ? '<div class="note">صورة اليد تكشف المشاريع بس — ما تقول مين أكل وش. بعدها نطلب منك نتيجة الأكلات.</div>' : '';
+    : P.kind === 'hand' ? '<div class="note">صورة اليد تكشف المشاريع بس — ما تقول مين أكل وش. بعدها نطلب منك نتيجة الأكلات.</div>'
+    : P.kind === 'some' ? '<div class="note">نعدّ الأوراق والأبناط بس. النتيجة تنحسب لما تكون الصور فيها كل أكلات الفريق — أضف الصور الباقية ثم اختر «كل أكلات فريق».</div>'
+    : P.kind === 'loose' ? '<div class="note">نعدّ الأوراق بس، بدون أي حساب للجولة.</div>' : '';
   if ($('#segPile')) setSeg($('#segPile'), P.team, ['us', 'them']);
-  const o = pileCalc(), n = P.cards.size;
+  const o = pileCalc(), n = physCards().length;
   $('#pLast').innerHTML = (P.kind === 'tricks' && P.team && n && n % 4 === 0 && n < 32) ? `<div class="opt"><span class="lb">الأرض (آخر أكلة +10) — مين أخذها؟</span><div class="seg alt" id="segLast"><button data-a="pLast" data-v="us">لنا</button><button data-a="pLast" data-v="them">لهم</button></div></div>` : '';
   const sl = $('#segLast'); if (sl) setSeg(sl, P.last, ['us', 'them']);
   const pd = pending().length;
-  if (!busy() && n) $('#pStat').innerHTML = `<b>${n}</b> ورقة` + (pd ? ` · <span style="color:var(--peach-ink)">${pd} تحتاج تأكيد</span>` : '') + (P.kind === 'tricks' && o.ab != null ? ` · <b>${o.ab}</b> بنط` : '');
+  $('#pStat').innerHTML = busy() ? '<span class="spin"></span>نقرأ الأوراق…' : n ? `<b>${n}</b> ورقة` + (pd ? ` · <span style="color:var(--peach-ink)">${pd} تحتاج تأكيد</span>` : '') + ((P.kind === 'tricks' || P.kind === 'some') && o.ab != null ? ` · <b>${o.ab}</b> بنط` : '') : '';
+  // what is still missing before a score can be calculated
+  const miss = [];
+  if (needTrump()) miss.push('الحكم'); if (!P.kind) miss.push('نوع الصورة'); if (pd) miss.push(`تأكيد ${pd} ورقة`);
+  if (P.kind === 'tricks' && !P.team) miss.push('أكلات مين'); if (P.kind === 'tricks' && o.needLast) miss.push('مين أخذ الأرض');
   const go = $('#pGo');
   if (o.hand) {
     $('#pRes').innerHTML = o.hand.length ? `<div class="opt"><span class="lb">مشاريع في هذي اليد — لمين؟</span>${o.hand.map((p, i) => `<div class="found"><b>${projName(p.type)}</b> <span class="hint" dir="ltr" style="unicode-bidi:isolate">${p.cards.map(k => k.slice(0, -1) + SUIT[k.slice(-1)][0]).join(' ')}</span>
@@ -930,7 +994,11 @@ function pileUpdate() {
     return;
   }
   go.dataset.a = 'pSave';
-  $('#pRes').innerHTML = o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : o.pending ? `<div class="warn">قبل الحساب: أكّد ${o.pending === 1 ? 'الورقة المعلّمة' : o.pending + ' أوراق معلّمة'} على الصورة (اضغط عليها).</div>` : (o.needLast || o.needKind || o.needTeam) ? '' : resultHTML(o.r);
+  if (o.loose || o.some) {
+    $('#pRes').innerHTML = o.some ? `<div class="note">${o.tricks} أكلة · ${o.ab} بنط حتى الآن (بدون الأرض).</div>` : '';
+    go.disabled = true; go.textContent = o.some ? 'النتيجة لما تكتمل الأكلات' : 'هذي الصورة للعدّ فقط'; return;
+  }
+  $('#pRes').innerHTML = (miss.length && !o.err && !o.warn ? `<div class="missing">باقي قبل الحساب: ${miss.join(' · ')}</div>` : '') + (o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : o.pending ? '' : (o.needLast || o.needKind || o.needTeam) ? '' : resultHTML(o.r));
   go.disabled = !(o.r && !o.r.error) || busy();
   go.textContent = o.pending ? `أكّد ${o.pending === 1 ? 'الورقة المعلّمة' : o.pending + ' أوراق'} أول` : o.needKind ? 'حدد وش في الصورة' : o.needTeam ? 'حدد أكلات مين' : o.needLast ? 'حدد مين أخذ الأرض' : (S.edit ? 'احفظ التعديل' : 'سجّل الجولة');
 }
@@ -939,20 +1007,21 @@ function selDet() { if (!P || !P.sel) return null; const ph = P.photos.find(x =>
 function fixPanel() {
   const box = $('#pFix'); if (!box) return;
   const d = selDet(); if (!d || d.status === 'removed') { box.innerHTML = ''; return; }
-  const best = dkey(d), opts = [...new Set([best].concat(d.alts || []).filter(Boolean))].slice(0, 4);
-  const used = k => liveDets().some(o => o !== d && o.ph === d.ph && dkey(o) === k);
-  const title = d.status === 'unreadable' ? 'ورقة هنا ما انقرت بوضوح' : d.status === 'check' ? (d.dupOf ? `مكررة؟ ${cardName(d.dupOf)} موجودة في مكان ثاني` : 'متأكدين منها؟') : 'الورقة';
-  box.innerHTML = `<div class="fix"><div class="fixtop">${d.zoom ? `<img src="${d.zoom}" alt="تكبير الورقة">` : ''}<div class="fixtx"><b>${title}</b>
-      <small>${best ? `قراءة الذكاء: <bdi dir="ltr">${cardName(best)}</bdi> · ثقة ${Math.round((d.conf || 0) * 100)}%` : 'اختر الورقة الصحيحة، أو صوّرها من قريب'}</small></div></div>
-    <div class="fixopts">${opts.map(k => `<button class="press${k === best && d.status === 'ok' ? ' on' : ''}" data-a="detPick" data-v="${k}" dir="ltr">${cardName(k)}${used(k) ? ' ⚠︎' : ''}</button>`).join('')}
-      <button class="press other" data-a="detOther">ورقة ثانية…</button></div>
-    <div class="fixpick" id="fixPick" hidden><div class="fr">${E.RANKS.map(r => `<button data-a="fxRank" data-v="${r}">${r}</button>`).join('')}</div>
-      <div class="fr">${E.SUITS.map(x => `<button class="${SUIT[x][2]}" data-a="fxSuit" data-v="${x}">${SUIT[x][0]}</button>`).join('')}</div></div>
-    <div class="fixacts">${best && d.status !== 'ok' ? `<button class="go press" data-a="detPick" data-v="${best}">تمام، ${cardName(best)}</button>` : ''}
-      <button class="soft press" data-a="detRemove">مو ورقة / مخفية — تجاهلها</button>
-      ${d.status === 'unreadable' ? '<button class="soft press" data-a="detRetake">صوّرها من قريب</button>' : ''}</div></div>`;
+  const cur = dkey(d), want = FX.rank && FX.suit ? FX.rank + FX.suit : null;
+  const others = (d.conflict || []).map(id => (P.photos.find(x => x.id === d.ph).dets || []).find(o => o.id === id)).filter(o => o && o.status !== 'removed');
+  const title = d.conflict && others.length ? `<bdi dir="ltr">${cardName(cur)}</bdi> ظاهرة في ${others.length + 1} أماكن — وحدة بس صح` : d.notCard ? 'يمكن هذي مو ورقة' : d.status === 'unreadable' ? 'ورقة هنا ما انقرت بوضوح' : d.status === 'check' ? 'متأكدين منها؟' : d.reread ? 'صُححت بعد فحص مكبّر' : 'الورقة';
+  const info = d.reread ? `أول قراءة <bdi dir="ltr">${cardName(d.prev)}</bdi>، والفحص المكبّر قرأها <bdi dir="ltr">${cardName(cur)}</bdi>` : cur ? `قراءة الذكاء: <bdi dir="ltr">${cardName(cur)}</bdi> · ثقة ${Math.round((d.conf || 0) * 100)}%` : 'اختر الرقم والنوع، أو صوّرها من قريب';
+  const sugg = [...new Set([cur].concat(d.alts || []).filter(Boolean))].slice(0, 4);
+  const cmp = d.conflict && others.length ? `<div class="cmp">${[d].concat(others).map(o => `<div><img src="${o.zoom || ''}" alt=""><button class="soft press" data-a="keepAs" data-v="${o.id}">هذي <bdi dir="ltr">${cardName(cur)}</bdi></button></div>`).join('')}</div>` : '';
+  box.innerHTML = `<div class="fix"><div class="fixtop">${d.zoom ? `<img src="${d.zoom}" alt="تكبير الورقة">` : ''}<div class="fixtx"><b>${title}</b><small>${info}</small></div></div>
+    ${cmp}
+    ${sugg.length > 1 || (sugg.length && d.status !== 'ok') ? `<div class="fixopts">${sugg.map(k => `<button class="press${k === cur && d.status === 'ok' ? ' on' : ''}" data-a="detPick" data-v="${k}" dir="ltr">${cardName(k)}</button>`).join('')}</div>` : ''}
+    <div class="fsel"><span>الرقم</span><div class="frk">${E.RANKS.map(r => `<button class="${(FX.rank || (cur && cur.slice(0, -1))) === r ? 'on' : ''}" data-a="fxRank" data-v="${r}">${r}</button>`).join('')}</div>
+      <span>النوع</span><div class="fsu">${E.SUITS.map(x => `<button class="${SUIT[x][2]}${(FX.suit || (cur && cur.slice(-1))) === x ? ' on' : ''}" data-a="fxSuit" data-v="${x}" aria-label="${SUIT[x][1]}">${SUIT[x][0]}</button>`).join('')}</div></div>
+    <div class="fixacts">${(want || cur) && (d.status !== 'ok' || (want && want !== cur)) ? `<button class="go press" data-a="detPick" data-v="${want || cur}">تأكيد <bdi dir="ltr">${cardName(want || cur)}</bdi></button>` : ''}
+      <div class="fl"><button data-a="detRemove">${d.notCard ? 'صح، مو ورقة — استبعدها' : 'مو ورقة — استبعدها'}</button>${d.status === 'unreadable' ? '<button data-a="detRetake">صوّرها من قريب</button>' : ''}<button data-a="selClose">إغلاق</button></div></div></div>`;
 }
-function nextPending() { const nx = pending()[0]; P.sel = nx ? { ph: nx.ph, id: nx.id } : null; if (nx) P.cur = P.photos.findIndex(x => x.id === nx.ph); }
+function nextPending() { const nx = pending()[0]; P.sel = nx ? { ph: nx.ph, id: nx.id } : null; FX = { rank: null, suit: null }; if (nx) P.cur = P.photos.findIndex(x => x.id === nx.ph); }
 let FX = { rank: null, suit: null };
 function nudgeSuits() {
   const s = $('#suits'); s.classList.remove('need'); void s.offsetWidth; s.classList.add('need');
@@ -1007,13 +1076,23 @@ function benchSheet() {
   const sum = R ? benchSum(R.rows) : null;
   const pct = (a, b) => (b ? Math.round(a / b * 100) + '%' : '—');
   openSheet('bench', `${head('اختبار دقة القراءة')}<div class="stack">
-    <div class="note">نصنع ${BalootSynth.SCENES.length} صورة فيها أوراق معروفة (واضحة، متداخلة، مدوّرة، مغطاة جزئياً، ظل، إضاءة ضعيفة، من بعيد، 1–32 ورقة، طاولات مختلفة) ونقرأها بنفس طريقة التطبيق، ثم نقارن بالجواب الصحيح. ${AIMODE === 'none' ? '<b>يحتاج Claude أو مفتاح Anthropic.</b>' : 'كل صورة = طلبين للذكاء.'}</div>
+    <div class="note">نصنع ${BalootSynth.SCENES.length} صورة فيها أوراق معروفة + صورتين حقيقيتين منك (واضحة، متداخلة، مدوّرة، مغطاة جزئياً، ظل، إضاءة ضعيفة، من بعيد، 1–32 ورقة، طاولات مختلفة) ونقرأها بنفس طريقة التطبيق، ثم نقارن بالجواب الصحيح. ${AIMODE === 'none' ? '<b>يحتاج Claude أو مفتاح Anthropic.</b>' : 'كل صورة = 2–3 طلبات للذكاء.'}</div>
     ${BENCH && BENCH.running ? `<div class="warn"><span class="spin"></span>صورة ${BENCH.rows.length + 1} من ${BalootSynth.SCENES.length}…</div>` : ''}
     ${sum ? `<div class="ptot" style="flex-wrap:wrap"><div class="u"><small>اكتشاف الأوراق</small><b>${pct(sum.found, sum.ident)}</b></div><div class="t"><small>أوراق غلط زايدة</small><b>${sum.falseDet}</b></div></div>
       <div class="note">الرقم: ${pct(sum.rankOK, sum.located)} · النوع (الشكل): ${pct(sum.suitOK, sum.located)} · صور كاملة صح: ${sum.complete}/${sum.n} · متوسط الوقت ${(sum.ms / sum.n / 1000).toFixed(1)} ث · تحتاج تأكيد: ${sum.check}${R.at ? ' · ' + new Date(R.at).toLocaleString('ar') : ''}</div>
-      <div class="hl">${R.rows.map(r => `<div class="hr" style="grid-template-columns:1fr auto auto"><span class="d">${r.name}<small>${r.err ? 'خطأ: ' + esc(r.err) : `${r.found}/${r.ident} · زايد ${r.falseDet} · رقم ${r.rankOK}/${r.located} · نوع ${r.suitOK}/${r.located} · تأكيد ${r.check}`}</small></span><span class="p ${r.complete ? 'u' : 't'}">${r.complete ? '✓' : '✗'}</span><span class="i">${(r.ms / 1000).toFixed(1)}ث</span></div>`).join('')}</div>` : ''}
+      ${R.real && R.real.length ? `<div class="opt"><span class="lb">صورك الحقيقية (كل صورة مرتين)</span>${R.real.map(x => `<div class="missing">${x.name}: ${x.runs.map((r, i) => r.err ? `مرة ${i + 1}: خطأ` : `مرة ${i + 1}: ${r.found}/${x.n} صح · زايد ${r.extra}${r.extraKeys && r.extraKeys.length ? ' (' + r.extraKeys.map(cardName).join(' ') + ')' : ''} · ${r.count} ورقة مكتشفة · مكرر ${r.dups} · تأكيد ${r.check} · ${(r.ms / 1000).toFixed(1)}ث`).join('<br>')}<br><b>${x.stable ? 'النتيجة ثابتة في المرتين ✓' : 'النتيجة اختلفت بين المرتين ✗'}</b></div>`).join('')}</div>` : ''}
+      <div class="hl">${R.rows.map(r => `<div class="hr" style="grid-template-columns:1fr auto auto"><span class="d">${r.name}<small>${r.err ? 'خطأ: ' + esc(r.err) : `${r.found}/${r.ident} · زايد ${r.falseDet} · مكرر ${r.dups || 0} · رقم ${r.rankOK}/${r.located} · نوع ${r.suitOK}/${r.located} · تأكيد ${r.check}`}</small></span><span class="p ${r.complete ? 'u' : 't'}">${r.complete ? '✓' : '✗'}</span><span class="i">${(r.ms / 1000).toFixed(1)}ث</span></div>`).join('')}</div>` : ''}
     ${BENCH && BENCH.running ? '<button class="soft press" data-a="benchStop">إيقاف</button>' : `<button class="go press" data-a="benchRun" ${AIMODE === 'none' ? 'disabled' : ''}>${R ? 'أعد الاختبار' : 'ابدأ الاختبار'}</button>`}
   </div>`);
+}
+function dupCount(cards) { // boxes that share an identity with another box (the deck has one of each)
+  const seen = {}; cards.forEach(c => { if (c.rank && c.suit && c.status !== 'removed') seen[c.rank + c.suit] = (seen[c.rank + c.suit] || 0) + 1; });
+  return Object.values(seen).reduce((t, n) => t + (n > 1 ? n - 1 : 0), 0);
+}
+function realScore(truth, r) {
+  const keys = [...new Set(r.cards.filter(c => c.rank && c.suit).map(c => c.rank + c.suit))].sort();
+  const found = truth.filter(k => keys.includes(k)).length, extra = keys.filter(k => !truth.includes(k));
+  return { found, extra: extra.length, extraKeys: extra, count: r.cards.length, dups: dupCount(r.cards), check: r.cards.filter(c => c.status !== 'ok').length, ms: r.ms, keys: keys.join(',') };
 }
 function benchSum(rows) {
   const ok = rows.filter(r => !r.err);
@@ -1031,12 +1110,27 @@ async function benchRun() {
     try {
       const r = await BalootVision.scanPhoto(blob, aiJSON, { maxImages: AIMAX });
       const m = BalootSynth.score(truth, r.cards);
-      BENCH.rows.push(Object.assign({ name: sc.name, ms: r.ms, check: r.cards.filter(c => c.status !== 'ok').length, ident: m.identifiable }, m));
+      BENCH.rows.push(Object.assign({ name: sc.name, ms: r.ms, check: r.cards.filter(c => c.status !== 'ok').length, ident: m.identifiable, count: r.cards.length, dups: dupCount(r.cards) }, m));
     } catch (e) { BENCH.rows.push({ name: sc.name, err: (e && (e.code || e.message)) || 'error', ms: 0 }); if (e && e.code === 'not_granted') break; }
     if (SK === 'bench') benchSheet();
   }
+  // your real photos, each read twice: identity accuracy, duplicates, and whether two runs give the same result
+  BENCH.real = [];
+  for (const rp of (window.BalootRealBench || [])) {
+    if (!BENCH.running) break;
+    const bin = atob(rp.src.split(',')[1]), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);
+    const blob = new Blob([u8], { type: 'image/jpeg' }), runs = [];
+    for (let k = 0; k < 2 && BENCH.running; k++) {
+      try { const r = await BalootVision.scanPhoto(blob, aiJSON, { maxImages: AIMAX }); runs.push(realScore(rp.truth, r)); }
+      catch (e) { runs.push({ err: (e && (e.code || e.message)) || 'error' }); if (e && e.code === 'not_granted') break; }
+      if (SK === 'bench') benchSheet();
+    }
+    const ok2 = runs.filter(x => !x.err);
+    BENCH.real.push({ name: rp.name, n: rp.truth.length, runs, stable: ok2.length === 2 && ok2[0].keys === ok2[1].keys && ok2[0].count === ok2[1].count });
+    if (SK === 'bench') benchSheet();
+  }
   BENCH.running = false;
-  try { localStorage.setItem('baloot.bench', JSON.stringify({ rows: BENCH.rows, at: BENCH.at })); } catch (e) {}
+  try { localStorage.setItem('baloot.bench', JSON.stringify({ rows: BENCH.rows, real: BENCH.real, at: BENCH.at })); } catch (e) {}
   if (SK === 'bench') benchSheet();
 }
 function shareText() {
@@ -1065,7 +1159,7 @@ const A = {
   kab: v => { M.kaboot = M.kaboot === v ? null : v; M.val = ''; haptic(); manualUpdate(); },
   voice: () => listen(),
   mSave: () => { const o = manualCalc(); if (o.r && !o.r.error) commit(o.r, M.heard ? 'voice' : 'manual'); },
-  card: v => { if (P.cards.has(v)) { P.manual.delete(v); liveDets().filter(d => dkey(d) === v).forEach(d => { d.status = 'removed'; }); } else P.manual.add(v); rebuild();
+  card: v => { if (P.cards.has(v)) { P.manual.delete(v); liveDets().filter(d => dkey(d) === v).forEach(d => { d.status = 'removed'; }); } else P.manual.add(v); P.photos.forEach(ph => conflictsIn(ph.id)); rebuild(); listPanel(); fixPanel();
     const b = document.querySelector(`.cd[data-v="${v}"]`); if (b) { b.classList.toggle('on', P.cards.has(v)); b.classList.toggle('ai', P.ai.has(v)); b.setAttribute('aria-pressed', String(P.cards.has(v))); }
     pileUpdate(); },
   pTeam: v => { P.team = v; pileUpdate(); },
@@ -1090,15 +1184,29 @@ const A = {
   retake: v => { const ph = P.photos.find(x => String(x.id) === v); if (!ph) return; PICK.replace = ph.id; P.sel = null; $(ph.src === 'cam' ? '#photoCam' : '#photoLib').click(); },
   delPhoto: v => { const i = P.photos.findIndex(x => String(x.id) === v); if (i < 0) return; P.photos.splice(i, 1); P.cur = P.photos.length - 1; P.sel = null; rebuild(); pileSheet(); },
   selDet: v => { const ph = P.photos[P.cur] || P.photos[P.photos.length - 1]; P.sel = { ph: ph.id, id: +v }; FX = { rank: null, suit: null }; pileSheet(); },
+  selCard: v => { const [phId, id] = v.split('|'); const i = P.photos.findIndex(x => String(x.id) === phId); if (i < 0) return; P.cur = i; P.sel = { ph: P.photos[i].id, id: +id }; FX = { rank: null, suit: null }; pileSheet(); },
+  selClose: () => { P.sel = null; FX = { rank: null, suit: null }; pileSheet(); },
   pvBig: () => { P.big = !P.big; pileSheet(); },
-  detPick: v => { const d = selDet(); if (!d) return; d.rank = v.slice(0, -1); d.suit = v.slice(-1); d.status = 'ok'; d.user = true; d.dupOf = null;
-    // the deck has one of each card: another box in this photo with the same reading must be looked at again
-    liveDets().forEach(o => { if (o !== d && o.ph === d.ph && dkey(o) === v) { o.status = 'check'; o.dupOf = v; } });
+  detPick: v => { const d = selDet(); if (!d) return; d.rank = v.slice(0, -1); d.suit = v.slice(-1); d.status = 'ok'; d.user = true; d.notCard = false;
+    conflictsIn(d.ph); // the deck has one of each card: another box with the same card is flagged, never renamed
     rebuild(); nextPending(); haptic(); pileSheet(); },
-  detRemove: () => { const d = selDet(); if (!d) return; d.status = 'removed'; rebuild(); nextPending(); pileSheet(); },
-  detOther: () => { const el = $('#fixPick'); if (el) el.hidden = !el.hidden; },
-  fxRank: (v, el) => { FX.rank = v; el.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el)); if (FX.suit) A.detPick(FX.rank + FX.suit); },
-  fxSuit: (v, el) => { FX.suit = v; el.parentNode.querySelectorAll('button').forEach(b => b.classList.toggle('on', b === el)); if (FX.rank) A.detPick(FX.rank + FX.suit); },
+  keepAs: v => { const d = selDet(); if (!d) return; const ph = P.photos.find(x => x.id === d.ph), k = dkey(d);
+    const ids = [d.id].concat(d.conflict || []);
+    ids.forEach(id => { const o = ph.dets.find(x => x.id === id); if (!o) return;
+      if (o.id === +v) { o.status = 'ok'; o.user = true; } else { o.alts = [k].concat(o.alts || []).filter((x, i, a) => x && a.indexOf(x) === i).slice(0, 3); o.rank = null; o.suit = null; o.status = 'check'; o.user = false; } });
+    conflictsIn(d.ph); rebuild(); nextPending(); pileSheet(); },
+  detRemove: () => { const d = selDet(); if (!d) return; d.status = 'removed'; conflictsIn(d.ph); rebuild(); nextPending(); pileSheet(); },
+  restore: v => { const [phId, id] = v.split('|'); const ph = P.photos.find(x => String(x.id) === phId); const d = ph && ph.dets.find(x => x.id === +id); if (!d) return;
+    d.status = d.user ? 'ok' : 'check'; conflictsIn(ph.id); rebuild(); pileSheet(); },
+  fxRank: v => { FX.rank = v; const d = selDet(); if (!FX.suit && d && d.suit) FX.suit = d.suit; fixPanel(); },
+  fxSuit: v => { FX.suit = v; const d = selDet(); if (!FX.rank && d && d.rank) FX.rank = d.rank; fixPanel(); },
+  recheck: async () => {
+    const list = P.photos.filter(ph => ph.img && ph.state === 'done' && (ph.dets || []).some(d => d.status === 'check' || d.status === 'unreadable'));
+    for (const ph of list) { ph.state = 'rechecking'; pileSheet();
+      try { await BalootVision.recheck(ph.img, ph.dets, aiJSON, AIMAX); for (const d of ph.dets) if (!d.zoom) try { d.zoom = BalootVision.canvasOf(ph.img, 360, BalootVision.pad(d.box, 0.12)).toDataURL('image/jpeg', 0.85); } catch (e) {} } catch (e) {}
+      ph.state = 'done'; }
+    rebuild(); nextPending(); if (SK === 'pile') pileSheet();
+  },
   detRetake: () => { toast('قرّب الكاميرا على الورقة المعلّمة'); srcSheet(); },
   showPhoto: v => { P.cur = +v; P.sel = null; pileSheet(); },
   pSave: () => { const o = pileCalc(); if (o.r && !o.r.error) { commit(o.r, 'scan'); P = null; } },
@@ -1123,6 +1231,7 @@ const A = {
   projMult: v => { S.rules.projMult = v; save(); moreSheet.sync(); },
   kabootMult: v => { S.rules.kabootMult = v === '1'; save(); moreSheet.sync(); },
 };
+document.addEventListener('toggle', e => { if (P && e.target.classList && e.target.classList.contains('gridbox')) P.gridOpen = e.target.open; }, true);
 document.addEventListener('click', e => {
   const el = e.target.closest('[data-a]'); if (!el || el.disabled) return;
   const f = A[el.dataset.a]; if (f) f(el.dataset.v, el);

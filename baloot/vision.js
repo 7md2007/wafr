@@ -157,22 +157,28 @@
       all.push(Object.assign(n, { pass: 'B', src: 'B' + ci }));
     }));
     all.forEach(c => { if (!c.src) c.src = 'A'; });
-    // Group detections of the same physical card. One answer (the overview, or one crop) lists each card once, so two
-    // different entries of the same answer are two different cards — even when their boxes overlap (fans, piles).
+    // Group detections of the same physical card.
+    //  · One answer (the overview, or one crop) lists each card once → two entries of the SAME answer are two cards,
+    //    even when their boxes overlap (fans, piles).
+    //  · The deck has one copy of each card → the same identity from DIFFERENT answers is the same physical card, even
+    //    when the boxes landed apart (box positions from the model are approximate). This used to create a second card.
+    //  · An entry nobody could read that sits on top of a read card is that card, not an extra one.
     const key = c => (c.rank && c.suit ? c.rank + c.suit : null);
+    const inside = (p, b) => p[0] >= b[0] && p[0] <= b[2] && p[1] >= b[1] && p[1] <= b[3];
     const pairs = [];
     for (let i = 0; i < all.length; i++) for (let j = i + 1; j < all.length; j++) {
-      const A = all[i], B = all[j], ov = iou(A.box, B.box), ka = key(A), kb = key(B);
+      const A = all[i], B = all[j], ov = iou(A.box, B.box), ka = key(A), kb = key(B), cross = A.src !== B.src;
       const near = Math.hypot(center(A.box)[0] - center(B.box)[0], center(A.box)[1] - center(B.box)[1]) < 0.6 * Math.max(diag(A.box), diag(B.box));
       let sc = 0;
-      if (ka && ka === kb && (ov > 0.05 || near)) sc = 3 + ov;                      // same card read the same way
-      else if (A.src !== B.src && (!ka || !kb) && ov >= 0.35) sc = 2 + ov;         // one answer could not read it
-      else if (A.src !== B.src && ka !== kb && ov >= 0.7) sc = 1 + ov;             // same place, read differently
+      if (ka && ka === kb && (ov > 0.05 || near)) sc = 4 + ov;                                                  // same card, same place
+      else if (cross && (!ka || !kb) && (ov >= 0.2 || inside(center(A.box), B.box) || inside(center(B.box), A.box))) sc = 3 + ov; // unreadable on top of a card
+      else if (cross && ka !== kb && ov >= 0.7) sc = 2 + ov;                                                    // same place, read differently
+      else if (cross && ka && ka === kb) sc = 1;                                                                // same card, box drifted
       if (sc) pairs.push([sc, i, j]);
     }
     pairs.sort((x, y) => y[0] - x[0]);
     const gid = all.map((_, i) => i), mem = all.map((_, i) => [i]);
-    const compatible = (g1, g2) => { // a group may hold at most one card per answer (identical repeats excepted)
+    const compatible = (g1, g2) => { // a group may hold at most one entry per answer (an identical repeat excepted)
       const bySrc = {};
       for (const i of mem[g1].concat(mem[g2])) { const c = all[i], k = key(c); if (bySrc[c.src] === undefined) bySrc[c.src] = k; else if (bySrc[c.src] !== k || k === null) return false; }
       return true;
@@ -181,18 +187,18 @@
       const g1 = gid[i], g2 = gid[j]; if (g1 === g2 || !compatible(g1, g2)) continue;
       for (const k of mem[g2]) { gid[k] = g1; mem[g1].push(k); } mem[g2] = [];
     }
-    const f = i => gid[i];
     const groups = {};
-    all.forEach((c, i) => { (groups[f(i)] = groups[f(i)] || []).push(c); });
-    let cards = Object.values(groups).map(g => {
+    all.forEach((c, i) => { (groups[gid[i]] = groups[gid[i]] || []).push(c); });
+    const cards = Object.values(groups).map(g => {
       const votes = {};
       g.forEach(c => { const k = key(c); if (k) votes[k] = (votes[k] || 0) + c.conf + (c.pass === 'B' ? 0.05 : 0); });
       const ranked = Object.entries(votes).sort((x, y) => y[1] - x[1]);
-      const box = g.reduce((m, c) => (area(c.box) > area(m) ? c.box : m), g[0].box);
-      const passes = new Set(g.map(c => c.pass));
+      // the box: prefer the zoomed pass (more precise), then the biggest
+      const bx = g.filter(c => c.pass === 'B'); const box = (bx.length ? bx : g).reduce((m, c) => (area(c.box) > area(m) ? c.box : m), (bx.length ? bx : g)[0].box);
+      const passes = [...new Set(g.map(c => c.pass))];
       if (!ranked.length) { // a card is there but no pass could read rank+suit
         const rk = g.map(c => c.rank).find(Boolean) || null, su = g.map(c => c.suit).find(Boolean) || null;
-        return { rank: rk, suit: su, conf: 0, box, alts: [], status: 'unreadable', passes: [...passes] };
+        return { rank: rk, suit: su, conf: 0, box, alts: [], status: 'unreadable', passes };
       }
       const [best, bv] = ranked[0];
       const agree = g.filter(c => key(c) === best);
@@ -201,24 +207,70 @@
       const rival = ranked[1] && ranked[1][1] >= 0.6 * bv;
       if (rival) conf = Math.min(conf, 0.6);
       const alts = [...new Set(ranked.slice(1).map(x => x[0]).concat(...g.map(c => c.alts)))].filter(k => k !== best).slice(0, 3);
-      return { rank: best.slice(0, -1), suit: best.slice(-1), conf: +conf.toFixed(2), box, alts, status: conf >= 0.8 && !rival ? 'ok' : 'check', passes: [...passes] };
-    });
-    // deck rule: every card exists once. Two separate regions with the same identity → keep the stronger, flag the other.
-    const byKey = {};
-    cards.forEach(c => { if (c.rank && c.suit && c.status !== 'unreadable') (byKey[c.rank + c.suit] = byKey[c.rank + c.suit] || []).push(c); });
-    Object.entries(byKey).forEach(([k, list]) => {
-      if (list.length < 2) return;
-      list.sort((x, y) => y.conf - x.conf);
-      list.slice(1).forEach(c => {
-        const alt = c.alts.find(a => !byKey[a]);
-        c.dupOf = k; c.status = 'check'; c.conf = Math.min(c.conf, 0.4);
-        if (alt) { c.alts = [k].concat(c.alts.filter(a => a !== alt)); c.rank = alt.slice(0, -1); c.suit = alt.slice(-1); }
-        else { c.alts = [k].concat(c.alts); c.rank = null; c.suit = null; c.status = 'unreadable'; }
-      });
+      return { rank: best.slice(0, -1), suit: best.slice(-1), conf: +conf.toFixed(2), box, alts, status: conf >= 0.8 && !rival ? 'ok' : 'check', passes };
     });
     cards.sort((x, y) => x.box[1] - y.box[1] || x.box[0] - y.box[0]);
     cards.forEach((c, i) => { c.id = i + 1; });
+    markConflicts(cards);
     return cards;
+  }
+  /* Deck rule: one copy of each card. If two live cards carry the same identity, BOTH are flagged as a conflict with
+     each other. Nothing is renamed or added: the user (or a zoomed re-read) decides which one it really is. */
+  function markConflicts(cards) {
+    const live = cards.filter(c => c.status !== 'removed');
+    live.forEach(c => { delete c.conflict; });
+    const byKey = {};
+    live.forEach(c => { if (c.rank && c.suit && c.status !== 'unreadable') (byKey[c.rank + c.suit] = byKey[c.rank + c.suit] || []).push(c); });
+    Object.values(byKey).forEach(list => {
+      if (list.length < 2) return;
+      list.forEach(c => { c.conflict = list.filter(o => o !== c).map(o => o.id); if (!c.user || list.filter(o => o.user).length > 1) c.status = 'check'; });
+    });
+    return cards;
+  }
+
+  /* Re-read uncertain cards from their own full-resolution crops: the card to identify is framed in turquoise. */
+  function promptC(n) {
+    return `You get ${n} zoomed image${n > 1 ? 's' : ''}, each centred on ONE playing card from a photo of a Baloot game. ${DECK}
+In each image, identify ONLY the card inside the turquoise frame; other cards around it do not matter. Read the corner index (rank + suit symbol), and check it against the pips or face picture. Watch for look-alikes: 6/9 do not exist in this deck (only 7 8 9 10), Q vs K vs J (letter and crown), hearts vs diamonds (shape), spades vs clubs (shape).
+If the frame does not contain a playing card, set "card": false. If the rank or suit is not readable, use null — never guess.
+Reply with only JSON: {"cards":[{"i":1,"card":true,"rank":"A|K|Q|J|10|9|8|7"|null,"suit":"S|H|D|C"|null,"conf":0.0}]}`;
+  }
+  function frameCrop(img, box) {
+    const area = pad(box, 0.45), cv = canvasOf(img, 768, area), g = cv.getContext('2d');
+    const sx = cv.width / (area[2] - area[0]), sy = cv.height / (area[3] - area[1]);
+    g.strokeStyle = '#19D3C5'; g.lineWidth = Math.max(3, cv.width / 120);
+    g.strokeRect((box[0] - area[0]) * sx, (box[1] - area[1]) * sy, (box[2] - box[0]) * sx, (box[3] - box[1]) * sy);
+    return cv;
+  }
+  /* Apply a re-read to the cards (pure; unit-tested). User-confirmed cards are never changed. */
+  function applyRecheck(cards, targets, answers) {
+    const res = Array.isArray(answers) ? answers : [];
+    targets.forEach((c, i) => {
+      if (c.user) return;
+      const a = res.find(x => +x.i === i + 1); if (!a) return;
+      c.rechecked = true;
+      if (a.card === false) { c.notCard = true; c.status = 'check'; return; }
+      const n = normCard(Object.assign({ box: [0, 0, 1, 1] }, a)), k = n.rank && n.suit ? n.rank + n.suit : null, cur = c.rank && c.suit ? c.rank + c.suit : null;
+      if (!k) return; // still unreadable: leave as it is
+      if (k === cur) { c.conf = +Math.min(1, Math.max(c.conf, n.conf) + 0.05).toFixed(2); if (c.conf >= 0.8 && !c.conflict) c.status = 'ok'; return; }
+      // the zoomed look reads it differently: keep both readings visible; adopt only a confident re-read
+      c.alts = [...new Set([cur].concat(c.alts || []))].filter(Boolean).filter(x => x !== k).slice(0, 3);
+      if (n.conf >= 0.85) { c.prev = cur; c.rank = n.rank; c.suit = n.suit; c.conf = +n.conf.toFixed(2); c.status = 'ok'; c.reread = true; }
+      else { c.status = 'check'; c.alts = [k].concat(c.alts).slice(0, 3); }
+    });
+    markConflicts(cards);
+    cards.forEach(c => { if (c.status === 'ok' && c.conflict) c.status = 'check'; });
+    return cards;
+  }
+  async function recheck(img, cards, ai, maxImg) {
+    const targets = cards.filter(c => c.status !== 'removed' && !c.user && (c.status !== 'ok' || c.conflict));
+    if (!targets.length) return { cards, n: 0 };
+    for (let s = 0; s < targets.length; s += maxImg) {
+      const part = targets.slice(s, s + maxImg);
+      const blobs = await Promise.all(part.map(c => toBlob(frameCrop(img, c.box), 0.9)));
+      try { const r = await ai(promptC(part.length), blobs); applyRecheck(cards, part, r && r.cards); } catch (e) { /* keep the first reading */ }
+    }
+    return { cards, n: targets.length };
   }
 
   /* ---------- prompts ---------- */
@@ -271,11 +323,14 @@ Reply with only JSON: {"crops":[{"i":1,"cards":[{"box":[x0,y0,x1,y1],"rank":"A|K
     const a = ra && !ra.__err && Array.isArray(ra.cards) ? ra.cards : [];
     const bl = rb && !rb.__err && Array.isArray(rb.crops) ? rb.crops.map(x => ({ crop: crops[(+x.i || 0) - 1], cards: x.cards })).filter(x => x.crop) : [];
     const cards = mergeDetections(a, bl);
+    const t1 = performance.now();
+    const rc = await recheck(img, cards, ai, Math.min(8, maxImg));
     // a zoomed picture of every card for the correction view
     for (const c of cards) { try { c.zoom = canvasOf(img, 360, pad(c.box, 0.12)).toDataURL('image/jpeg', 0.85); } catch (e) {} }
-    return { cards, det, crops, ms: Math.round(performance.now() - t0), msLocal: Math.round(tLocal), passA: !ra.__err, passB: !rb.__err, width: img.width, height: img.height };
+    return { cards, det, crops, ms: Math.round(performance.now() - t0), msLocal: Math.round(tLocal), msRecheck: Math.round(performance.now() - t1), rechecked: rc.n,
+      passA: !ra.__err, passB: !rb.__err, width: img.width, height: img.height, img };
   }
 
-  const api = { RANKS, SUITS, findCardBlobs, iou, cropPlan, mergeDetections, normCard, promptA, promptB, scanPhoto, canvasOf, decode };
+  const api = { RANKS, SUITS, findCardBlobs, iou, cropPlan, mergeDetections, markConflicts, applyRecheck, recheck, frameCrop, normCard, promptA, promptB, promptC, scanPhoto, canvasOf, decode, pad };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BalootVision = api;
 })(typeof self !== 'undefined' ? self : this);

@@ -18,8 +18,30 @@ ok('crop boxes are mapped back to photo coordinates (Q♥ crop box 100–200 × 
 ok('a card both passes read the same way is "ok" with higher confidence', m.find(c => c.rank === 'Q').status === 'ok' && m.find(c => c.rank === 'Q').conf === 1);
 m = V.mergeDetections([{ box: B(100, 100, 200, 300), rank: 'Q', suit: 'H', conf: 0.8 }], [{ crop: [0, 0, 1, 1], cards: [{ box: B(105, 98, 205, 302), rank: 'Q', suit: 'D', conf: 0.8 }] }]);
 ok('passes disagree (Q♥ vs Q♦) → one card, status "check", the other as an option', m.length === 1 && m[0].status === 'check' && m[0].alts.length >= 1, m);
-m = V.mergeDetections([{ box: B(100, 100, 200, 300), rank: 'K', suit: 'S', conf: 0.9, alts: [{ rank: 'K', suit: 'C' }] }, { box: B(700, 600, 800, 800), rank: 'K', suit: 'S', conf: 0.6, alts: [{ rank: 'K', suit: 'C' }] }], []);
-ok('same card seen in two far-apart places → impossible (one deck): weaker one flagged with its next option', m.length === 2 && m.filter(c => c.status === 'check').length === 1 && m.some(c => c.rank + c.suit === 'KC' && c.dupOf === 'KS'), m);
+console.log('regressions: 14 vs 13 cards, "A♣ in another location"');
+// R1: the overview and a zoom crop both read A♣ but their boxes landed apart → it is ONE card (used to become two → 14 vs 13)
+m = V.mergeDetections([{ box: B(100, 100, 200, 300), rank: 'A', suit: 'C', conf: 0.9 }], [{ crop: [0, 0, 1, 1], cards: [{ box: B(420, 380, 520, 580), rank: 'A', suit: 'C', conf: 0.9 }] }]);
+ok('R1 same card from two passes with drifted boxes → 1 card, no conflict', m.length === 1 && !m[0].conflict && m[0].status === 'ok', m);
+// R2: one answer lists A♣ twice in two places → a real conflict: both kept, both flagged, nothing renamed or added
+m = V.mergeDetections([{ box: B(100, 100, 200, 300), rank: 'A', suit: 'C', conf: 0.9, alts: [{ rank: 'A', suit: 'S' }] }, { box: B(700, 600, 800, 800), rank: 'A', suit: 'C', conf: 0.6, alts: [{ rank: 'K', suit: 'C' }] }], []);
+ok('R2 A♣ listed twice → 2 cards, BOTH flagged as conflicting, identities NOT replaced by guesses', m.length === 2 && m.every(c => c.status === 'check' && c.conflict && c.conflict.length === 1 && c.rank + c.suit === 'AC'), m);
+// R3: an unreadable entry on top of a read card from the other pass is that card, not an extra one
+m = V.mergeDetections([{ box: B(100, 100, 300, 400), rank: 'Q', suit: 'H', conf: 0.9 }], [{ crop: [0, 0, 1, 1], cards: [{ box: B(150, 150, 280, 330), rank: null, suit: null, conf: 0.2 }] }]);
+ok('R3 uncertain reading on top of a card → still 1 card (uncertainty never adds a card)', m.length === 1 && m[0].rank === 'Q', m);
+// R4: the overview misreads K♣ as A♣ while the crop reads A♣ elsewhere and K♣ at that spot → 2 physical cards, no third
+m = V.mergeDetections([{ box: B(600, 600, 700, 800), rank: 'A', suit: 'C', conf: 0.7 }], [{ crop: [0, 0, 1, 1], cards: [{ box: B(100, 100, 200, 300), rank: 'A', suit: 'C', conf: 0.9 }, { box: B(600, 600, 700, 800), rank: 'K', suit: 'C', conf: 0.85 }] }]);
+ok('R4 misread at one spot → 2 cards total; the disputed one is flagged with both readings', m.length === 2 && m.some(c => c.status !== 'ok' && [c.rank + c.suit].concat(c.alts).includes('KC') && [c.rank + c.suit].concat(c.alts).includes('AC')), m);
+ok('R4 the physical count never exceeds the number of distinct places', m.length === 2);
+// R5: re-reading uncertain cards from their own zoomed crop
+let cs = [{ id: 1, rank: 'Q', suit: 'H', conf: 0.55, alts: ['QD'], status: 'check', box: B(0, 0, 1, 1) }, { id: 2, rank: 'K', suit: 'S', conf: 0.5, alts: [], status: 'check', box: B(0, 0, 1, 1) },
+  { id: 3, rank: '9', suit: 'C', conf: 0.5, alts: [], status: 'check', box: B(0, 0, 1, 1), user: true }, { id: 4, rank: null, suit: null, conf: 0, alts: [], status: 'unreadable', box: B(0, 0, 1, 1) },
+  { id: 5, rank: '7', suit: 'D', conf: 0.5, alts: [], status: 'check', box: B(0, 0, 1, 1) }];
+V.applyRecheck(cs, cs, [{ i: 1, card: true, rank: 'Q', suit: 'H', conf: 0.9 }, { i: 2, card: true, rank: 'K', suit: 'C', conf: 0.95 }, { i: 3, card: true, rank: 'A', suit: 'S', conf: 0.99 }, { i: 4, card: false }, { i: 5, card: true, rank: '8', suit: 'D', conf: 0.6 }]);
+ok('R5 re-read agrees → confirmed', cs[0].status === 'ok');
+ok('R5 confident re-read differs → adopted visibly (kept the first reading as "prev")', cs[1].rank + cs[1].suit === 'KC' && cs[1].prev === 'KS' && cs[1].reread);
+ok('R5 a card the user confirmed is never changed by a re-read', cs[2].rank + cs[2].suit === '9C');
+ok('R5 "not a card" is only flagged, never deleted automatically', cs[3].notCard && cs[3].status === 'check');
+ok('R5 unsure re-read → still asks, offering both readings', cs[4].status === 'check' && cs[4].rank === '7' && cs[4].alts[0] === '8D');
 m = V.mergeDetections([{ box: B(100, 100, 200, 300), rank: null, suit: 'H', conf: 0.3 }], []);
 ok('a card nobody could read stays as "unreadable" with its place (never dropped, never guessed)', m.length === 1 && m[0].status === 'unreadable' && m[0].suit === 'H' && m[0].box);
 ok('normalises answers: "T"→10, lower case, swapped box corners, bad values', (() => { const n = V.normCard({ rank: 't', suit: 'hearts', box: [300, 400, 100, 200], conf: 7 }); return n.rank === '10' && n.suit === 'H' && n.box[0] === 0.1 && n.box[3] === 0.4 && n.conf === 0.5; })());

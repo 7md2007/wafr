@@ -119,7 +119,7 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
 
 ## Baloot score keeper (Nov 8, 2026) — separate page, does not touch Wafr
 - `baloot/index.html` (Arabic RTL, one light look: sky/turquoise/white/soft peach) + `baloot/engine.js` (pure scoring engine).
-  Live at /wafr/baloot/ once merged; artifact copy https://claude.ai/artifact/Q6W5f2T1TPJdG4FbDA8N3f (built from index.html with engine.js, vision.js and synth.js inlined,
+  Live at /wafr/baloot/ once merged; artifact copy https://claude.ai/artifact/Q6W5f2T1TPJdG4FbDA8N3f (built from index.html with engine.js, vision.js, synth.js and bench-real.js inlined,
   Google Fonts instead of ../fonts, `sample` capability with images; build script lives in the session scratchpad — inline engine.js, drop @font-face, drop the safe-area top/bottom padding).
 - Home = score → round card (صن/حكم, 4 suits for حكم, المشتري لنا/لهم, الدبل row, المشاريع row) → big "صوّر الأوراق" + "إدخال يدوي" + mic.
   Selected options are filled turquoise. Top icons: history, share, settings (⋯). Saving shows a toast with "تراجع" (no confirm step); a 600 ms guard stops double saves.
@@ -146,6 +146,16 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   or the user's key `wafr.aikey` (claude-sonnet-5-5). Photo shows a box per card; tap → zoom + best guess + alts + "ورقة ثانية…" (rank+suit)
   + "مو ورقة"; scoring blocked until every orange/red box is confirmed. Grid still adds missing cards (`P.manual`); `rebuild()` derives P.cards.
   Count rules: hand ≤ 8; tricks multiple of 4 (no claim of "missing" cards otherwise). 32 cards = كبوت.
+- Scanner fixes (Nov 9 b): ONE count everywhere = `physCards()` (live boxes, same card in two photos once, + hand-added); merge rule:
+  same identity from DIFFERENT answers = same card even if boxes drifted (was a 2nd card → 14 vs 13 + "A♣ في مكان ثاني");
+  same identity twice in ONE answer = real conflict → `markConflicts()` flags BOTH (red), never renames to a guess (old code swapped in an
+  alt = invented card); unreadable entry on top of a read card = that card. Pass C `recheck()`: framed full-res crop per uncertain card
+  (`promptC`), `applyRecheck()` adopts only conf ≥ 0.85 re-reads, shown as "صُححت" with `prev`; user-confirmed (`d.user`) never changed.
+  UI: quiet outlines for ok cards, "!" only on cards needing attention, chip list `listPanel()`, panel with zoom, conflict comparison
+  (`keepAs`), suggestions, big rank (4×2) + suit (4) buttons, تأكيد, "مو ورقة" (removed list with ↺ restore), "افحص المعلّمة مرة ثانية".
+  Photo types: كل أكلات فريق (scored) / بعض الأكلات (count + abnat, no score) / يد لاعب (projects) / أوراق متفرقة (count only).
+  "باقي قبل الحساب" lists missing info. Grid folded under "ورقة ناقصة؟" (`P.gridOpen`).
+  Bench also runs `baloot/bench-real.js` (the owner's 2 real photos, 10 known cards each) twice: identity accuracy, extras, duplicates, stability.
 - Accuracy test (⋯ → اختبار دقة قراءة الأوراق): `baloot/synth.js` draws 16 scenes with exact truth (clear, fan, rotated, covered, mixed,
   low light, shadow, far, pile, tilted, felt/wood/white tables, 1–32 cards) → real pipeline → recall, false cards, rank/suit accuracy,
   complete images, time (saved in `baloot.bench`). Real photos for tests: `tests/vision-data/real1.png`, `real2.png` (10 cards each).
@@ -156,4 +166,4 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   Doubled round = winner takes all: 26 or 16 × level + all projects × level (setting: ×2 max in ثري/فور), بلوت 2 to its owner; tie → buyer loses;
   kaboot × level (setting: not multiplied). قهوة: round winner gets enough points to reach the target and wins the game.
 - Tests: `node tests/baloot.test.js` (80, plain node), `node tests/baloot.examples.test.js` (36 hand-calculated worked examples;
-  `--write` regenerates `baloot/SCORING-EXAMPLES.md`), `node tests/baloot.vision.test.js` (18) and `node tests/baloot.ui.test.js` (77, Playwright; AI reply is a stub).
+  `--write` regenerates `baloot/SCORING-EXAMPLES.md`), `node tests/baloot.vision.test.js` (27) and `node tests/baloot.ui.test.js` (89, Playwright; AI reply is a stub).
