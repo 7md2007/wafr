@@ -199,6 +199,8 @@
     out.abnat = kaboot ? { us: kaboot === 'us' ? M.total : 0, them: kaboot === 'them' ? M.total : 0 } : ab;
     const sum = { us: out.abnat.us + pAb.us, them: out.abnat.them + pAb.them };
     out.sums = sum;
+    // every step, so the app can show exactly how the round was scored
+    out.detail = { total: M.total, points: M.points, raw: out.abnat, projAbnat: pAb, projPts: pPts, baloot: bal, sums: sum, buyer, base: null, rule: null };
 
     /* ---- doubled rounds (دبل/ثري/فور/قهوة): all or nothing ---- */
     if (level !== 'normal') {
@@ -207,6 +209,7 @@
       out.made = winner === buyer;
       out.winner = winner;
       if (level === 'gahwa') { // the round decides the whole game
+        out.detail.rule = 'gahwa';
         const m = r.match || {}, tg = Number(m.target) || 152, cur = { us: Number(m.us) || 0, them: Number(m.them) || 0 };
         out.gahwa = winner;
         out[winner] = Math.max(tg - cur[winner], 0, cur[other(winner)] - cur[winner] + 1);
@@ -217,6 +220,7 @@
       const base = kaboot ? (ruleOf(r.rules, 'kabootMult') ? M.kaboot * k : M.kaboot) : M.points * k;
       out[winner] = base + (pPts.us + pPts.them) * pm;
       out.us += bal.us; out.them += bal.them;
+      Object.assign(out.detail, { rule: 'doubled', roundPts: base, projMult: pm });
       return out;
     }
 
@@ -227,6 +231,7 @@
     };
     if (kaboot) {
       const k = kaboot;
+      out.detail.rule = k === buyer ? 'kaboot' : 'kabootLost';
       if (k === buyer) {
         out.made = true;
         out[k] = M.kaboot + pPts[k] + bal[k];
@@ -241,10 +246,12 @@
     const base = toPoints(mode, ab.us);
     if (sum[buyer] > sum[opp] || (sum[buyer] === sum[opp] && tieRule === 'split')) {
       out.made = sum[buyer] === sum[opp] ? 'tie' : true;
+      Object.assign(out.detail, { rule: 'split', base });
       out.us = base.us + pPts.us + bal.us;
       out.them = base.them + pPts.them + bal.them;
     } else {
       out.made = false;
+      out.detail.rule = 'lost';
       lostTo(opp);
     }
     return out;

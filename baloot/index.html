@@ -150,6 +150,12 @@ svg{display:block;flex:none}
 .result .sc .u{color:var(--teal-deep)} .result .sc .t{color:var(--peach-ink)}
 .lvtag{display:inline-block;background:var(--peach-ink);color:var(--on);border-radius:7px;padding:0 6px;font-size:11px;font-weight:700;margin-inline-start:4px;vertical-align:1px}
 
+.why{font-size:13px;color:var(--ink-2);margin-top:-4px}
+.why summary{cursor:pointer;color:var(--teal-deep);font-weight:600;padding:6px 2px;list-style:none}
+.why summary::-webkit-details-marker{display:none}
+.why summary::after{content:' ▾'}
+.why[open] summary::after{content:' ▴'}
+.why ol{margin:0;padding-inline-start:20px;display:flex;flex-direction:column;gap:3px;line-height:1.5}
 /* card grid */
 .grid{display:grid;grid-template-columns:24px repeat(8,1fr);gap:4px}
 .grid .sl{display:grid;place-items:center;font-size:19px}
@@ -188,6 +194,7 @@ svg{display:block;flex:none}
 .pthumbs button.on{border-color:var(--teal-deep)}
 .pthumbs img{width:100%;height:100%;object-fit:cover;display:block}
 
+.found{border-top:1px solid var(--line);padding:10px 0 4px}
 /* manual keypad */
 .display{display:flex;flex-direction:column;align-items:center;gap:6px;padding:2px 0}
 .display .big{font:700 54px/1.05 var(--f-num);letter-spacing:-1.5px;color:var(--ink);min-height:57px}
@@ -427,7 +434,33 @@ function resultHTML(r) {
   const tag = r.level !== 'normal' ? `<span class="lvtag">${LV[r.level].ar}${r.mult > 1 ? ' ×' + r.mult : ''}</span>` : '';
   const sub = [`اشترى ${TEAM[C().buyer]}`, r.kaboot ? 'كبوت ' + TEAM[r.kaboot] : '', r.cancelled.length ? 'ملغي: ' + r.cancelled.map(p => projName(p.type)).join('، ') : ''].filter(Boolean).join(' · ');
   return `<div class="result"><span class="st ${st[0]}">${st[1]}${tag}<small>${sub}</small></span>
-    <span class="sc"><span class="u"><bdi dir="ltr">+${r.us}</bdi><em>لنا</em></span><span class="t"><bdi dir="ltr">+${r.them}</bdi><em>لهم</em></span></span></div>`;
+    <span class="sc"><span class="u"><bdi dir="ltr">+${r.us}</bdi><em>لنا</em></span><span class="t"><bdi dir="ltr">+${r.them}</bdi><em>لهم</em></span></span></div>${explainHTML(r)}`;
+}
+/* step-by-step: the same numbers the engine used (r.detail) */
+function explainHTML(r) {
+  const d = r.detail; if (!d) return '';
+  const b = d.buyer, o = OTHER(b), L = [];
+  const n = x => `<bdi dir="ltr">${x}</bdi>`;
+  if (r.kaboot) L.push(`كبوت ${TEAM[r.kaboot]}: كل الأكلات (${d.total} بنط)`);
+  else L.push(`الأبناط: لنا ${n(d.raw.us)} · لهم ${n(d.raw.them)} — المجموع ${d.total} مع الأرض`);
+  const pj = t => d.projAbnat[t];
+  if (pj('us') || pj('them')) L.push(`المشاريع المحسوبة (بالأبناط): لنا ${n('+' + pj('us'))} · لهم ${n('+' + pj('them'))}${r.cancelled.length ? ' · ملغي: ' + r.cancelled.map(p => projName(p.type) + ' ' + TEAM[p.team]).join('، ') : ''}`);
+  if (!r.kaboot) L.push(`المقارنة: المشتري (${TEAM[b]}) ${n(d.sums[b])} مقابل ${n(d.sums[o])} → ${d.sums[b] > d.sums[o] ? 'نجح' : d.sums[b] === d.sums[o] ? 'تعادل' : 'خسر'}`);
+  const pp = t => d.projPts[t] + d.baloot[t];
+  if (d.rule === 'split') {
+    L.push(`التقريب: لنا ${n(d.raw.us)} → ${d.base.us} · لهم ${n(d.raw.them)} → ${d.base.them} (${d.base.us + d.base.them} = ${d.points})`);
+    if (pp('us') || pp('them')) L.push(`+ المشاريع بالنقاط: لنا ${n('+' + pp('us'))} · لهم ${n('+' + pp('them'))}`);
+  } else if (d.rule === 'lost') {
+    L.push(`المشتري خسر → ${TEAM[o]} ياخذ كل نقاط الجولة ${d.points}${d.projPts.us + d.projPts.them ? ` + مشاريع الفريقين ${d.projPts.us + d.projPts.them}` : ''}${d.baloot.us + d.baloot.them ? ' · البلوت يبقى لصاحبه' : ''}`);
+  } else if (d.rule === 'kaboot' || d.rule === 'kabootLost') {
+    L.push(`الكبوت = ${E.MODE[C().mode].kaboot}${d.rule === 'kabootLost' ? ' + كل المشاريع (المشتري خسر)' : ' + مشاريعه'}`);
+  } else if (d.rule === 'doubled') {
+    L.push(`${LV[r.level].ar}: الفائز ياخذ كل شي — ${d.roundPts}${d.projPts.us + d.projPts.them ? ` + المشاريع ${d.projPts.us + d.projPts.them}×${d.projMult}` : ''}${d.baloot.us + d.baloot.them ? ' · البلوت 2 لصاحبه (ما يتضاعف)' : ''}`);
+  } else if (d.rule === 'gahwa') {
+    L.push(`القهوة: ${TEAM[r.gahwa]} يكسب الجولة → يوصل ${S.target} ويكسب الصكة`);
+  }
+  L.push(`النتيجة: لنا ${n('+' + r.us)} · لهم ${n('+' + r.them)}`);
+  return `<details class="why"><summary>كيف انحسبت؟</summary><ol>${L.map(x => `<li>${x}</li>`).join('')}</ol></details>`;
 }
 let lastSaved = null, saving = false;
 function commit(r, how) {
@@ -710,7 +743,7 @@ function shrink(file) {
   });
 }
 let P = null; // pile: {team, cards:Set('AS'), ai:Set, last, err, photos:[{id,url,src,state,err,cards:Set}], cur, unread}
-const pileNew = () => ({ team: C().buyer, cards: new Set(), ai: new Set(), last: null, err: '', photos: [], cur: -1, unread: 0 });
+const pileNew = () => ({ kind: null, team: null, owners: [], cards: new Set(), ai: new Set(), last: null, err: '', photos: [], cur: -1, unread: 0 });
 const busy = () => P && P.photos.some(x => x.state === 'reading');
 const CAM_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="4"/></svg>';
 const LIB_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>';
@@ -782,9 +815,15 @@ $('#photoLib').onchange = onPicked;
 function pileCalc() {
   const c = C(), Mx = E.MODE[c.mode], n = P.cards.size;
   if (needTrump()) return { err: 'اختر الحكم أول' };
+  if (!P.kind) return { needKind: true };
+  const cards = [...P.cards].map(k => ({ rank: k.slice(0, -1), suit: k.slice(-1) }));
+  if (P.kind === 'hand') { // a hand shows projects only; it says nothing about who won which trick
+    if (n > 8) return { warn: `${n} ورقة — يد اللاعب 8 أوراق بالكثير. صحّح بالضغط على الأوراق أو اختر «كل أكلات فريق».` };
+    return { hand: E.detectProjects(cards, c.mode, c.trump) };
+  }
+  if (!P.team) return { needTeam: true };
   if (!n) return {};
   if (n % 4) return { warn: `${n} ورقة — كل أكلة 4 أوراق، فالعدد لازم يكون 4 أو 8 أو 12… صحّح بالضغط على الأوراق.` };
-  const cards = [...P.cards].map(k => ({ rank: k.slice(0, -1), suit: k.slice(-1) }));
   if (n === 32) return { r: score({ kaboot: P.team }), ab: Mx.total };
   if (!P.last) return { needLast: true, ab: E.handAbnat(cards, c.mode, c.trump) };
   const ab = E.pileAbnat(cards, c.mode, c.trump, P.last === P.team);
@@ -812,8 +851,10 @@ function pileSheet() {
       ${ph.state === 'err' ? `<div class="err">${ph.err}</div>` : ''}` : (noAI ? '' : `<button class="soft press" data-a="addPhoto">صوّر أو اختر صورة</button>`);
   openSheet('pile', `${head(`الأكلات <span class="hint" style="font-size:13px;font-weight:600">· ${modeLabel(c)}${lvl}</span>`)}
     <div class="stack">
-      <div class="seg alt" id="segPile"><button data-a="pTeam" data-v="us">أكلاتنا</button><button data-a="pTeam" data-v="them">أكلاتهم</button></div>
       ${preview}
+      <div class="opt"><span class="lb">وش في الصورة؟</span>
+        <div class="seg alt" id="segKind"><button data-a="pKind" data-v="tricks">كل أكلات فريق</button><button data-a="pKind" data-v="hand">يد لاعب</button></div></div>
+      <div id="pTeamBox"></div>
       <span class="stat" id="pStat">${status}</span>
       ${noAI ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? '' : ' أو مفتاح Anthropic (من ⋯)'}. اختر الأوراق هنا وتنحسب مباشرة.</div>` : ''}
       ${P.err ? `<div class="err">${P.err}</div>` : ''}${P.unread ? `<div class="warn">فيه ${P.unread} ورقة ما انقرت — أضفها بالضغط عليها.</div>` : ''}
@@ -827,14 +868,30 @@ function pileSheet() {
 }
 function pileUpdate() {
   if (SK !== 'pile') return;
-  setSeg($('#segPile'), P.team, ['us', 'them']);
+  setSeg($('#segKind'), P.kind, ['tricks', 'hand']);
+  $('#pTeamBox').innerHTML = P.kind === 'tricks' ? `<div class="opt"><span class="lb">أكلات مين؟ (لازم تكون كل الأوراق اللي أكلها الفريق، مو يد لاعب)</span>
+    <div class="seg alt" id="segPile"><button data-a="pTeam" data-v="us">أكلاتنا</button><button data-a="pTeam" data-v="them">أكلاتهم</button></div></div>`
+    : P.kind === 'hand' ? '<div class="note">صورة اليد تكشف المشاريع بس — ما تقول مين أكل وش. بعدها نطلب منك نتيجة الأكلات.</div>' : '';
+  if ($('#segPile')) setSeg($('#segPile'), P.team, ['us', 'them']);
   const o = pileCalc(), n = P.cards.size;
-  $('#pLast').innerHTML = (n && n % 4 === 0 && n < 32) ? `<div class="opt"><span class="lb">الأرض (آخر أكلة +10) — مين أخذها؟</span><div class="seg alt" id="segLast"><button data-a="pLast" data-v="us">لنا</button><button data-a="pLast" data-v="them">لهم</button></div></div>` : '';
+  $('#pLast').innerHTML = (P.kind === 'tricks' && P.team && n && n % 4 === 0 && n < 32) ? `<div class="opt"><span class="lb">الأرض (آخر أكلة +10) — مين أخذها؟</span><div class="seg alt" id="segLast"><button data-a="pLast" data-v="us">لنا</button><button data-a="pLast" data-v="them">لهم</button></div></div>` : '';
   const sl = $('#segLast'); if (sl) setSeg(sl, P.last, ['us', 'them']);
-  if (!busy() && n) $('#pStat').innerHTML = `<b>${n}</b> ورقة · <b>${o.ab != null ? o.ab : '…'}</b> بنط`;
-  $('#pRes').innerHTML = o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : o.needLast ? '' : resultHTML(o.r);
-  const go = $('#pGo'); go.disabled = !(o.r && !o.r.error) || busy();
-  go.textContent = o.needLast ? 'حدد مين أخذ الأرض' : (S.edit ? 'احفظ التعديل' : 'سجّل الجولة');
+  if (!busy() && n) $('#pStat').innerHTML = `<b>${n}</b> ورقة` + (P.kind === 'tricks' && o.ab != null ? ` · <b>${o.ab}</b> بنط` : '');
+  const go = $('#pGo');
+  if (o.hand) {
+    $('#pRes').innerHTML = o.hand.length ? `<div class="opt"><span class="lb">مشاريع في هذي اليد — لمين؟</span>${o.hand.map((p, i) => `<div class="found"><b>${projName(p.type)}</b> <span class="hint" dir="ltr" style="unicode-bidi:isolate">${p.cards.map(k => k.slice(0, -1) + SUIT[k.slice(-1)][0]).join(' ')}</span>
+      <div class="seg alt" id="own${i}" style="--n:3;margin-top:6px"><button data-a="pOwn" data-i="${i}" data-v="us">لنا</button><button data-a="pOwn" data-i="${i}" data-v="them">لهم</button><button data-a="pOwn" data-i="${i}" data-v="no">ما انعلن</button></div></div>`).join('')}</div>`
+      : (n ? '<div class="note">ما فيه مشاريع في هذي الأوراق.</div>' : '');
+    o.hand.forEach((p, i) => setSeg($('#own' + i), P.owners[i] || null, ['us', 'them', 'no']));
+    const all = o.hand.every((_, i) => P.owners[i]);
+    go.disabled = busy() || !all; go.dataset.a = 'pHand';
+    go.textContent = all ? (o.hand.some((_, i) => P.owners[i] !== 'no') ? 'أضف المشاريع وأدخل نتيجة الأكلات' : 'أدخل نتيجة الأكلات') : 'حدد صاحب كل مشروع';
+    return;
+  }
+  go.dataset.a = 'pSave';
+  $('#pRes').innerHTML = o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : (o.needLast || o.needKind || o.needTeam) ? '' : resultHTML(o.r);
+  go.disabled = !(o.r && !o.r.error) || busy();
+  go.textContent = o.needKind ? 'حدد وش في الصورة' : o.needTeam ? 'حدد أكلات مين' : o.needLast ? 'حدد مين أخذ الأرض' : (S.edit ? 'احفظ التعديل' : 'سجّل الجولة');
 }
 function nudgeSuits() {
   const s = $('#suits'); s.classList.remove('need'); void s.offsetWidth; s.classList.add('need');
@@ -910,10 +967,23 @@ const A = {
     const b = document.querySelector(`.cd[data-v="${v}"]`); if (b) { b.classList.toggle('on', P.cards.has(v)); b.classList.toggle('ai', P.ai.has(v)); b.setAttribute('aria-pressed', String(P.cards.has(v))); }
     pileUpdate(); },
   pTeam: v => { P.team = v; pileUpdate(); },
+  pKind: v => { P.kind = v; P.owners = []; pileUpdate(); },
+  pOwn: (v, el) => { P.owners[+el.dataset.i] = v; pileUpdate(); },
+  pHand: () => {
+    const o = pileCalc(); if (!o.hand) return;
+    const c = C(); let added = 0;
+    o.hand.forEach((p, i) => { const t = P.owners[i]; if (t !== 'us' && t !== 'them') return;
+      const next = c.projects.concat([{ type: p.type, team: t }]);
+      if (!E.validateProjects(c.mode, next).length) { c.projects = next; added++; } });
+    if (!hasSameBest()) c.tieWinner = null;
+    P = null; save(); renderProjRow(); closeSheet();
+    if (added) toast(`أضفنا ${added} مشروع — أدخل نتيجة الأكلات`);
+    setTimeout(() => { manualSheet(); if (SK === 'manual') $('#mVoice').textContent = 'من اليد ما نعرف مين أكل وش: أدخل أبناط الأكلات (أو كبوت).'; }, 380);
+  },
   pLast: v => { P.last = v; pileUpdate(); },
   pickCam: () => $('#photoCam').click(),
   pickLib: () => $('#photoLib').click(),
-  pickGrid: () => pileSheet(),
+  pickGrid: () => { P.kind = 'tricks'; pileSheet(); },
   addPhoto: () => srcSheet(),
   retake: v => { const ph = P.photos.find(x => String(x.id) === v); if (!ph) return; PICK.replace = ph.id; $(ph.src === 'cam' ? '#photoCam' : '#photoLib').click(); },
   delPhoto: v => { const i = P.photos.findIndex(x => String(x.id) === v); if (i < 0) return; dropPhotoCards(P.photos[i]); P.photos.splice(i, 1); P.cur = P.photos.length - 1; pileSheet(); },

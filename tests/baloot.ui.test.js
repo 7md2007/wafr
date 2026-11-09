@@ -104,9 +104,19 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   await fc.setFiles({ name: 'cards.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
   ok('library photo: preview shown and sent to the same recognition call', await p.isVisible('.pv img') && await p.evaluate(() => window.__calls) === 1);
   t = await txt('#pStat'); ok('8 cards from the reply (duplicate ignored)', t.includes('8'), t);
+  ok('no score until you say what the photo shows', (await txt('#pGo')).includes('وش في الصورة') && await p.isDisabled('#pGo') && !(await p.$('#pRes .result')));
+  // a HAND photo never becomes a score: it only offers its projects and then asks for the trick result
+  await p.click('#segKind [data-v=hand]');
+  t = await txt('#pRes');
+  ok('hand photo: no score, lists its projects (سرا ♠, سرا ♥, بلوت)', !(await p.$('#pRes .result')) && (t.match(/سرا/g) || []).length === 2 && t.includes('بلوت'), t);
+  ok('hand photo: must say who owns each project first', await p.isDisabled('#pGo') && (await txt('#pGo')).includes('صاحب'));
+  await p.click('#segKind [data-v=tricks]');
+  ok('tricks: no score until the team is chosen (no silent default)', (await txt('#pGo')).includes('أكلات مين') && await p.isDisabled('#pGo'));
+  await p.click('#segPile [data-v=us]');
   ok('asks who took الأرض before saving', (await txt('#pGo')).includes('الأرض') && await p.isDisabled('#pGo'));
   await p.click('#segLast [data-v=us]'); t = await txt('#pRes');
   ok('pile 66 + بلوت 20 = 86 < 96 → buyer loses: us +2, them +16', t.includes('خسر') && t.includes('+2') && t.includes('+16'), t);
+  ok('"how it was scored" shows the same numbers', t.includes('كيف انحسبت') && t.includes('66') && t.includes('96') && t.includes('كل نقاط الجولة 16'), t);
   await p.click('.cd[data-v=QH]'); ok('7 cards: warns about whole tricks', (await txt('#pRes')).includes('4'));
   await p.click('.cd[data-v=QH]');
   // replace the photo: its cards are removed, then the new photo's cards come in
@@ -132,6 +142,21 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   ok('recognition can be corrected by tapping cards', added7 && removed7);
   await p.click('#pGo'); await wait(600);
   ok('scan saved: 108–30', await score() === '108-30', await score());
+
+  console.log('hand photo flow');
+  await p.evaluate(() => { window.__cards = [['K', 'H'], ['Q', 'H'], ['J', 'H'], ['7', 'S'], ['8', 'S'], ['9', 'D'], ['8', 'C'], ['A', 'C']]; });
+  await p.click('#bScan'); await wait(380);
+  [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=pickCam]')]);
+  await fc.setFiles({ name: 'hand.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  await p.click('#segKind [data-v=hand]');
+  await p.click('#own0 [data-v=us]'); await p.click('#own1 [data-v=us]');
+  ok('button adds projects and asks for tricks', (await txt('#pGo')).includes('أدخل نتيجة الأكلات') && !(await p.isDisabled('#pGo')));
+  await p.click('#pGo'); await wait(900);
+  ok('hand projects added (سرا + بلوت for us) and the keypad asks for the trick result',
+    await p.evaluate(() => S.cur.projects.map(x => x.type + x.team).sort().join(',')) === 'balootus,sirasus'.replace('sirasus', 'siraus') && await p.evaluate(() => SK) === 'manual' && (await txt('#mVoice')).includes('أبناط'), await p.evaluate(() => S.cur.projects));
+  ok('no round was saved from the hand photo', await score() === '108-30' && await p.evaluate(() => S.rounds.length) === 4);
+  await closeSh();
+  await p.evaluate(() => { S.cur.projects = []; save(); renderHome(); });
 
   console.log('history, edit, undo, refresh');
   await p.reload(); await wait(500);
