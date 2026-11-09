@@ -115,19 +115,16 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   await fc.setFiles({ name: 'cards.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
   ok('library photo: preview shown and sent to the same recognition pipeline (overview + zoom crops = 2 calls)', await p.isVisible('.pv img') && await p.evaluate(() => window.__calls) === 2);
   t = await txt('#pStat'); ok('8 cards from the reply (a card read twice is counted once)', t.includes('8'), t);
-  ok('no score until you say what the photo shows', (await txt('#pGo')).includes('وش في الصورة') && await p.isDisabled('#pGo') && !(await p.$('#pRes .result')));
-  // a HAND photo never becomes a score: it only offers its projects and then asks for the trick result
-  await p.click('#segKind [data-v=hand]');
-  t = await txt('#pRes');
-  ok('hand photo: no score, lists its projects (سرا ♠, سرا ♥, بلوت)', !(await p.$('#pRes .result')) && (t.match(/سرا/g) || []).length === 2 && t.includes('بلوت'), t);
-  ok('hand photo: must say who owns each project first', await p.isDisabled('#pGo') && (await txt('#pGo')).includes('صاحب'));
-  await p.click('#segKind [data-v=tricks]');
-  ok('tricks: no score until the team is chosen (no silent default)', (await txt('#pGo')).includes('أكلات مين') && await p.isDisabled('#pGo'));
-  await p.click('#segPile [data-v=us]');
-  ok('asks who took الأرض before saving', (await txt('#pGo')).includes('الأرض') && await p.isDisabled('#pGo'));
+  ok('no photo-type buttons: the scan is our team\'s cards', !(await p.$('#segKind')) && !(await p.$('[data-a=pKind]')) && (await txt('.sh-h h2')).includes('أكلاتنا'));
+  ok('asks the two things a photo cannot show: last trick, and whether these are ALL our tricks', await p.isVisible('#segLast') && await p.isVisible('#segAll') && await p.isDisabled('#pGo'));
+  await p.click('#segAll [data-v="1"]');
+  ok('still asks who took الأرض', (await txt('#pGo')).includes('الأرض') && await p.isDisabled('#pGo'));
   await p.click('#segLast [data-v=us]'); t = await txt('#pRes');
-  ok('pile 66 + بلوت 20 = 86 < 96 → buyer loses: us +2, them +16', t.includes('خسر') && t.includes('+2') && t.includes('+16'), t);
+  ok('our pile 66 + بلوت 20 = 86 < 96 → buyer loses: us +2, them +16', t.includes('خسر') && t.includes('+2') && t.includes('+16'), t);
   ok('"how it was scored" shows the same numbers', t.includes('كيف انحسبت') && t.includes('66') && t.includes('96') && t.includes('كل نقاط الجولة 16'), t);
+  await p.click('#segAll [data-v="0"]');
+  ok('"فيه ناقص": shows our abnat so far (66) and does NOT give the rest to them', (await txt('#pRes')).includes('66') && !(await p.$('#pRes .result')) && await p.isDisabled('#pGo'));
+  await p.click('#segAll [data-v="1"]');
   await openGrid(); await p.click('.cd[data-v=QH]'); ok('7 cards: warns about whole tricks', (await txt('#pRes')).includes('4'));
   await p.click('.cd[data-v=QH]');
   // replace the photo: its cards are removed, then the new photo's cards come in
@@ -147,7 +144,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   await p.evaluate(() => { window.__cards = [['A', 'S'], ['10', 'S'], ['K', 'S'], ['Q', 'S'], ['A', 'H'], ['10', 'H'], ['K', 'H'], ['Q', 'H']]; });
   [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=retake]')]);
   await fc.setFiles({ name: 'd.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
-  await p.click('#segLast [data-v=us]');
+  await p.click('#segLast [data-v=us]'); await p.click('#segAll [data-v="1"]');
   await p.click('.cd[data-v="7D"]'); const added7 = await p.evaluate(() => P.cards.has('7D'));
   await p.click('.cd[data-v="7D"]'); const removed7 = !(await p.evaluate(() => P.cards.has('7D')));
   ok('recognition can be corrected by tapping cards', added7 && removed7);
@@ -161,11 +158,10 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   await fc.setFiles({ name: 'u.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
   ok('every recognised card is boxed on the photo (4 boxes)', (await p.$$('.pvin .bx')).length === 4);
   ok('the unsure card is marked and opened for checking, with its zoom and the AI\'s best guess', (await p.$$('.bx.s-check')).length === 1 && await p.isVisible('.fix img') && (await txt('.fix')).includes('Q♥'));
-  await p.click('#segKind [data-v=tricks]'); await p.click('#segPile [data-v=us]');
   ok('no score while a card still needs checking', !(await p.$('#pRes .result')) && await p.isDisabled('#pGo') && (await txt('#pGo')).includes('أكّد'));
   await p.click('.fixopts [data-v=QD]');
   ok('one tap on the alternative (Q♦) fixes it; the card list updates', await p.evaluate(() => P.cards.has('QD') && !P.cards.has('QH')) && (await p.$$('.bx.s-check')).length === 0);
-  ok('then the round can be scored (asks for الأرض next)', (await txt('#pGo')).includes('الأرض'));
+  ok('then the round can be scored (asks for the remaining questions next)', !(await txt('#pGo')).includes('أكّد'));
   await p.click('.bx >> nth=0'); await wait(150);
   await p.click('[data-a=fxRank][data-v=A]'); await p.click('[data-a=fxSuit][data-v=C]'); await p.click('.fixacts .go');
   ok('big rank + suit buttons then تأكيد change any card', await p.evaluate(() => P.cards.has('AC')));
@@ -189,12 +185,7 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   let cn = await counts();
   ok('drifted duplicate of A♣ is one card: photo, list and status all say 4', cn.ov === '4' && cn.list === '4' && cn.stat === '4' && cn.boxes === 4, cn);
   ok('no conflict shown for it', (await p.$$('.ch.conf')).length === 0);
-  await p.click('#segKind [data-v=loose]');
-  ok('"أوراق متفرقة": counted, never scored', (await txt('#pGo')).includes('للعدّ') && await p.isDisabled('#pGo'));
-  await p.click('#segKind [data-v=some]');
-  ok('"بعض الأكلات": 4 cards = 1 trick, no score yet', (await txt('#pRes')).includes('1 أكلة') && await p.isDisabled('#pGo'));
-  await p.click('#segKind [data-v=tricks]');
-  ok('missing info is listed clearly', (await txt('#pRes')).includes('أكلات مين'));
+  ok('missing info is listed clearly', (await txt('#pRes')).includes('الأرض') && (await txt('#pRes')).includes('كل أكلاتنا'));
   await closeSh();
   // the same answer lists A♣ twice → real conflict: both flagged, nothing renamed, nothing added
   await p.evaluate(() => {
@@ -224,20 +215,43 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
   await closeSh();
   await p.evaluate(() => { window.__passA = null; window.__passB = null; window.__recheck = null; });
 
-  console.log('hand photo flow');
-  await p.evaluate(() => { window.__cards = [['K', 'H'], ['Q', 'H'], ['J', 'H'], ['7', 'S'], ['8', 'S'], ['9', 'D'], ['8', 'C'], ['A', 'C']]; });
+  console.log('confirmation bug: 6 unsure cards, confirm each once');
+  await p.evaluate(() => {
+    const L = [['A', 'S'], ['10', 'H'], ['K', 'D'], ['9', 'C'], ['Q', 'S'], ['7', 'H'], ['8', 'D'], ['J', 'C']];
+    window.__passA = () => ({ cards: L.map(([r, su], i) => ({ box: [20 + i * 120, 100, 120 + i * 120, 450], rank: r, suit: su, conf: i < 6 ? 0.5 : 0.95 })) });
+    window.__passB = null; window.__recheck = () => ({ cards: [] });
+  });
   await p.click('#bScan'); await wait(380);
   [fc] = await Promise.all([p.waitForEvent('filechooser'), p.click('[data-a=pickCam]')]);
-  await fc.setFiles({ name: 'hand.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
-  await p.click('#segKind [data-v=hand]');
-  await p.click('#own0 [data-v=us]'); await p.click('#own1 [data-v=us]');
-  ok('button adds projects and asks for tricks', (await txt('#pGo')).includes('أدخل نتيجة الأكلات') && !(await p.isDisabled('#pGo')));
-  await p.click('#pGo'); await wait(900);
-  ok('hand projects added (سرا + بلوت for us) and the keypad asks for the trick result',
-    await p.evaluate(() => S.cur.projects.map(x => x.type + x.team).sort().join(',')) === 'balootus,sirasus'.replace('sirasus', 'siraus') && await p.evaluate(() => SK) === 'manual' && (await txt('#mVoice')).includes('أبناط'), await p.evaluate(() => S.cur.projects));
-  ok('no round was saved from the hand photo', await score() === '108-30' && await p.evaluate(() => S.rounds.length) === 4);
+  await fc.setFiles({ name: 'c6.png', mimeType: 'image/png', buffer: PNG }); await wait(900);
+  const pend = () => p.evaluate(() => pending().length);
+  ok('8 cards, 6 need confirmation, the first is open', await pend() === 6 && await p.isVisible('.fixacts .go'));
+  const seen = [];
+  for (let k = 6; k >= 1; k--) {
+    const id = await p.evaluate(() => P.sel && P.sel.id); seen.push(id);
+    await p.click('.fixacts .go'); await wait(80);
+    const left = await pend();
+    if (left !== k - 1) { ok(`تأكيد #${7 - k} lowers the count by exactly one`, false, { left, want: k - 1 }); break; }
+  }
+  ok('each تأكيد lowered the count by one: 6 → 0, each card opened once, then advanced', await pend() === 0 && new Set(seen).size === 6);
+  ok('success feedback shown', (await txt('#tMsg')).includes('كل الأوراق مؤكدة'));
+  ok('confirmed cards stay confirmed (never reopened)', await p.evaluate(() => P.photos[0].dets.filter(d => d.user).length) === 6 && await p.evaluate(() => P.sel) === null);
+  await p.click('#segLast [data-v=us]'); await p.click('#segAll [data-v="1"]');
+  ok('with everything answered, the round can be saved', !(await p.isDisabled('#pGo')) && !!(await p.$('#pRes .result')));
+  // a card cannot be confirmed as a card already confirmed elsewhere in the photo
+  await p.evaluate(() => { const d = P.photos[0].dets[7]; d.status = 'check'; P.sel = { ph: P.photos[0].id, id: d.id }; pileSheet(); });
+  await p.click('[data-a=fxRank][data-v=A]'); await p.click('[data-a=fxSuit][data-v=S]'); await p.click('.fixacts .go'); await wait(80);
+  ok('confirming a second A♠ is refused with a message (one of each card); nothing changes', (await txt('#tMsg')).includes('مؤكدة لورقة ثانية') && await p.evaluate(() => P.photos[0].dets[7].rank + P.photos[0].dets[7].suit) === 'JC' && await pend() === 1);
+  await p.click('[data-a=fxRank][data-v=J]'); await p.click('[data-a=fxSuit][data-v=C]'); await p.click('.fixacts .go'); await wait(80);
+  ok('confirming its real identity clears it', await pend() === 0);
+  // a conflict that goes away releases the other card
+  await p.evaluate(() => { const ds = P.photos[0].dets; ds[6].rank = 'J'; ds[6].suit = 'C'; ds[6].user = false; ds[7].user = false; ds[6].status = 'ok'; ds[7].status = 'ok'; conflictsIn(P.photos[0].id); rebuild(); pileSheet(); });
+  ok('two unconfirmed J♣ → both flagged', await pend() === 2);
+  await p.evaluate(() => { P.sel = { ph: P.photos[0].id, id: P.photos[0].dets[6].id }; pileSheet(); });
+  await p.click('[data-a=detRemove]'); await wait(80);
+  ok('removing one releases the other (count of pending back to 0)', await pend() === 0, await pend());
   await closeSh();
-  await p.evaluate(() => { S.cur.projects = []; save(); renderHome(); });
+  await p.evaluate(() => { window.__passA = null; window.__passB = null; window.__recheck = null; });
 
   console.log('history, edit, undo, refresh');
   await p.reload(); await wait(500);

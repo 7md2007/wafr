@@ -156,6 +156,21 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   Photo types: كل أكلات فريق (scored) / بعض الأكلات (count + abnat, no score) / يد لاعب (projects) / أوراق متفرقة (count only).
   "باقي قبل الحساب" lists missing info. Grid folded under "ورقة ناقصة؟" (`P.gridOpen`).
   Bench also runs `baloot/bench-real.js` (the owner's 2 real photos, 10 known cards each) twice: identity accuracy, extras, duplicates, stability.
+- Scanner Nov 9 c (owner's request): photo-type selector REMOVED — every scan = كل أكلات فريقنا (P.kind 'tricks', P.team 'us').
+  Two questions only: الأرض لنا/لهم and "هذي كل أكلاتنا؟" (`P.complete`). Not complete → shows our abnat so far, no score (the rest is NOT
+  given to them). Hand/loose/some modes are gone from the UI.
+  Confirmation bug causes: (1) confirming one of two same-identity boxes flipped both back to "check" (endless loop); (2) a card flagged
+  only by a conflict stayed flagged after the conflict was gone; (3) ok needed ≥80% even when both passes agreed. Fixes: `markConflicts()`
+  (user-confirmed card wins, the other box loses that identity and asks; `byConflict` cards are released; user cards never touched),
+  `detPick` refuses an identity already confirmed for another box in the photo (toast), confirms at once, toast "✓ X — باقي N", advances;
+  merge: ok if both passes agree at ≥60%. CSS bug: setSeg's 'empty' class collided with `.empty` (18px padding) → renamed `noval`.
+- Light correction `enhance()`/`enhancePixels()` (vision.js): denoise when dark → white-envelope shadow/uneven-light removal (bare table
+  untouched) → per-channel white balance to the cards' white (strong casts allowed) → contrast/gamma → mild sharpen. Works on a copy.
+  scanPhoto: card regions from photo + corrected copy; pass A = photo as taken, pass B crops + zooms = corrected copy; pass C re-reads
+  each uncertain card as a PAIR (original + corrected), turned upright (`uprightAngle`, moments), rank and suit with separate confidences;
+  `cardColor()` local red/black ink check (number cards and aces, not overlapped) — a wrong-colour suit is only flagged, never changed.
+  Measured (no AI): dark room 4/8→8/8 card regions, warm light 0/8→8/8 (cast 9.6→1.6), dark+warm+shadow 0/10→10/10; colour check on
+  synthetic number cards/aces: 95 right, 0 wrong, 8 undecided. Synthetic scenes now 21 (adds dark, warm, one-side light, blur, combined).
 - Accuracy test (⋯ → اختبار دقة قراءة الأوراق): `baloot/synth.js` draws 16 scenes with exact truth (clear, fan, rotated, covered, mixed,
   low light, shadow, far, pile, tilted, felt/wood/white tables, 1–32 cards) → real pipeline → recall, false cards, rank/suit accuracy,
   complete images, time (saved in `baloot.bench`). Real photos for tests: `tests/vision-data/real1.png`, `real2.png` (10 cards each).
@@ -166,4 +181,4 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   Doubled round = winner takes all: 26 or 16 × level + all projects × level (setting: ×2 max in ثري/فور), بلوت 2 to its owner; tie → buyer loses;
   kaboot × level (setting: not multiplied). قهوة: round winner gets enough points to reach the target and wins the game.
 - Tests: `node tests/baloot.test.js` (80, plain node), `node tests/baloot.examples.test.js` (36 hand-calculated worked examples;
-  `--write` regenerates `baloot/SCORING-EXAMPLES.md`), `node tests/baloot.vision.test.js` (27) and `node tests/baloot.ui.test.js` (89, Playwright; AI reply is a stub).
+  `--write` regenerates `baloot/SCORING-EXAMPLES.md`), `node tests/baloot.vision.test.js` (37) and `node tests/baloot.ui.test.js` (92, Playwright; AI reply is a stub).

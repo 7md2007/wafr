@@ -18,6 +18,17 @@ ok('crop boxes are mapped back to photo coordinates (Q♥ crop box 100–200 × 
 ok('a card both passes read the same way is "ok" with higher confidence', m.find(c => c.rank === 'Q').status === 'ok' && m.find(c => c.rank === 'Q').conf === 1);
 m = V.mergeDetections([{ box: B(100, 100, 200, 300), rank: 'Q', suit: 'H', conf: 0.8 }], [{ crop: [0, 0, 1, 1], cards: [{ box: B(105, 98, 205, 302), rank: 'Q', suit: 'D', conf: 0.8 }] }]);
 ok('passes disagree (Q♥ vs Q♦) → one card, status "check", the other as an option', m.length === 1 && m[0].status === 'check' && m[0].alts.length >= 1, m);
+console.log('regressions: confirmation and conflicts');
+let cc = [{ id: 1, rank: 'J', suit: 'C', conf: 0.95, status: 'ok', box: B(0, 0, 100, 100) }, { id: 2, rank: 'J', suit: 'C', conf: 0.95, status: 'ok', box: B(500, 0, 600, 100) }];
+V.markConflicts(cc);
+ok('two unconfirmed cards with one identity → both flagged', cc.every(c => c.status === 'check' && c.conflict));
+cc[1].status = 'removed'; V.markConflicts(cc);
+ok('the conflict goes away → the remaining card is released (back to ok)', cc[0].status === 'ok' && !cc[0].conflict);
+cc = [{ id: 1, rank: 'A', suit: 'S', conf: 0.9, status: 'ok', box: B(0, 0, 100, 100), user: true }, { id: 2, rank: 'A', suit: 'S', conf: 0.9, status: 'ok', box: B(500, 0, 600, 100), alts: ['A' + 'C'] }];
+V.markConflicts(cc);
+ok('a card the user confirmed wins: the other is asked for its real identity (A♠ moved to suggestions), user card untouched', cc[0].status === 'ok' && cc[1].rank === null && cc[1].status === 'check' && cc[1].alts[0] === 'AS');
+cc = [{ id: 1, rank: 'Q', suit: 'H', conf: 0.65, status: 'ok', box: B(0, 0, 100, 100), passes: ['A', 'B'] }];
+ok('two passes agreeing at 65% is enough (fewer needless confirmations)', V.mergeDetections([{ box: B(0, 0, 100, 300), rank: 'Q', suit: 'H', conf: 0.6 }], [{ crop: [0, 0, 1, 1], cards: [{ box: B(0, 0, 100, 300), rank: 'Q', suit: 'H', conf: 0.55 }] }])[0].status === 'ok');
 console.log('regressions: 14 vs 13 cards, "A♣ in another location"');
 // R1: the overview and a zoom crop both read A♣ but their boxes landed apart → it is ONE card (used to become two → 14 vs 13)
 m = V.mergeDetections([{ box: B(100, 100, 200, 300), rank: 'A', suit: 'C', conf: 0.9 }], [{ crop: [0, 0, 1, 1], cards: [{ box: B(420, 380, 520, 580), rank: 'A', suit: 'C', conf: 0.9 }] }]);
@@ -57,7 +68,10 @@ ok('low confidence alone → "check"', V.mergeDetections([{ box: B(1, 1, 100, 10
   const syn = await p.evaluate(() => BalootSynth.SCENES.map(s => {
     const { canvas, truth } = BalootSynth.makeScene(s); const t0 = performance.now();
     const sm = BalootVision.canvasOf(canvas, 512); const d = sm.getContext('2d').getImageData(0, 0, sm.width, sm.height);
-    const det = BalootVision.findCardBlobs(d.data, sm.width, sm.height); const ms = performance.now() - t0;
+    const det0 = BalootVision.findCardBlobs(d.data, sm.width, sm.height); const ms = performance.now() - t0;
+    // as in scanPhoto(): regions from the photo and from its light-corrected copy
+    const e = BalootVision.enhance(canvas, 1600), sm2 = BalootVision.canvasOf(e.canvas, 512), d2 = sm2.getContext('2d').getImageData(0, 0, sm2.width, sm2.height), det1 = BalootVision.findCardBlobs(d2.data, sm2.width, sm2.height);
+    const det = { blobs: det0.blobs.concat(det1.blobs.filter(b => !det0.blobs.some(a => BalootVision.iou(a.box, b.box) > 0.5))), reliable: det0.reliable || det1.reliable };
     const crops = BalootVision.cropPlan(det, 8);
     const inside = (bx, t) => { const cx = (t.box[0] + t.box[2]) / 2, cy = (t.box[1] + t.box[3]) / 2; return cx >= bx[0] && cx <= bx[2] && cy >= bx[1] && cy <= bx[3]; };
     const ident = truth.filter(t => t.identifiable);
@@ -86,6 +100,37 @@ ok('low confidence alone → "check"', V.mergeDetections([{ box: B(1, 1, 100, 10
     ok(`${f}: all 10 cards fall inside the ${r.crops} zoom crops`, r.miss === 0, r);
   }
 
+  console.log('\nlight correction (no AI): dark, warm, uneven, blurry photos');
+  const ll = await p.evaluate(() => BalootSynth.SCENES.filter(x => x.dark || x.warm || x.uneven || x.blur).map(s => {
+    const { canvas, truth } = BalootSynth.makeScene(s);
+    const cov = src => { const sm = BalootVision.canvasOf(src, 512), d = sm.getContext('2d').getImageData(0, 0, sm.width, sm.height), det = BalootVision.findCardBlobs(d.data, sm.width, sm.height);
+      const id = truth.filter(t => t.identifiable); return id.filter(t => { const cx = (t.box[0] + t.box[2]) / 2, cy = (t.box[1] + t.box[3]) / 2; return det.blobs.some(b => cx >= b.box[0] && cx <= b.box[2] && cy >= b.box[1] && cy <= b.box[3]); }).length; };
+    const white = src => { const c = BalootVision.canvasOf(src, 800), g = c.getContext('2d'); let r = 0, gg = 0, bb = 0, n = 0;
+      for (const t of truth.filter(x => x.visible > 0.8)) { const d = g.getImageData(((t.box[0] + t.box[2]) / 2) * c.width - 3, ((t.box[1] + t.box[3]) / 2) * c.height - 3, 6, 6).data; for (let i = 0; i < d.length; i += 4) { r += d[i]; gg += d[i + 1]; bb += d[i + 2]; n++; } }
+      return Math.max(r, gg, bb) / Math.max(1, Math.min(r, gg, bb)); };
+    const t0 = performance.now(), e = BalootVision.enhance(canvas, 1600), ms = performance.now() - t0;
+    return { name: s.name, n: truth.filter(t => t.identifiable).length, before: cov(canvas), after: cov(e.canvas), castBefore: +white(canvas).toFixed(2), castAfter: +white(e.canvas).toFixed(2), ms: Math.round(ms), w: canvas.width, h: canvas.height };
+  }));
+  ll.forEach(r => console.log(`      ${r.name}: card regions ${r.before}/${r.n} → ${r.after}/${r.n} · colour cast ${r.castBefore} → ${r.castAfter} · ${r.ms} ms`));
+  ok('after correction every readable card is inside a card region in all dark/warm/uneven/blurry scenes', ll.every(r => r.after === r.n), ll);
+  ok('correction never loses a region the original photo had', ll.every(r => r.after >= r.before));
+  ok('warm (yellow) light: colour cast reduced to under 2 (was 5–10)', ll.filter(r => r.castBefore > 3).every(r => r.castAfter < 2), ll.map(r => [r.name, r.castBefore, r.castAfter]));
+  ok('the photo itself is not changed (correction works on a copy)', await p.evaluate(() => { const { canvas } = BalootSynth.makeScene(BalootSynth.SCENES[17]); const g = canvas.getContext('2d'); const a = g.getImageData(0, 0, 50, 50).data.join(); BalootVision.enhance(canvas, 1600); return g.getImageData(0, 0, 50, 50).data.join() === a; }));
+  for (const f of ['real1.png', 'real2.png']) {
+    const data = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'vision-data', f)).toString('base64');
+    const r = await p.evaluate(async ([data, centres]) => {
+      const img = new Image(); img.src = data; await img.decode();
+      const cv = BalootVision.canvasOf(img, 1200), g = cv.getContext('2d'); // simulate a dim room with a warm bulb
+      g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = 'rgb(255,150,60)'; g.fillRect(0, 0, cv.width, cv.height); g.restore(); g.fillStyle = 'rgba(0,0,0,.55)'; g.fillRect(0, 0, cv.width, cv.height);
+      const look = src => { const sm = BalootVision.canvasOf(src, 512), d = sm.getContext('2d').getImageData(0, 0, sm.width, sm.height); return BalootVision.findCardBlobs(d.data, sm.width, sm.height); };
+      const e = BalootVision.enhance(cv, 1600), d1 = look(cv), d2 = look(e.canvas);
+      const det = { blobs: d1.blobs.concat(d2.blobs), reliable: d1.reliable || d2.reliable }, crops = BalootVision.cropPlan(det, 8);
+      const W = img.naturalWidth, H = img.naturalHeight, inC = c => centres.filter(([x, y]) => c.some(k => x / W >= k[0] && x / W <= k[2] && y / H >= k[1] && y / H <= k[3])).length;
+      return { darkOnly: inC(BalootVision.cropPlan(d1, 8)), withCorrection: inC(crops), gains: e.stats.cast };
+    }, [data, REAL[f]]);
+    ok(`${f} made dim + yellow: all 10 cards inside zoom crops with correction (without: ${r.darkOnly}/10)`, r.withCorrection === 10, r);
+  }
+
   console.log('\nfull pipeline with a stub AI that answers from the truth (checks plumbing, not accuracy)');
   const e2e = await p.evaluate(async () => {
     const out = [];
@@ -106,14 +151,14 @@ ok('low confidence alone → "check"', V.mergeDetections([{ box: B(1, 1, 100, 10
       };
       const r = await BalootVision.scanPhoto(blob, ai, { maxImages: 8 });
       const sc = BalootSynth.score(truth, r.cards);
-      out.push({ name: s.name, ident: sc.identifiable, found: sc.found, falseDet: sc.falseDet, onlyA: seen.a, calls, ms: r.ms, dup: r.cards.length - new Set(r.cards.map(c => c.rank + c.suit)).size });
+      out.push({ flagged: r.cards.filter(c => c.status !== 'ok').map(c => c.rank + c.suit + ':' + c.status + (c.colorMismatch ? ':color' : '') + (c.conflict ? ':conf' : '')), name: s.name, ident: sc.identifiable, found: sc.found, falseDet: sc.falseDet, onlyA: seen.a, calls, ms: r.ms, dup: r.cards.length - new Set(r.cards.map(c => c.rank + c.suit)).size });
     }
     return out;
   });
-  e2e.forEach(r => console.log(`      ${r.name}: ${r.found}/${r.ident} (overview alone had ${r.onlyA}) · ${r.falseDet} false · ${r.calls} AI calls · ${r.ms} ms`));
+  e2e.forEach(r => console.log(`      [${r.flagged.join(' ')}] ${r.name}: ${r.found}/${r.ident} (overview alone had ${r.onlyA}) · ${r.falseDet} false · ${r.calls} AI calls · ${r.ms} ms`));
   ok('cards the overview missed are recovered from the zoom crops', e2e.every(r => r.found === r.ident) && e2e.some(r => r.onlyA < r.ident), e2e);
   ok('no card counted twice, no invented cards', e2e.every(r => r.dup === 0 && r.falseDet === 0));
-  ok('two AI calls per photo (overview + crops, sent at the same time)', e2e.every(r => r.calls === 2));
+  ok('a stub that reads every card right: nothing flagged, two AI calls (overview + crops at the same time)', e2e.every(r => r.calls === 2 && !r.flagged.length), e2e.map(r => [r.name, r.calls, r.flagged]));
   ok('no page errors', errs.length === 0, errs);
   console.log(`\n${pass} passed, ${fail} failed`);
   await b.close(); process.exit(fail ? 1 : 0);

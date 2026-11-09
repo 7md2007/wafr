@@ -65,6 +65,12 @@
     if (s.light) { const v = g.createRadialGradient(W * 0.3, H * 0.3, 0, W * 0.5, H * 0.5, Math.max(W, H) * 0.8); v.addColorStop(0, 'rgba(0,0,0,0)'); v.addColorStop(1, `rgba(0,0,0,${0.35 * s.light})`); g.fillStyle = v; g.fillRect(0, 0, W, H);
       g.fillStyle = `rgba(0,0,0,${0.25 * s.light})`; g.fillRect(0, 0, W, H); }
     if (s.shadow) { g.save(); g.translate(W * 0.5, H * 0.5); g.rotate(-0.6); g.fillStyle = `rgba(0,0,0,${0.35 * s.shadow})`; g.fillRect(-W, -H * 0.12, W * 2, H * 0.24); g.restore(); }
+    // indoor light problems: warm (yellow) bulbs, a dark room, light from one side, camera shake
+    if (s.uneven) { const u = g.createLinearGradient(0, 0, W, H * 0.3); u.addColorStop(0, `rgba(0,0,0,${0.75 * s.uneven})`); u.addColorStop(0.65, 'rgba(0,0,0,0)'); g.fillStyle = u; g.fillRect(0, 0, W, H); }
+    if (s.warm) { g.save(); g.globalCompositeOperation = 'multiply'; g.fillStyle = `rgba(255,${Math.round(205 - 60 * s.warm)},${Math.round(150 - 110 * s.warm)},1)`; g.fillRect(0, 0, W, H); g.restore(); }
+    if (s.dark) { g.fillStyle = `rgba(0,0,0,${s.dark})`; g.fillRect(0, 0, W, H); }
+    if (s.blur) { const t = document.createElement('canvas'); t.width = W; t.height = H; const tg = t.getContext('2d'); tg.filter = `blur(${s.blur}px)`; tg.drawImage(cv, 0, 0); g.clearRect(0, 0, W, H); g.drawImage(t, 0, 0); }
+    if (s.noise) { const id = g.getImageData(0, 0, W, H), dd = id.data; for (let i = 0; i < dd.length; i += 4) { const k = (R() - 0.5) * s.noise; dd[i] += k; dd[i + 1] += k; dd[i + 2] += k; } g.putImageData(id, 0, 0); }
     // visibility from an id mask
     const m = document.createElement('canvas'); m.width = W >> 2; m.height = H >> 2; const mg = m.getContext('2d'); mg.imageSmoothingEnabled = false;
     mg.fillStyle = '#000'; mg.fillRect(0, 0, m.width, m.height);
@@ -101,6 +107,11 @@
     { name: 'طاولة بيضاء (6)', seed: 24, n: 6, bg: 'white', scale: 0.2 },
     { name: '24 ورقة', seed: 25, n: 24, layout: 'grid', scale: 0.12, rot: 0.25 },
     { name: 'كل الورق (32)', seed: 26, n: 32, layout: 'grid', scale: 0.11, rot: 0.2 },
+    { name: 'غرفة مظلمة (8)', seed: 27, n: 8, scale: 0.17, rot: 0.6, dark: 0.68, noise: 18 },
+    { name: 'إضاءة صفراء دافئة (8)', seed: 28, n: 8, scale: 0.17, rot: 0.6, warm: 1, dark: 0.3 },
+    { name: 'إضاءة من جهة وحدة (10)', seed: 29, n: 10, scale: 0.15, rot: 0.6, uneven: 1 },
+    { name: 'صورة مهزوزة (8)', seed: 30, n: 8, scale: 0.17, rot: 0.5, blur: 2.5 },
+    { name: 'مظلمة + صفراء + ظل (10)', seed: 31, n: 10, scale: 0.15, rot: 0.8, warm: 0.8, dark: 0.45, shadow: 1, noise: 12 },
   ];
   /* compare a recognition result with the truth */
   function score(truth, cards) {

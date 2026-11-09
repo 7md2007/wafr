@@ -73,7 +73,7 @@ svg{display:block;flex:none}
 .seg{position:relative;display:grid;grid-template-columns:repeat(var(--n,2),1fr);background:var(--surface-2);border-radius:14px;padding:4px;--i:0}
 .seg::before{content:"";position:absolute;top:4px;bottom:4px;inset-inline-start:4px;width:calc((100% - 8px) / var(--n,2));border-radius:11px;
   background:var(--teal-deep);box-shadow:0 3px 10px var(--teal-glow);transform:translateX(calc(var(--i) * -100%));transition:transform .32s var(--spring)}
-.seg.empty::before{opacity:0}
+.seg.noval::before{opacity:0}
 .seg button{position:relative;z-index:1;height:44px;border-radius:11px;font-weight:600;font-size:16px;color:var(--ink-2);transition:color .2s}
 .seg button[aria-pressed=true]{color:var(--on)}
 .seg.big button{height:52px;font-size:21px;font-weight:700}
@@ -224,6 +224,9 @@ svg{display:block;flex:none}
 .fixacts{display:flex;flex-direction:column;gap:6px}
 .fixacts .go{height:48px;font-size:16px}.fixacts .soft{height:42px;font-size:14px}
 /* card list + correction (Nov 9 b) */
+.qrow{display:grid;grid-template-columns:1fr 1.25fr;align-items:center;gap:10px}
+.qrow>span{font-size:14px;font-weight:600;color:var(--ink-2)}
+.qrow .seg button{height:40px;font-size:14px}
 .clist{display:flex;flex-direction:column;gap:8px}
 .clh{display:flex;align-items:center;gap:8px;font-size:14px}.clh b{flex:1}
 .clh .need{color:var(--peach-ink);font-weight:600;font-size:13px}.clh .okk{color:var(--teal-deep);font-size:13px;font-weight:600}
@@ -429,7 +432,7 @@ function countTo(el, from, to) {
 function setSeg(el, val, vals) {
   const i = vals.indexOf(val);
   el.style.setProperty('--n', vals.length);
-  el.classList.toggle('empty', i < 0);
+  el.classList.toggle('noval', i < 0);
   el.style.setProperty('--i', Math.max(0, i));
   el.querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === val)));
 }
@@ -810,7 +813,7 @@ function shrink(file) {
 /* pile: photos[{id,url,src,state,err,w,h,ms,dets:[{id,box,rank,suit,conf,alts,status:'ok'|'check'|'unreadable'|'removed',zoom,user}]}],
    manual = cards tapped in on the grid. cards/ai are derived by rebuild(). */
 let P = null;
-const pileNew = () => ({ kind: null, team: null, owners: [], cards: new Set(), ai: new Set(), manual: new Set(), last: null, err: '', photos: [], cur: -1, sel: null, big: false });
+const pileNew = () => ({ kind: 'tricks', team: 'us', complete: null, owners: [], cards: new Set(), ai: new Set(), manual: new Set(), last: null, err: '', photos: [], cur: -1, sel: null, big: false });
 const dkey = d => (d.rank && d.suit ? d.rank + d.suit : null);
 const liveDets = () => P.photos.flatMap(ph => (ph.dets || []).filter(d => d.status !== 'removed').map(d => Object.assign(d, { ph: ph.id })));
 const pending = () => liveDets().filter(d => d.status === 'check' || d.status === 'unreadable');
@@ -884,29 +887,24 @@ async function onPicked(e) {
 }
 $('#photoCam').onchange = onPicked;
 $('#photoLib').onchange = onPicked;
-const KINDS = [['tricks', 'كل أكلات فريق'], ['some', 'بعض الأكلات'], ['hand', 'يد لاعب'], ['loose', 'أوراق متفرقة']];
+/* The scanner reads OUR team's collected cards. Points for us come from the confirmed cards (+10 if we took the last
+   trick). The other team's share (total − ours) is only used once the user says these are ALL our tricks. */
 function pileCalc() {
   const c = C(), Mx = E.MODE[c.mode], n = physCards().length;
   if (needTrump()) return { err: 'اختر الحكم أول' };
-  if (!P.kind) return { needKind: true };
   const pend = pending().length;
   if (pend) return { pending: pend };
   const cards = [...P.cards].map(k => ({ rank: k.slice(0, -1), suit: k.slice(-1) }));
-  if (P.kind === 'loose') return { loose: true }; // any group of cards: counted, never scored
-  if (P.kind === 'hand') { // a hand shows projects only; it says nothing about who won which trick
-    if (n > 8) return { warn: `الصورة فيها ${n} ورقة، ويد اللاعب 8 بالكثير. صحّح الأوراق أو اختر نوع ثاني.` };
-    return { hand: E.detectProjects(cards, c.mode, c.trump) };
-  }
   if (!n) return {};
-  if (n % 4) return { warn: `${n} ورقة — الأكلات تكون 4 أوراق لكل أكلة (4، 8، 12 … 32). يمكن فيه ورقة مخفية أو زايدة: راجع الصورة.` };
-  if (P.kind === 'some') return { some: true, ab: E.handAbnat(cards, c.mode, c.trump), tricks: n / 4 };
-  if (!P.team) return { needTeam: true };
-  if (n === 32) return { r: score({ kaboot: P.team }), ab: Mx.total };
-  if (!P.last) return { needLast: true, ab: E.handAbnat(cards, c.mode, c.trump) };
-  const ab = E.pileAbnat(cards, c.mode, c.trump, P.last === P.team);
+  const raw = E.handAbnat(cards, c.mode, c.trump);
+  if (P.complete === false) return { partial: true, ab: raw + (P.last === 'us' ? 10 : 0) };
+  if (n % 4) return { warn: `${n} ورقة — الأكلات تكون 4 أوراق لكل أكلة (4، 8، 12 … 32). يمكن فيه ورقة مخفية أو زايدة: راجع الصورة أو أضفها من الجدول.`, ab: raw };
+  if (n === 32) return { r: score({ kaboot: 'us' }), ab: Mx.total };
+  if (!P.last) return { needLast: true, ab: raw };
+  if (P.complete !== true) return { needComplete: true, ab: raw + (P.last === 'us' ? 10 : 0) };
+  const ab = E.pileAbnat(cards, c.mode, c.trump, P.last === 'us');
   if (ab == null) return { err: 'تأكد من الأوراق' };
-  const us = P.team === 'us' ? ab : Mx.total - ab;
-  return { r: score({ abnatUs: us }), ab };
+  return { r: score({ abnatUs: ab }), ab };
 }
 function pileSheet() {
   const c = C(), noAI = AIMODE === 'none';
@@ -931,15 +929,12 @@ function pileSheet() {
         <button class="press" data-a="addPhoto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>صورة إضافية</button>
         <button class="press del" data-a="delPhoto" data-v="${ph.id}" aria-label="احذف الصورة"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
       </div>` : '';
-  openSheet('pile', `${head(`الأوراق <span class="hint" style="font-size:13px;font-weight:600">· ${modeLabel(c)}${lvl}</span>`)}
+  openSheet('pile', `${head(`أكلاتنا <span class="hint" style="font-size:13px;font-weight:600">· ${modeLabel(c)}${lvl}</span>`)}
     <div class="stack">
       ${preview}
       <div id="pList"></div>
       <div id="pFix"></div>
       ${acts}
-      <div class="opt"><span class="lb">وش في الصورة؟</span>
-        <div class="kinds" id="segKind">${KINDS.map(([v, t]) => `<button data-a="pKind" data-v="${v}" aria-pressed="${P.kind === v}">${t}</button>`).join('')}</div></div>
-      <div id="pTeamBox"></div>
       <span class="stat" id="pStat"></span>
       ${noAI ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? '' : ' أو مفتاح Anthropic (من ⋯)'}. اختر الأوراق من الجدول وتنحسب مباشرة.</div>` : ''}
       ${P.err ? `<div class="err">${P.err}</div>` : ''}
@@ -966,41 +961,23 @@ function listPanel() {
 }
 function pileUpdate() {
   if (SK !== 'pile') return;
-  $('#segKind').querySelectorAll('button').forEach(b => b.setAttribute('aria-pressed', String(b.dataset.v === P.kind)));
-  $('#pTeamBox').innerHTML = P.kind === 'tricks' ? `<div class="opt"><span class="lb">أكلات مين؟ (لازم تكون كل الأوراق اللي أكلها الفريق، مو يد لاعب)</span>
-    <div class="seg alt" id="segPile"><button data-a="pTeam" data-v="us">أكلاتنا</button><button data-a="pTeam" data-v="them">أكلاتهم</button></div></div>`
-    : P.kind === 'hand' ? '<div class="note">صورة اليد تكشف المشاريع بس — ما تقول مين أكل وش. بعدها نطلب منك نتيجة الأكلات.</div>'
-    : P.kind === 'some' ? '<div class="note">نعدّ الأوراق والأبناط بس. النتيجة تنحسب لما تكون الصور فيها كل أكلات الفريق — أضف الصور الباقية ثم اختر «كل أكلات فريق».</div>'
-    : P.kind === 'loose' ? '<div class="note">نعدّ الأوراق بس، بدون أي حساب للجولة.</div>' : '';
-  if ($('#segPile')) setSeg($('#segPile'), P.team, ['us', 'them']);
-  const o = pileCalc(), n = physCards().length;
-  $('#pLast').innerHTML = (P.kind === 'tricks' && P.team && n && n % 4 === 0 && n < 32) ? `<div class="opt"><span class="lb">الأرض (آخر أكلة +10) — مين أخذها؟</span><div class="seg alt" id="segLast"><button data-a="pLast" data-v="us">لنا</button><button data-a="pLast" data-v="them">لهم</button></div></div>` : '';
-  const sl = $('#segLast'); if (sl) setSeg(sl, P.last, ['us', 'them']);
-  const pd = pending().length;
-  $('#pStat').innerHTML = busy() ? '<span class="spin"></span>نقرأ الأوراق…' : n ? `<b>${n}</b> ورقة` + (pd ? ` · <span style="color:var(--peach-ink)">${pd} تحتاج تأكيد</span>` : '') + ((P.kind === 'tricks' || P.kind === 'some') && o.ab != null ? ` · <b>${o.ab}</b> بنط` : '') : '';
-  // what is still missing before a score can be calculated
+  const o = pileCalc(), n = physCards().length, pd = pending().length;
+  const ask = n && n < 32;
+  $('#pLast').innerHTML = ask ? `<div class="qrow"><span>الأرض (آخر أكلة +10)</span><div class="seg alt" id="segLast"><button data-a="pLast" data-v="us">لنا</button><button data-a="pLast" data-v="them">لهم</button></div></div>
+    <div class="qrow"><span>هذي كل أكلاتنا؟</span><div class="seg alt" id="segAll"><button data-a="pAll" data-v="1">إي، كلها</button><button data-a="pAll" data-v="0">لا، فيه ناقص</button></div></div>` : '';
+  if ($('#segLast')) setSeg($('#segLast'), P.last, ['us', 'them']);
+  if ($('#segAll')) setSeg($('#segAll'), P.complete === true ? '1' : P.complete === false ? '0' : null, ['1', '0']);
+  $('#pStat').innerHTML = busy() ? '<span class="spin"></span>نقرأ الأوراق…' : n ? `<b>${n}</b> ورقة` + (pd ? ` · <span style="color:var(--peach-ink)">${pd} تحتاج تأكيد</span>` : ' · كلها مؤكدة') + (o.ab != null ? ` · <b>${o.ab}</b> بنط` : '') : '';
   const miss = [];
-  if (needTrump()) miss.push('الحكم'); if (!P.kind) miss.push('نوع الصورة'); if (pd) miss.push(`تأكيد ${pd} ورقة`);
-  if (P.kind === 'tricks' && !P.team) miss.push('أكلات مين'); if (P.kind === 'tricks' && o.needLast) miss.push('مين أخذ الأرض');
-  const go = $('#pGo');
-  if (o.hand) {
-    $('#pRes').innerHTML = o.hand.length ? `<div class="opt"><span class="lb">مشاريع في هذي اليد — لمين؟</span>${o.hand.map((p, i) => `<div class="found"><b>${projName(p.type)}</b> <span class="hint" dir="ltr" style="unicode-bidi:isolate">${p.cards.map(k => k.slice(0, -1) + SUIT[k.slice(-1)][0]).join(' ')}</span>
-      <div class="seg alt" id="own${i}" style="--n:3;margin-top:6px"><button data-a="pOwn" data-i="${i}" data-v="us">لنا</button><button data-a="pOwn" data-i="${i}" data-v="them">لهم</button><button data-a="pOwn" data-i="${i}" data-v="no">ما انعلن</button></div></div>`).join('')}</div>`
-      : (n ? '<div class="note">ما فيه مشاريع في هذي الأوراق.</div>' : '');
-    o.hand.forEach((p, i) => setSeg($('#own' + i), P.owners[i] || null, ['us', 'them', 'no']));
-    const all = o.hand.every((_, i) => P.owners[i]);
-    go.disabled = busy() || !all; go.dataset.a = 'pHand';
-    go.textContent = all ? (o.hand.some((_, i) => P.owners[i] !== 'no') ? 'أضف المشاريع وأدخل نتيجة الأكلات' : 'أدخل نتيجة الأكلات') : 'حدد صاحب كل مشروع';
-    return;
+  if (needTrump()) miss.push('الحكم'); if (pd) miss.push(`تأكيد ${pd} ورقة`); if (ask && !P.last) miss.push('مين أخذ الأرض'); if (ask && P.complete == null) miss.push('هل هذي كل أكلاتنا');
+  const go = $('#pGo'); go.dataset.a = 'pSave';
+  if (o.partial) {
+    $('#pRes').innerHTML = `<div class="missing">أبناطنا في الصور: <b>${o.ab}</b>. الجولة تنحسب لما تكون الصور فيها كل أكلاتنا — أضف صورة للباقي، أو أدخل النتيجة يدوياً.</div>`;
+    go.disabled = true; go.textContent = 'ناقص أكلات'; return;
   }
-  go.dataset.a = 'pSave';
-  if (o.loose || o.some) {
-    $('#pRes').innerHTML = o.some ? `<div class="note">${o.tricks} أكلة · ${o.ab} بنط حتى الآن (بدون الأرض).</div>` : '';
-    go.disabled = true; go.textContent = o.some ? 'النتيجة لما تكتمل الأكلات' : 'هذي الصورة للعدّ فقط'; return;
-  }
-  $('#pRes').innerHTML = (miss.length && !o.err && !o.warn ? `<div class="missing">باقي قبل الحساب: ${miss.join(' · ')}</div>` : '') + (o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : o.pending ? '' : (o.needLast || o.needKind || o.needTeam) ? '' : resultHTML(o.r));
+  $('#pRes').innerHTML = (miss.length && !o.err ? `<div class="missing">باقي قبل الحساب: ${miss.join(' · ')}</div>` : '') + (o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : (o.pending || o.needLast || o.needComplete || !o.r) ? '' : resultHTML(o.r));
   go.disabled = !(o.r && !o.r.error) || busy();
-  go.textContent = o.pending ? `أكّد ${o.pending === 1 ? 'الورقة المعلّمة' : o.pending + ' أوراق'} أول` : o.needKind ? 'حدد وش في الصورة' : o.needTeam ? 'حدد أكلات مين' : o.needLast ? 'حدد مين أخذ الأرض' : (S.edit ? 'احفظ التعديل' : 'سجّل الجولة');
+  go.textContent = o.pending ? `أكّد ${o.pending === 1 ? 'الورقة المعلّمة' : o.pending + ' أوراق'} أول` : o.needLast ? 'حدد مين أخذ الأرض' : o.needComplete ? 'هل هذي كل أكلاتنا؟' : (S.edit ? 'احفظ التعديل' : 'سجّل الجولة');
 }
 /* tap a card on the photo → its zoom, the AI's best reading and alternatives, one-tap fix */
 function selDet() { if (!P || !P.sel) return null; const ph = P.photos.find(x => x.id === P.sel.ph); return ph && (ph.dets || []).find(d => d.id === P.sel.id) || null; }
@@ -1163,7 +1140,7 @@ const A = {
     const b = document.querySelector(`.cd[data-v="${v}"]`); if (b) { b.classList.toggle('on', P.cards.has(v)); b.classList.toggle('ai', P.ai.has(v)); b.setAttribute('aria-pressed', String(P.cards.has(v))); }
     pileUpdate(); },
   pTeam: v => { P.team = v; pileUpdate(); },
-  pKind: v => { P.kind = v; P.owners = []; pileUpdate(); },
+  pAll: v => { P.complete = v === '1'; pileUpdate(); },
   pOwn: (v, el) => { P.owners[+el.dataset.i] = v; pileUpdate(); },
   pHand: () => {
     const o = pileCalc(); if (!o.hand) return;
@@ -1187,9 +1164,16 @@ const A = {
   selCard: v => { const [phId, id] = v.split('|'); const i = P.photos.findIndex(x => String(x.id) === phId); if (i < 0) return; P.cur = i; P.sel = { ph: P.photos[i].id, id: +id }; FX = { rank: null, suit: null }; pileSheet(); },
   selClose: () => { P.sel = null; FX = { rank: null, suit: null }; pileSheet(); },
   pvBig: () => { P.big = !P.big; pileSheet(); },
-  detPick: v => { const d = selDet(); if (!d) return; d.rank = v.slice(0, -1); d.suit = v.slice(-1); d.status = 'ok'; d.user = true; d.notCard = false;
-    conflictsIn(d.ph); // the deck has one of each card: another box with the same card is flagged, never renamed
-    rebuild(); nextPending(); haptic(); pileSheet(); },
+  detPick: v => { const d = selDet(); if (!d) return;
+    const ph = P.photos.find(x => x.id === d.ph);
+    const taken = (ph.dets || []).find(o => o !== d && o.status !== 'removed' && o.user && dkey(o) === v);
+    if (taken) { toast(`${cardName(v)} مؤكدة لورقة ثانية في هذي الصورة — اختر غيرها`); return; } // the deck has one of each card
+    d.rank = v.slice(0, -1); d.suit = v.slice(-1); d.status = 'ok'; d.user = true; d.notCard = false; d.colorMismatch = false; delete d.conflict;
+    conflictsIn(d.ph); // another unconfirmed box read as the same card now asks for its real identity (nothing renamed silently)
+    rebuild(); const left = pending().length;
+    nextPending(); haptic(); pileSheet();
+    toast(left ? `✓ ${cardName(v)} — باقي ${left}` : `✓ ${cardName(v)} — كل الأوراق مؤكدة`);
+  },
   keepAs: v => { const d = selDet(); if (!d) return; const ph = P.photos.find(x => x.id === d.ph), k = dkey(d);
     const ids = [d.id].concat(d.conflict || []);
     ids.forEach(id => { const o = ph.dets.find(x => x.id === id); if (!o) return;
