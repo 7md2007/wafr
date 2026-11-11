@@ -406,6 +406,21 @@ Reply with only JSON: {"cards":[{"i":1,"card":true,"rank":"A|K|Q|J|10|9|8|7"|nul
     st.applied.push('sharpen');
     return { data: out, stats: st };
   }
+  /* quick look at a small copy: is light correction worth it? */
+  function lightCheck(d, w, h) {
+    const n = w * h, hist = new Uint32Array(256); let sum = 0;
+    for (let i = 0; i < n; i++) { const L = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 1000 | 0; hist[L]++; sum += L; }
+    let acc = 0, p98 = 255; for (let i = 255; i >= 0; i--) { acc += hist[i]; if (acc >= n * 0.02) { p98 = i; break; } }
+    let r = 0, g = 0, b = 0, m = 0;
+    for (let i = 0; i < n; i++) { const L = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 1000; if (L >= p98) { r += d[i * 4]; g += d[i * 4 + 1]; b += d[i * 4 + 2]; m++; } }
+    const cast = m ? Math.max(r, g, b) / Math.max(1, Math.min(r, g, b)) : 1;
+    // brightest level per quarter of the photo: very different quarters = uneven light / shadow over the cards
+    const q = [0, 0, 0, 0];
+    for (let y = 0; y < h; y += 2) for (let x = 0; x < w; x += 2) { const i = y * w + x, L = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 1000, k = (y < h / 2 ? 0 : 2) + (x < w / 2 ? 0 : 1); if (L > q[k]) q[k] = L; }
+    const uneven = Math.min(...q) / Math.max(1, Math.max(...q)) < 0.7;
+    const meanL = sum / n, needed = p98 < 205 || cast > 1.18 || uneven; // judged on the cards' white, not the table
+    return { needed, meanL: Math.round(meanL), white: p98, cast: +cast.toFixed(2), uneven };
+  }
   function enhance(src, maxSide) {
     const cv = canvasOf(src, maxSide || 1600), g = cv.getContext('2d'), id = g.getImageData(0, 0, cv.width, cv.height);
     const r = enhancePixels(id.data, cv.width, cv.height);
@@ -450,9 +465,12 @@ Reply with only JSON: {"crops":[{"i":1,"cards":[{"box":[x0,y0,x1,y1],"rank":"A|K
     opts = opts || {};
     const t0 = performance.now(), maxImg = Math.max(1, opts.maxImages || 8);
     const img = await decode(file);
-    const enh = enhance(img, 1600); // light-corrected copy; the photo itself is not changed
-    const look = src => { const sm = canvasOf(src, 512), d = sm.getContext('2d').getImageData(0, 0, sm.width, sm.height); return findCardBlobs(d.data, sm.width, sm.height); };
-    const d1 = look(img), d2 = look(enh.canvas);
+    const look = src => { const sm = canvasOf(src, 512), d = sm.getContext('2d').getImageData(0, 0, sm.width, sm.height); return { det: findCardBlobs(d.data, sm.width, sm.height), d }; };
+    const L1 = look(img), d1 = L1.det;
+    // light correction only when the photo needs it (dark, colour cast, uneven light) — a clear photo skips it (faster)
+    const need = lightCheck(L1.d.data, L1.d.width, L1.d.height);
+    const enh = need.needed ? enhance(img, 1600) : { canvas: img, stats: { applied: [], skipped: true, check: need } };
+    const d2 = need.needed ? look(enh.canvas).det : { blobs: [], reliable: false };
     // card regions from both versions (a dark or warm photo hides regions the corrected one shows, and vice versa)
     const blobs = d1.blobs.concat(d2.blobs.filter(b => !d1.blobs.some(a => iou(a.box, b.box) > 0.5)));
     const det = { blobs, reliable: d1.reliable || d2.reliable };
@@ -480,6 +498,6 @@ Reply with only JSON: {"crops":[{"i":1,"cards":[{"box":[x0,y0,x1,y1],"rank":"A|K
       passA: !ra.__err, passB: !rb.__err, width: img.width, height: img.height, img, enh: enh.canvas, light: enh.stats };
   }
 
-  const api = { RANKS, SUITS, findCardBlobs, iou, cropPlan, mergeDetections, markConflicts, applyRecheck, recheck, frameCrop, uprightAngle, cardColor, enhance, enhancePixels, normCard, promptA, promptB, promptC, scanPhoto, canvasOf, decode, pad };
+  const api = { RANKS, SUITS, findCardBlobs, iou, cropPlan, mergeDetections, markConflicts, applyRecheck, recheck, frameCrop, uprightAngle, cardColor, enhance, enhancePixels, lightCheck, normCard, promptA, promptB, promptC, scanPhoto, canvasOf, decode, pad };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BalootVision = api;
 })(typeof self !== 'undefined' ? self : this);

@@ -171,6 +171,23 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   `cardColor()` local red/black ink check (number cards and aces, not overlapped) — a wrong-colour suit is only flagged, never changed.
   Measured (no AI): dark room 4/8→8/8 card regions, warm light 0/8→8/8 (cast 9.6→1.6), dark+warm+shadow 0/10→10/10; colour check on
   synthetic number cards/aces: 95 right, 0 wrong, 8 undecided. Synthetic scenes now 21 (adds dark, warm, one-side light, blur, combined).
+- WARM REDESIGN (Nov 11 2026, owner's request) — supersedes the scan-UI notes above where they differ:
+  Palette ivory #FAF7F0 / sand #EDE3D5 / turquoise #138F91 (fills #0F7F81) / coral #E9A58E (text #B0573A) / navy #183B4A (tokens at
+  the top of the <style>; "WARM REDESIGN" block at the end overrides older component styles). Home: top bar (بلوت · الجولة N · undo
+  `#bUndo` · history · ⋯), navy score card (لنا turquoise / لهم coral, two progress bars), round card (compact صن/حكم + اشترى لنا/لهم,
+  suit chips for حكم, two chips: `#bLevel` → `levelSheet()` and `#bProj` → projects sheet), big "تصوير الورق" `#bScan`, then
+  إدخال يدوي · من الصور `#bLib` · mic. Share moved into the history sheet.
+  Scan: `startScan()` opens the in-app camera `#cam` (getUserMedia, one-tap shutter `#camShot`) when allowed (not inside Claude:
+  `CAN_LIVE`), else the phone camera input. `handleFile()` opens the sheet at once, reads in the background (`SCAN_CACHE` for
+  repeated library picks). Sheet: thumbnails strip (tap = photo with outlines), card chips, "+ ورقة" (`addPanel`, rank then suit,
+  no 32-grid), editor `fixPanel` (zoom, suggestions, rank/suit, تأكيد, مو ورقة, "صوّرها من قريب" = `closeUp()`: a close-up that
+  shows exactly one new card fills that unclear spot). ONE question `pileUpdate()`: "هذي كل أكلاتنا؟ ومين أخذ الأرض؟" with
+  answers that show the score (`pileOutcome('us'|'them')`): كلها والأرض لنا / كلها والأرض لهم (tap = save, `pDone`) / فيه ناقص
+  (our abnat only, nothing to them). Taps for a normal round: before 7 (5 in app + 2 on the iPhone camera screen) → after 3 on a
+  normal page (Scan → shutter → answer) or 4 inside Claude (iPhone camera needs shutter + Use Photo).
+  Speed: `lightCheck()` skips light correction for well-lit photos (judged on the cards' white, not the table): local work on a
+  12-MP photo 0.17–0.27 s clear / 0.5–0.6 s dark or warm (desktop Chromium; AI time extra, measured in the in-app test).
+  Haptics: navigator.vibrate, else the iOS 18 switch-input tick.
 - Accuracy test (⋯ → اختبار دقة قراءة الأوراق): `baloot/synth.js` draws 16 scenes with exact truth (clear, fan, rotated, covered, mixed,
   low light, shadow, far, pile, tilted, felt/wood/white tables, 1–32 cards) → real pipeline → recall, false cards, rank/suit accuracy,
   complete images, time (saved in `baloot.bench`). Real photos for tests: `tests/vision-data/real1.png`, `real2.png` (10 cards each).
@@ -181,4 +198,4 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   Doubled round = winner takes all: 26 or 16 × level + all projects × level (setting: ×2 max in ثري/فور), بلوت 2 to its owner; tie → buyer loses;
   kaboot × level (setting: not multiplied). قهوة: round winner gets enough points to reach the target and wins the game.
 - Tests: `node tests/baloot.test.js` (80, plain node), `node tests/baloot.examples.test.js` (36 hand-calculated worked examples;
-  `--write` regenerates `baloot/SCORING-EXAMPLES.md`), `node tests/baloot.vision.test.js` (37) and `node tests/baloot.ui.test.js` (92, Playwright; AI reply is a stub).
+  `--write` regenerates `baloot/SCORING-EXAMPLES.md`), `node tests/baloot.vision.test.js` (37) and `node tests/baloot.ui.test.js` (81, Playwright with a fake camera; AI reply is a stub).

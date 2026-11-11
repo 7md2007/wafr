@@ -15,15 +15,15 @@
 @font-face{font-family:'IBM Plex Sans Arabic';src:url(../fonts/ibm-plex-sans-arabic-arabic-700-normal.woff2) format('woff2');font-weight:700;font-display:swap}
 @font-face{font-family:Inter;src:url(../fonts/inter-latin-600-normal.woff2) format('woff2');font-weight:600;font-display:swap}
 @font-face{font-family:Inter;src:url(../fonts/inter-latin-700-normal.woff2) format('woff2');font-weight:700;font-display:swap}
-/* One light look: sky air on top, white cards, turquoise for every action and selection, soft peach for "them". */
+/* Warm look: ivory paper, soft sand, deep navy ink; turquoise for us and every action, muted coral for them. */
 :root{
-  --bg:#F2F9FD; --bg-top:#DDF1FB; --surface:#FFFFFF; --surface-2:#F1F7FA; --surface-3:#E7F0F5;
-  --ink:#0E2A3A; --ink-2:#56707F; --ink-3:#8DA3B0; --line:#E0ECF2;
-  --sky:#2FA8E6; --sky-soft:#E4F3FC;
-  --teal:#13B2A5; --teal-deep:#0A877E; --teal-soft:#DCF5F1; --teal-glow:rgba(19,178,165,.28);
-  --peach:#FFB48E; --peach-soft:#FFF0E6; --peach-ink:#AD4F25;
-  --bad:#D23F3F; --bad-soft:#FDEDED; --on:#FFFFFF; --red-suit:#D9433B;
-  --shadow:0 1px 2px rgba(14,42,58,.05),0 6px 20px rgba(14,42,58,.07);
+  --bg:#FAF7F0; --bg-top:#F3EADB; --surface:#FFFDF8; --surface-2:#F5EEE3; --surface-3:#EDE3D5;
+  --ink:#183B4A; --ink-2:#5B6E75; --ink-3:#98A3A3; --line:#ECE2D3;
+  --sky:#138F91; --sky-soft:#E3F1EE;
+  --teal:#138F91; --teal-deep:#0F7F81; --teal-soft:#DDEFEA; --teal-glow:rgba(19,143,145,.24);
+  --peach:#E9A58E; --peach-soft:#FBEDE5; --peach-ink:#B0573A;
+  --bad:#C4473A; --bad-soft:#FBEAE6; --on:#FFFFFF; --red-suit:#C8372D;
+  --shadow:0 1px 2px rgba(24,59,74,.05),0 8px 24px rgba(24,59,74,.07);
   --f-ar:'IBM Plex Sans Arabic',system-ui,-apple-system,sans-serif; --f-num:Inter,'IBM Plex Sans Arabic',system-ui,sans-serif;
   --ease:cubic-bezier(.2,.8,.2,1); --spring:cubic-bezier(.34,1.3,.64,1);
   --kb:0px; color-scheme:light;
@@ -31,7 +31,7 @@
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
 [hidden]{display:none!important}
 html,body{margin:0;min-height:100%;background:var(--bg);color:var(--ink);font:400 16px/1.45 var(--f-ar);-webkit-font-smoothing:antialiased;-webkit-text-size-adjust:100%}
-body{background:linear-gradient(180deg,var(--bg-top) 0,var(--bg) 320px) no-repeat,var(--bg)}
+body{background:radial-gradient(120% 60% at 50% -10%,var(--bg-top) 0,var(--bg) 70%) no-repeat,var(--bg)}
 button{font:inherit;color:inherit;border:0;background:none;padding:0;margin:0;cursor:pointer;touch-action:manipulation;user-select:none;-webkit-user-select:none}
 button:focus-visible{outline:3px solid var(--sky);outline-offset:2px}
 .num{font-family:var(--f-num);font-variant-numeric:tabular-nums}
@@ -317,46 +317,137 @@ input.key{width:100%;height:48px;border-radius:12px;border:1.5px solid var(--lin
   display:flex;align-items:center;gap:14px;font-size:15px;box-shadow:0 10px 30px rgba(14,42,58,.3);width:max-content;max-width:calc(100% - 32px)}
 #toast.on{transform:translate(-50%,0);opacity:1;pointer-events:auto}
 #toast button{color:#7FE6DA;font-weight:700;min-height:32px}
+/* ===== WARM REDESIGN (Nov 11) — overrides above ===== */
+.top h1{font-size:21px;letter-spacing:-.2px;color:var(--ink)}
+.top .rnd{background:var(--surface-2);box-shadow:none;color:var(--ink-2);font-weight:600}
+.ib{background:transparent;color:var(--ink-2)}.ib:active{background:var(--surface-2)}
+.board{background:linear-gradient(160deg,#1F4A5B 0%,var(--ink) 70%);color:#FAF7F0;border-radius:28px;padding:18px 18px 14px;box-shadow:0 14px 30px rgba(24,59,74,.22);position:relative;overflow:hidden}
+.board::after{content:"";position:absolute;inset:-60% -30% auto auto;width:260px;height:260px;border-radius:50%;background:radial-gradient(circle,rgba(233,165,142,.18),transparent 65%);pointer-events:none}
+.board .score{grid-template-columns:1fr auto 1fr}
+.board .side .who{color:rgba(250,247,240,.72);font-size:15px}
+.board .side .pts{font-size:64px;color:#FAF7F0}
+.board .side.us .pts{color:#7FD3CF}.board .side.them .pts{color:#F3C2AF}
+.board .vs{color:rgba(250,247,240,.6);font-size:12px;max-width:90px;line-height:1.35}
+.race{display:flex;gap:6px;margin-top:10px}.race i{flex:1;height:5px;border-radius:3px;background:rgba(250,247,240,.14);position:relative;overflow:hidden}
+.race i::after{content:"";position:absolute;inset:0;transform-origin:right center;transform:scaleX(var(--p,0));transition:transform .5s var(--ease)}
+.race i.u::after{background:#4FC1BD}.race i.t::after{background:#E9A58E}
+.tgt{text-align:center;font-size:12px;color:rgba(250,247,240,.55);margin-top:8px}.tgt b{font:600 12px var(--f-num)}
+.round{background:var(--surface);border-radius:24px;padding:12px;gap:10px;box-shadow:var(--shadow)}
+.rline{display:grid;grid-template-columns:1fr auto 1fr;align-items:center;gap:8px}
+.rlb{font-size:13px;color:var(--ink-3);font-weight:600}
+.seg.mini{padding:3px;border-radius:13px;background:var(--surface-2)}
+.seg.mini::before{top:3px;bottom:3px;inset-inline-start:3px;width:calc((100% - 6px)/var(--n,2));border-radius:10px}
+.seg.mini button{height:40px;font-size:16px;font-weight:700}
+.seg::before{background:var(--teal-deep)}
+.suits{gap:6px}.suit{height:48px;flex-direction:row;gap:6px;font-size:13px;background:var(--surface-2);border:1.5px solid transparent;border-radius:13px}
+.suit b{font-size:21px}.suit[aria-pressed=true]{background:var(--teal-soft);border-color:var(--teal-deep)}
+.suit[aria-pressed=true]::after{display:none}
+.xrow{display:flex;gap:8px}
+.xchip{flex:1;height:40px;border-radius:12px;background:var(--surface-2);color:var(--ink-2);font-size:14px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:6px;padding:0 10px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.xchip.on{background:var(--peach-soft);color:var(--peach-ink)}
+.xchip:disabled{opacity:.5}
+.scan{min-height:92px;border-radius:26px;background:linear-gradient(140deg,#1BA5A4 0%,var(--teal-deep) 80%);box-shadow:0 14px 28px var(--teal-glow),inset 0 1px 0 rgba(255,255,255,.22)}
+.scan .t1{font-size:23px}.scan .t2{opacity:.85}
+.alt2{gap:8px}.alt2 button{height:50px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow);font-size:15px}
+.alt2 .mic{flex:0 0 50px}
+.won{background:var(--surface)}.won .big{color:var(--teal-deep)}
+.sheet{background:var(--surface);border-radius:28px 28px 0 0}
+.grab{background:var(--surface-3)}
+.go{background:var(--teal-deep);box-shadow:0 8px 18px var(--teal-glow)}
+.soft{background:var(--surface-2)}
+.toast-ok{color:#9FE3DE}
+#toast{background:var(--ink)}
+/* scan sheet */
+.strip{display:flex;align-items:center;gap:8px;flex-wrap:wrap}
+.th{position:relative;width:56px;height:56px;border-radius:14px;overflow:hidden;background:var(--surface-2);border:2px solid transparent;flex:none;display:grid;place-items:center;color:var(--teal-deep)}
+.th img{width:100%;height:100%;object-fit:cover}.th.on{border-color:var(--teal-deep)}
+.th i{position:absolute;inset:auto 4px 4px auto;width:18px;height:18px;border-radius:9px;background:rgba(24,59,74,.75);color:#fff;font:700 12px/18px var(--f-num);font-style:normal;text-align:center}
+.th i.spin{border:2px solid rgba(255,255,255,.4);border-top-color:#fff;background:rgba(24,59,74,.6);animation:sp 1s linear infinite;margin:0}
+.th i.bad{background:var(--bad)}
+.th.add{border:1.5px dashed var(--ink-3);background:transparent}
+.strip .stat{flex:1;min-width:120px}
+.chips.ghost i{display:inline-block;width:52px;height:36px;border-radius:10px;background:linear-gradient(90deg,var(--surface-2),var(--surface-3),var(--surface-2));background-size:200% 100%;animation:shim 1.2s linear infinite}
+@keyframes shim{to{background-position:-200% 0}}
+.ch{background:var(--surface-2);color:var(--ink)}.ch.plus{background:transparent;border:1.5px dashed var(--ink-3);color:var(--ink-2);font:600 14px var(--f-ar)}
+.ch.att{background:#FDF1E2;color:#8A5A1E;border-color:#E9B36A}.ch.conf{background:var(--bad-soft);color:var(--bad);border-color:#E58B7E}
+.ch.man{background:var(--teal-soft);color:var(--teal-deep)}.ch.man i{color:var(--teal-deep)}
+.ch.sel{box-shadow:0 0 0 2px var(--surface),0 0 0 4px var(--teal)}
+.fix{background:var(--surface-2);border-radius:18px}
+.frk button,.fsu button{background:var(--surface);border-color:var(--line)}
+.fsu button:disabled{opacity:.35}
+.ask{background:var(--surface-2);border-radius:20px;padding:14px;display:flex;flex-direction:column;gap:8px}
+.ask>b{font-size:16px}.ask>small{color:var(--ink-2);font-size:13px;margin-top:-4px}
+.ask.wait{background:#FDF1E2}.ask.wait b{color:#8A5A1E}
+.ans{display:flex;align-items:center;justify-content:space-between;gap:10px;min-height:62px;border-radius:16px;background:var(--surface);box-shadow:var(--shadow);padding:10px 14px;text-align:start;width:100%;border:1.5px solid transparent}
+.ans:not(:disabled):active{border-color:var(--teal-deep)}
+.ans>span:first-child{font-weight:700;font-size:16px}.ans small{display:block;font-weight:500;font-size:12px;color:var(--ink-2)}
+.ans.soft2{min-height:48px;background:transparent;box-shadow:none;border:1.5px solid var(--line);justify-content:center}.ans.soft2 span{font-size:15px;color:var(--ink-2)}
+.ans:disabled{opacity:.45}
+.pv2{display:flex;gap:10px;font:700 18px var(--f-num);flex:none}.pv2 .u{color:var(--teal-deep)}.pv2 .t{color:var(--peach-ink)}
+.ans2{display:flex;gap:8px;flex-wrap:wrap}.ans2 button{flex:1;min-width:100px;height:46px;font-size:14px}
+/* camera */
+#cam{position:fixed;inset:0;z-index:40;background:#0b1418;display:flex;flex-direction:column}
+#cam video{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.camtop{position:relative;z-index:1;display:flex;align-items:center;gap:10px;padding:calc(env(safe-area-inset-top,0px) + 10px) 14px 10px;color:#FAF7F0;font-size:15px;font-weight:600;background:linear-gradient(180deg,rgba(0,0,0,.45),transparent)}
+.camtop .ib{color:#FAF7F0;background:rgba(0,0,0,.3)}
+.camguide{flex:1;margin:12px 18px;border:2px dashed rgba(250,247,240,.45);border-radius:22px;position:relative;z-index:1;pointer-events:none}
+.cambar{position:relative;z-index:1;display:grid;grid-template-columns:1fr auto 1fr;align-items:center;padding:14px 22px calc(env(safe-area-inset-bottom,0px) + 22px);background:linear-gradient(0deg,rgba(0,0,0,.55),transparent)}
+.shutter{width:76px;height:76px;border-radius:50%;background:#FAF7F0;box-shadow:0 0 0 5px rgba(250,247,240,.35);transition:transform .12s var(--ease)}
+.shutter:active{transform:scale(.92)}
+.camlib{justify-self:start;color:#FAF7F0;font-weight:600;font-size:15px;padding:10px 12px;border-radius:12px;background:rgba(0,0,0,.35)}
 @media (prefers-reduced-motion:reduce){*{transition-duration:.01ms!important;animation:none!important}}
-@media (max-height:720px){.side .pts{font-size:48px}.scan{min-height:84px}.scan .cam{width:50px;height:50px}.app{gap:10px}.suit{height:56px}}
+@media (max-height:720px){.board .side .pts{font-size:50px}.scan{min-height:78px}.scan .cam{width:50px;height:50px}.app{gap:10px}.suit{height:44px}}
 </style>
 </head>
 <body>
 <div class="app" id="app">
   <div class="top">
     <h1>بلوت</h1><span class="rnd" id="rnd">الجولة 1</span><span class="sp"></span>
-    <button class="ib press" id="bHist" aria-label="الجولات"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></button>
-    <button class="ib press" id="bShare" aria-label="مشاركة النتيجة"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v12"/><path d="M8 7l4-4 4 4"/><path d="M5 12v7a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-7"/></svg></button>
-    <button class="ib press" id="bMore" aria-label="الإعدادات"><svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
+    <button class="ib press" id="bUndo" aria-label="تراجع عن آخر جولة" hidden><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14L4 9l5-5"/><path d="M4 9h10a6 6 0 0 1 0 12h-3"/></svg></button>
+    <button class="ib press" id="bHist" aria-label="الجولات"><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 1 0 3-6.7L3 8"/><path d="M3 3v5h5"/><path d="M12 7v5l3 2"/></svg></button>
+    <button class="ib press" id="bMore" aria-label="الإعدادات"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><circle cx="5" cy="12" r="2"/><circle cx="12" cy="12" r="2"/><circle cx="19" cy="12" r="2"/></svg></button>
   </div>
 
-  <div class="score">
-    <div class="side us"><span class="who">لنا</span><span class="pts" id="sUs">0</span><span class="bar"><i id="bUs"></i></span></div>
-    <div class="vs">الصكة<b id="tgt">152</b></div>
-    <div class="side them"><span class="who">لهم</span><span class="pts" id="sThem">0</span><span class="bar"><i id="bThem"></i></span></div>
-  </div>
-  <div class="lead" id="lead"></div>
+  <section class="board" aria-label="النتيجة">
+    <div class="score">
+      <div class="side us"><span class="who">لنا</span><span class="pts" id="sUs">0</span></div>
+      <div class="vs"><span id="lead"></span></div>
+      <div class="side them"><span class="who">لهم</span><span class="pts" id="sThem">0</span></div>
+    </div>
+    <div class="race" aria-hidden="true"><i class="u" id="bUs"></i><i class="t" id="bThem"></i></div>
+    <div class="tgt">الصكة على <b id="tgt">152</b></div>
+  </section>
   <div id="editBar"></div>
 
   <section class="round" id="roundCard" aria-label="الجولة الحالية">
-    <div class="seg big" id="segMode"><button data-v="sun">صن</button><button data-v="hokm">حكم</button></div>
+    <div class="rline">
+      <div class="seg mini" id="segMode"><button data-v="sun">صن</button><button data-v="hokm">حكم</button></div>
+      <span class="rlb">اشترى</span>
+      <div class="seg mini" id="segBuyer"><button data-v="us">لنا</button><button data-v="them">لهم</button></div>
+    </div>
     <div class="suits off" id="suits"></div>
-    <div class="rowl"><span class="lb">المشتري</span><div class="seg" id="segBuyer"><button data-v="us">لنا</button><button data-v="them">لهم</button></div></div>
-    <div class="rowl"><span class="lb">الدبل</span><div id="lvBox"></div></div>
-    <button class="projrow press" id="bProj"></button>
+    <div class="xrow"><button class="xchip press" id="bLevel"></button><button class="xchip press" id="bProj"></button></div>
   </section>
 
   <div class="actions" id="actions">
     <button class="scan press" id="bScan">
-      <span class="cam"><svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="4"/></svg></span>
-      <span><span class="t1">صوّر الأوراق</span><span class="t2" id="scanSub">صوّر أكلات فريقك ونحسب الجولة</span></span>
+      <span class="cam"><svg width="30" height="30" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="4"/></svg></span>
+      <span><span class="t1">تصوير الورق</span><span class="t2" id="scanSub">صوّر أكلاتنا، والحساب علينا</span></span>
     </button>
     <div class="alt2">
-      <button class="press" id="bManual"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>إدخال يدوي</button>
-      <button class="press mic" id="bMic" aria-label="إدخال بالصوت" hidden><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
+      <button class="press" id="bManual"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="4" y="3" width="16" height="18" rx="3"/><path d="M8 8h8M8 12h2M12 12h2M8 16h2M12 16h2"/></svg>إدخال يدوي</button>
+      <button class="press" id="bLib"><svg width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>من الصور</button>
+      <button class="press mic" id="bMic" aria-label="إدخال بالصوت" hidden><svg width="21" height="21" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg></button>
     </div>
   </div>
   <div id="wonBox"></div>
+</div>
+
+<!-- in-app camera (one tap to shoot); falls back to the phone camera where the page may not use it -->
+<div id="cam" hidden><video id="camV" playsinline muted autoplay></video>
+  <div class="camtop"><button class="ib" id="camX" aria-label="إغلاق"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button><span id="camMsg">صوّر كل أكلاتنا من فوق</span></div>
+  <div class="camguide"></div>
+  <div class="cambar"><button class="camlib" id="camLib">من الصور</button><button class="shutter" id="camShot" aria-label="التقاط"></button><span class="camsp"></span></div>
 </div>
 
 <div id="scrim"></div>
@@ -378,7 +469,15 @@ const TEAM = { us: 'لنا', them: 'لهم' };
 const OTHER = t => (t === 'us' ? 'them' : 'us');
 const SUIT = { S: ['♠', 'سبيت', 'k'], H: ['♥', 'هاص', 'r'], D: ['♦', 'ديمن', 'r'], C: ['♣', 'كلفس', 'k'] };
 const LV = E.LEVELS;
-const haptic = () => { try { navigator.vibrate && navigator.vibrate(8); } catch (e) {} };
+const haptic = (() => {
+  let lbl = null;
+  return () => {
+    try { if (navigator.vibrate && navigator.vibrate(8)) return; } catch (e) {}
+    try { if (!lbl) { lbl = document.createElement('label'); lbl.setAttribute('aria-hidden', 'true'); lbl.style.cssText = 'position:fixed;width:1px;height:1px;opacity:0;pointer-events:none;overflow:hidden';
+        const i = document.createElement('input'); i.type = 'checkbox'; i.setAttribute('switch', ''); i.tabIndex = -1; lbl.appendChild(i); document.body.appendChild(lbl); }
+      lbl.click(); } catch (e) {}
+  };
+})();
 const X_SVG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg>';
 
 /* ---------- state (saved on every change, restored on refresh) ---------- */
@@ -438,35 +537,36 @@ function setSeg(el, val, vals) {
 }
 $('#suits').innerHTML = E.SUITS.map(s => `<button class="suit ${SUIT[s][2]} press" data-v="${s}" aria-label="الحكم ${SUIT[s][1]}"><b>${SUIT[s][0]}</b>${SUIT[s][1]}</button>`).join('');
 
+/* doubling and projects are compact chips; they open small sheets only when needed */
 function renderLevels() {
-  const c = C(), opts = levelOpts(), box = $('#lvBox');
-  if (opts.length < 2) {
-    box.dataset.k = '';
-    box.innerHTML = `<span class="hint">${c.mode === 'sun' ? (S.rules.sunDouble === 'off' ? 'الدبل في الصن مقفل من الإعدادات' : 'في الصن يصير الدبل إذا المشتري 100 وفوق والثاني تحت 100') : ''}</span>`;
-    return;
-  }
-  const key = opts.join(',');
-  if (box.dataset.k !== key) {
-    box.dataset.k = key;
-    box.innerHTML = `<div class="seg lv" id="segLv">${opts.map(l => `<button data-v="${l}">${LV[l].ar}</button>`).join('')}</div>`;
-  }
-  setSeg($('#segLv'), c.level, opts);
+  const c = C(), opts = levelOpts(), b = $('#bLevel');
+  b.disabled = opts.length < 2;
+  b.classList.toggle('on', c.level !== 'normal');
+  b.innerHTML = opts.length < 2 ? 'بدون دبل' : c.level === 'normal' ? 'دبل؟' : `${LV[c.level].ar}${LV[c.level].mult > 1 ? ' ×' + LV[c.level].mult : ''}`;
 }
 function renderProjRow() {
-  const c = C(), n = c.projects.length;
-  const toks = c.projects.map(p => `<span class="tok ${p.team}">${projName(p.type)} ${TEAM[p.team]}</span>`).join('');
-  $('#bProj').innerHTML = `<span class="t">المشاريع</span><span class="toks">${n ? toks : '<span class="add">ما فيه — اضغط للإضافة</span>'}</span>
-    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M15 6l-6 6 6 6"/></svg>`;
+  const c = C(), n = c.projects.length, b = $('#bProj');
+  b.classList.toggle('on', n > 0);
+  b.innerHTML = n ? c.projects.map(p => `${projName(p.type)} ${TEAM[p.team]}`).join(' · ') : 'مشاريع؟';
+}
+function levelSheet() {
+  const opts = levelOpts();
+  openSheet('level', `${head('الدبل')}<div class="stack">
+    <div class="seg lv" id="segLv">${opts.map(l => `<button data-v="${l}">${LV[l].ar}</button>`).join('')}</div>
+    <div class="note">${C().mode === 'sun' ? 'في الصن الدبل بس.' : 'الدبل والثري والفور: الفائز ياخذ الجولة كاملة مضروبة. القهوة: اللي يكسب الجولة يكسب الصكة.'}</div>
+    <button class="go press" data-a="close">تم</button></div>`);
+  setSeg($('#segLv'), C().level, opts);
 }
 function renderHome() {
   const t = totals(), tg = S.target;
   countTo($('#sUs'), shown.us, t.us); countTo($('#sThem'), shown.them, t.them); shown.us = t.us; shown.them = t.them;
-  $('#bUs').style.transform = `scaleX(${Math.min(1, t.us / tg)})`; $('#bThem').style.transform = `scaleX(${Math.min(1, t.them / tg)})`;
+  $('#bUs').style.setProperty('--p', Math.min(1, t.us / tg)); $('#bThem').style.setProperty('--p', Math.min(1, t.them / tg));
+  $('#bUndo').hidden = !S.rounds.length;
   $('#tgt').textContent = tg;
   $('#rnd').textContent = 'الجولة ' + (S.edit ? S.edit.i + 1 : S.rounds.length + 1);
   const d = t.us - t.them;
   const wins = S.games.length ? ` · الصكات ${S.games.filter(x => x.w === 'us').length}–${S.games.filter(x => x.w === 'them').length}` : '';
-  $('#lead').textContent = (S.rounds.length ? (d === 0 ? 'متعادلين' : `${d > 0 ? 'متقدمين' : 'متأخرين'} بـ ${Math.abs(d)}`) : 'صكة جديدة') + wins;
+  $('#lead').textContent = (S.rounds.length ? (d === 0 ? 'متعادلين' : `${d > 0 ? 'متقدمين' : 'متأخرين'} ${Math.abs(d)}`) : 'صكة جديدة') + wins;
   $('#editBar').innerHTML = S.edit ? `<div class="editbar"><span>تعدّل الجولة ${S.edit.i + 1}</span><button data-a="editOpen">الأبناط</button><button data-a="editCancel">إلغاء</button></div>` : '';
   const won = gameWon();
   $('#roundCard').hidden = won; $('#actions').hidden = won;
@@ -776,7 +876,7 @@ async function initAI() {
   if (window.claude && window.claude.use) {
     try { const f = await window.claude.use('sample'); if (f) { const lim = await f.limits().catch(() => null); if (lim && lim.images) { AIF = f; AIMODE = 'claude'; AIMAX = Math.max(1, Math.min(8, lim.images.maxCount || 8)); } } } catch (e) {}
   } else if (getKey()) AIMODE = 'key';
-  $('#scanSub').textContent = AIMODE === 'none' ? 'اختر أوراق الأكلات ونحسب الجولة' : 'صوّر أكلات فريقك ونحسب الجولة';
+  $('#scanSub').textContent = AIMODE === 'none' ? 'أضف أوراق أكلاتنا، والحساب علينا' : 'صوّر أكلاتنا، والحساب علينا';
 }
 let AIMAX = 8; // images per AI call
 /* one AI call with one or more images → parsed JSON. Inside Claude: the viewer's Claude; outside: the user's key. */
@@ -834,172 +934,217 @@ const cardName = k => k ? k.slice(0, -1) + SUIT[k.slice(-1)][0] : '?';
 const busy = () => P && P.photos.some(x => x.state === 'reading');
 const CAM_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 8h3l2-3h6l2 3h3a1 1 0 0 1 1 1v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V9a1 1 0 0 1 1-1z"/><circle cx="12" cy="13.5" r="4"/></svg>';
 const LIB_SVG = '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="16" rx="3"/><circle cx="9" cy="10" r="2"/><path d="M21 16l-5-5-9 9"/></svg>';
-let PICK = { replace: null }; // which photo a new pick replaces (null = add)
-function startScan() {
+let PICK = { replace: null, fix: null }; // replace: photo id being retaken · fix: the unclear card a close-up is for
+/* Scan = open the camera at once. Inside Claude the page may not use the camera itself, so the phone's camera opens. */
+function startScan(fromLib) {
   if (needTrump()) { nudgeSuits(); return; }
   if (!P || SK !== 'pile') P = pileNew();
-  srcSheet();
+  if (AIMODE === 'none') { P.adding = true; pileSheet(); return; } // no AI here: pick the cards by tapping
+  if (fromLib) { $('#photoLib').click(); return; }
+  openCamera();
 }
-/* bottom sheet: camera or photo library / Files */
-function srcSheet(replaceId) {
-  PICK.replace = replaceId == null ? null : replaceId;
-  const noAI = AIMODE === 'none';
-  openSheet('src', `${head(replaceId != null ? 'استبدال الصورة' : 'صوّر الورق')}<div class="srcs">
-    <button class="src press" data-a="pickCam" ${noAI ? 'disabled' : ''}><span class="ic">${CAM_SVG}</span><span><b>تصوير بالكاميرا</b><small>صورة جديدة لأكلات الفريق</small></span></button>
-    <button class="src press" data-a="pickLib" ${noAI ? 'disabled' : ''}><span class="ic">${LIB_SVG}</span><span><b>اختيار من الصور</b><small>من الصور أو تطبيق الملفات · JPG و PNG و HEIC</small></span></button>
-    ${noAI ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? ' (اسمح للصفحة تستخدمه)' : ' أو مفتاح Anthropic من ⋯ الإعدادات'}. تقدر تختار الأوراق بنفسك:</div>` : ''}
-    ${replaceId == null ? `<button class="src plain press" data-a="pickGrid"><span class="ic"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/></svg></span><span><b>اختيار الأوراق يدوياً</b><small>بدون صورة</small></span></button>` : ''}
-    <div class="note">إذا ما انفتحت الكاميرا: إعدادات الآيفون ← التطبيق اللي فاتح الصفحة (Safari أو Claude) ← الكاميرا ← اسمح.</div>
-  </div>`);
+const CAN_LIVE = !!(navigator.mediaDevices && navigator.mediaDevices.getUserMedia) && !window.claude;
+let CAMS = null;
+function openCamera(msg) {
+  if (!CAN_LIVE) { $('#photoCam').click(); return; } // must run inside the tap
+  $('#cam').hidden = false; $('#camMsg').textContent = msg || 'صوّر كل أكلاتنا من فوق';
+  navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 3840 }, height: { ideal: 2160 } }, audio: false })
+    .then(st => { if ($('#cam').hidden) { st.getTracks().forEach(t => t.stop()); return; } CAMS = st; $('#camV').srcObject = st; })
+    .catch(() => { CAMS = 'fallback'; $('#camMsg').textContent = 'الكاميرا ما انفتحت هنا — اضغط الزر الأبيض لكاميرا الجوال'; });
 }
+function closeCamera() { if (CAMS && CAMS.getTracks) CAMS.getTracks().forEach(t => t.stop()); CAMS = null; $('#camV').srcObject = null; $('#cam').hidden = true; }
+$('#camShot').onclick = () => {
+  if (!CAMS || CAMS === 'fallback') { closeCamera(); $('#photoCam').click(); return; }
+  const v = $('#camV'); if (!v.videoWidth) return;
+  const cv = document.createElement('canvas'); cv.width = v.videoWidth; cv.height = v.videoHeight; cv.getContext('2d').drawImage(v, 0, 0);
+  haptic(); closeCamera();
+  cv.toBlob(b => { if (b) handleFile(new File([b], 'cam.jpg', { type: 'image/jpeg' }), 'cam'); }, 'image/jpeg', 0.92);
+};
+$('#camX').onclick = () => { closeCamera(); PICK.fix = null; };
+$('#camLib').onclick = () => { closeCamera(); $('#photoLib').click(); };
 const OK_TYPES = /^image\/(jpe?g|png|heic|heif|webp|gif)$/i, OK_EXT = /\.(jpe?g|png|heic|heif|webp)$/i;
 async function onPicked(e) {
-  const input = e.target, file = input.files && input.files[0], src = input.id === 'photoCam' ? 'cam' : 'lib';
-  input.value = ''; if (!file) return; // cancelled: nothing changes
+  const input = e.target, file = input.files && input.files[0];
+  input.value = ''; if (!file) { PICK.fix = null; return; } // cancelled: nothing changes
+  handleFile(file, input.id === 'photoCam' ? 'cam' : 'lib');
+}
+const SCAN_CACHE = new Map(); // the same file picked again is not sent to the AI again
+async function handleFile(file, src) {
   if (!P) P = pileNew();
-  const rep = PICK.replace; PICK.replace = null;
+  const rep = PICK.replace, fix = PICK.fix; PICK.replace = null; PICK.fix = null;
   const bad = msg => { P.err = msg; pileSheet(); };
   if (!(OK_TYPES.test(file.type) || (!file.type && OK_EXT.test(file.name)) || OK_EXT.test(file.name))) return bad('هذا الملف مو صورة. اختر صورة JPG أو PNG أو HEIC.');
-  if (file.size > 30e6) return bad('الصورة كبيرة جداً (أكثر من 30 ميغا). اختر صورة أصغر.');
+  if (file.size > 30e6) return bad('الصورة كبيرة جداً. اختر صورة أصغر.');
   const { blob, url } = await shrink(file);
-  if (!blob) return bad(/heic|heif/i.test(file.type + file.name) ? 'هذا المتصفح ما يفتح صور HEIC. اختر الصورة من «الصور» (تتحول JPG تلقائياً) أو صدّرها JPG.' : 'ما قدرنا نفتح الصورة. جرّب صورة ثانية.');
+  if (!blob) return bad(/heic|heif/i.test(file.type + file.name) ? 'هذي الصورة ما تنفتح هنا. اخترها من «الصور» أو صوّر من جديد.' : 'ما قدرنا نفتح الصورة. جرّب صورة ثانية.');
+  if (fix) return closeUp(fix, blob);
   let ph;
   if (rep != null && P.photos.some(x => x.id === rep)) { ph = P.photos.find(x => x.id === rep); ph.url = url; ph.src = src; }
   else { ph = { id: Date.now() + Math.random(), url, src }; P.photos.push(ph); }
-  Object.assign(ph, { state: 'reading', err: '', dets: [], ms: 0 });
-  P.err = ''; P.cur = P.photos.indexOf(ph); P.sel = null; rebuild();
-  pileSheet();
+  Object.assign(ph, { state: 'reading', err: '', note: '', dets: [], ms: 0, t0: performance.now() });
+  P.err = ''; P.cur = P.photos.indexOf(ph); P.sel = null; P.adding = false; rebuild();
+  pileSheet(); // the sheet opens at once; reading runs in the background
+  const key = file.name + ':' + file.size + ':' + (file.lastModified || '');
   try {
-    // the same pipeline for camera and library photos: local card-region analysis + overview + zoomed crops, merged
-    const r = await BalootVision.scanPhoto(blob, aiJSON, { maxImages: AIMAX });
+    const r = src === 'lib' && SCAN_CACHE.has(key) ? SCAN_CACHE.get(key) : await BalootVision.scanPhoto(blob, aiJSON, { maxImages: AIMAX });
+    if (src === 'lib') SCAN_CACHE.set(key, r);
     if (!P || !P.photos.includes(ph)) return; // removed while reading
-    Object.assign(ph, { dets: r.cards, w: r.width, h: r.height, ms: r.ms, state: 'done', img: r.img });
-    if (!r.cards.length) { ph.state = 'err'; ph.err = 'ما لقينا أوراق لعب في الصورة. جرّب صورة أقرب بإضاءة أحسن، أو اختر الأوراق من الجدول.'; }
-    else if (!r.passA || !r.passB) ph.note = 'جزء من القراءة ما اكتمل — راجع الأوراق.';
-    const first = r.cards.find(d => d.status !== 'ok'); P.sel = first ? { ph: ph.id, id: first.id } : null; FX = { rank: null, suit: null };
+    Object.assign(ph, { dets: r.cards.map(c => Object.assign({}, c)), w: r.width, h: r.height, ms: r.ms, state: 'done', img: r.img, enh: r.enh });
+    if (!r.cards.length) { ph.state = 'err'; ph.err = 'ما لقينا أوراق في الصورة. قرّب الجوال وصوّر بإضاءة أحسن.'; }
+    else if (!r.passA || !r.passB) ph.note = 'القراءة ما اكتملت كلها — نظرة سريعة على الأوراق المعلّمة.';
+    const first = ph.dets.find(d => d.status !== 'ok'); P.sel = first ? { ph: ph.id, id: first.id } : null; FX = { rank: null, suit: null };
+    haptic();
   } catch (err) {
     ph.state = 'err';
-    ph.err = err.message === 'badkey' ? 'مفتاح Anthropic غير صحيح — غيّره من ⋯' : (err && (err.code === 'not_granted' || err.code === 'images_unavailable')) ? 'لازم تسمح للصفحة تستخدم Claude لقراءة الصور.'
-      : (err && err.code === 'rate_limited') ? 'وصلت حد الاستخدام مؤقتاً. جرّب بعد شوي أو اختر الأوراق بنفسك.' : 'ما قدرنا نقرأ الصورة. جرّب مرة ثانية أو اختر الأوراق بنفسك.';
+    ph.err = err.message === 'badkey' ? 'مفتاح Anthropic غير صحيح — غيّره من ⋯' : (err && (err.code === 'not_granted' || err.code === 'images_unavailable')) ? 'اسمح للصفحة تستخدم Claude عشان نقرأ الصور.'
+      : (err && err.code === 'rate_limited') ? 'وصلنا حد الاستخدام مؤقتاً. جرّب بعد شوي أو أضف الأوراق بنفسك.' : 'ما قدرنا نقرأ الصورة. جرّب مرة ثانية أو أضف الأوراق بنفسك.';
   }
   rebuild();
   if (SK === 'pile') pileSheet();
 }
+/* a close-up of one unclear card: if it shows exactly one new card, that card fills the unclear spot */
+async function closeUp(d, blob) {
+  toast('نقرأ الصورة القريبة…');
+  try {
+    const r = await BalootVision.scanPhoto(blob, aiJSON, { maxImages: AIMAX });
+    const used = new Set(liveDets().filter(o => o !== d && o.status === 'ok').map(dkey).filter(Boolean));
+    const fresh = [...new Set(r.cards.filter(c => c.rank && c.suit).map(c => c.rank + c.suit))].filter(k => !used.has(k));
+    if (fresh.length === 1 && d.status !== 'removed') {
+      const k = fresh[0]; d.prev = dkey(d); d.rank = k.slice(0, -1); d.suit = k.slice(-1); d.status = 'ok'; d.reread = true; delete d.conflict;
+      conflictsIn(d.ph); rebuild(); nextPending(); toast(`✓ ${cardName(k)} من الصورة القريبة`);
+    } else if (fresh.length) { d.alts = fresh.slice(0, 4); toast('اختر الورقة من الاقتراحات'); }
+    else toast('ما بانت ورقة جديدة في الصورة القريبة — اختر الورقة بنفسك');
+  } catch (e) { toast('ما قدرنا نقرأ الصورة القريبة'); }
+  if (SK === 'pile') pileSheet();
+}
 $('#photoCam').onchange = onPicked;
 $('#photoLib').onchange = onPicked;
-/* The scanner reads OUR team's collected cards. Points for us come from the confirmed cards (+10 if we took the last
-   trick). The other team's share (total − ours) is only used once the user says these are ALL our tricks. */
-function pileCalc() {
+
+/* Our team's collected cards → the round, for a given last-trick answer. Nothing is final while a card needs checking,
+   and the other team's share (total − ours) is only used when the answer says these are ALL our tricks. */
+function pileOutcome(last) {
   const c = C(), Mx = E.MODE[c.mode], n = physCards().length;
   if (needTrump()) return { err: 'اختر الحكم أول' };
   const pend = pending().length;
   if (pend) return { pending: pend };
-  const cards = [...P.cards].map(k => ({ rank: k.slice(0, -1), suit: k.slice(-1) }));
   if (!n) return {};
+  const cards = [...P.cards].map(k => ({ rank: k.slice(0, -1), suit: k.slice(-1) }));
   const raw = E.handAbnat(cards, c.mode, c.trump);
-  if (P.complete === false) return { partial: true, ab: raw + (P.last === 'us' ? 10 : 0) };
-  if (n % 4) return { warn: `${n} ورقة — الأكلات تكون 4 أوراق لكل أكلة (4، 8، 12 … 32). يمكن فيه ورقة مخفية أو زايدة: راجع الصورة أو أضفها من الجدول.`, ab: raw };
-  if (n === 32) return { r: score({ kaboot: 'us' }), ab: Mx.total };
-  if (!P.last) return { needLast: true, ab: raw };
-  if (P.complete !== true) return { needComplete: true, ab: raw + (P.last === 'us' ? 10 : 0) };
-  const ab = E.pileAbnat(cards, c.mode, c.trump, P.last === 'us');
+  if (n % 4) return { warn: `${n} ورقة — الأكلات تجي 4 أوراق (4، 8، 12 …). يمكن ورقة مخفية أو زايدة.`, raw };
+  if (n === 32) return { r: score({ kaboot: 'us' }), ab: Mx.total, kab: true };
+  const ab = E.pileAbnat(cards, c.mode, c.trump, last === 'us');
   if (ab == null) return { err: 'تأكد من الأوراق' };
-  return { r: score({ abnatUs: ab }), ab };
+  return { r: score({ abnatUs: ab }), ab, raw };
 }
+function pileCalc() { // kept for the tests: the answer the user gave (P.last / P.complete)
+  if (P.complete === false) { const o = pileOutcome('them'); return o.raw != null ? { partial: true, ab: o.raw + (P.last === 'us' ? 10 : 0) } : o; }
+  if (!P.last) return Object.assign(pileOutcome('us'), { needLast: true });
+  return pileOutcome(P.last);
+}
+
 function pileSheet() {
   const c = C(), noAI = AIMODE === 'none';
-  const cells = E.SUITS.map(s => `<span class="sl ${SUIT[s][2]}">${SUIT[s][0]}</span>` + E.RANKS.map(rk => {
-    const k = rk + s; return `<button class="cd ${SUIT[s][2]}${P.cards.has(k) ? ' on' : ''}${P.ai.has(k) ? ' ai' : ''}" data-a="card" data-v="${k}" aria-label="${rk} ${SUIT[s][1]}" aria-pressed="${P.cards.has(k)}">${rk}</button>`;
-  }).join('')).join('');
-  const ph = P.photos[P.cur] || P.photos[P.photos.length - 1];
   const lvl = c.level !== 'normal' ? ' · ' + LV[c.level].ar : '';
-  const dets = ph && ph.dets ? ph.dets.filter(d => d.status !== 'removed') : [];
-  const att = dets.filter(d => d.status !== 'ok').length;
-  const ov = !ph ? '' : ph.state === 'reading' ? '<span class="ov"><span class="spin"></span>نقرأ الأوراق…</span>' : ph.state === 'rechecking' ? '<span class="ov"><span class="spin"></span>نفحص المعلّمة مكبّرة…</span>' : ph.state === 'err' ? '<span class="ov bad">ما انقرت</span>'
-    : `<span class="ov">هذي الصورة: ${dets.length} ورقة${ph.ms ? ` · ${(ph.ms / 1000).toFixed(1)} ث` : ''}</span>`;
-  const boxes = ph && (ph.state === 'done' || ph.state === 'rechecking') ? dets.map(d => { const b = d.box, sel = P.sel && P.sel.ph === ph.id && P.sel.id === d.id, need = d.status !== 'ok';
-    return `<button class="bx ${need ? (d.conflict ? 's-conf' : 's-' + d.status) : 's-ok'}${sel ? ' sel' : ''}" data-a="selDet" data-v="${d.id}" style="left:${(b[0] * 100).toFixed(2)}%;top:${(b[1] * 100).toFixed(2)}%;width:${((b[2] - b[0]) * 100).toFixed(2)}%;height:${((b[3] - b[1]) * 100).toFixed(2)}%" aria-label="${need ? 'ورقة تحتاج تأكيد' : cardName(dkey(d))}">${need ? '<span>!</span>' : ''}</button>`; }).join('') : '';
-  const W = (ph && ph.w) || 4, H = (ph && ph.h) || 3, maxH = P.big ? 560 : 250;
-  const preview = ph ? `<div class="pv"><div class="pvin" style="width:min(100%, ${Math.round(maxH * W / H)}px);aspect-ratio:${W}/${H}"><img src="${ph.url}" alt="صورة الأوراق">${boxes}${ov}</div>
-      ${ph.state === 'done' ? `<button class="pvzoom" data-a="pvBig" aria-label="${P.big ? 'تصغير' : 'تكبير'} الصورة">${P.big ? '−' : '+'}</button>` : ''}</div>
-      ${P.photos.length > 1 ? `<div class="pthumbs">${P.photos.map((x, i) => `<button class="${x === ph ? 'on' : ''}" data-a="showPhoto" data-v="${i}" aria-label="صورة ${i + 1}"><img src="${x.url}" alt=""></button>`).join('')}</div>` : ''}
-      ${ph.state === 'err' ? `<div class="err">${ph.err}</div>` : ''}${ph.note ? `<div class="warn">${ph.note}</div>` : ''}` : (noAI ? '' : `<button class="soft press" data-a="addPhoto">صوّر أو اختر صورة</button>`);
-  const acts = ph ? `<div class="pvacts">
-        <button class="press" data-a="retake" data-v="${ph.id}">${ph.src === 'cam' ? CAM_SVG.replace(/24/g, '18') + 'إعادة التصوير' : LIB_SVG.replace(/24/g, '18') + 'صورة ثانية بدلها'}</button>
-        <button class="press" data-a="addPhoto"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M12 5v14M5 12h14"/></svg>صورة إضافية</button>
-        <button class="press del" data-a="delPhoto" data-v="${ph.id}" aria-label="احذف الصورة"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button>
-      </div>` : '';
+  const ph = P.photos[P.cur] || P.photos[P.photos.length - 1];
+  const thumbs = P.photos.map((x, i) => `<button class="th${x === ph && P.view ? ' on' : ''}" data-a="viewPhoto" data-v="${i}" aria-label="صورة ${i + 1}"><img src="${x.url}" alt="">${x.state === 'reading' ? '<i class="spin"></i>' : x.state === 'err' ? '<i class="bad">!</i>' : ''}</button>`).join('');
+  const view = ph && P.view ? (() => {
+    const dets = (ph.dets || []).filter(d => d.status !== 'removed'), W = ph.w || 4, H = ph.h || 3;
+    const boxes = ph.state === 'done' ? dets.map(d => { const b = d.box, need = d.status !== 'ok', sel = P.sel && P.sel.ph === ph.id && P.sel.id === d.id;
+      return `<button class="bx ${need ? (d.conflict ? 's-conf' : 's-' + d.status) : 's-ok'}${sel ? ' sel' : ''}" data-a="selDet" data-v="${d.id}" style="left:${(b[0] * 100).toFixed(2)}%;top:${(b[1] * 100).toFixed(2)}%;width:${((b[2] - b[0]) * 100).toFixed(2)}%;height:${((b[3] - b[1]) * 100).toFixed(2)}%" aria-label="${need ? 'ورقة تحتاج نظرة' : cardName(dkey(d))}">${need ? '<span>!</span>' : ''}</button>`; }).join('') : '';
+    return `<div class="pv"><div class="pvin" style="width:min(100%, ${Math.round(300 * W / H)}px);aspect-ratio:${W}/${H}"><img src="${ph.url}" alt="صورة الأوراق">${boxes}</div></div>
+      <div class="pvacts"><button class="press" data-a="retake" data-v="${ph.id}">${CAM_SVG.replace(/24/g, '18')}صوّرها من جديد</button><button class="press del" data-a="delPhoto" data-v="${ph.id}" aria-label="احذف الصورة"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 7h16M9 7V4h6v3M6 7l1 13h10l1-13"/></svg></button></div>`;
+  })() : '';
   openSheet('pile', `${head(`أكلاتنا <span class="hint" style="font-size:13px;font-weight:600">· ${modeLabel(c)}${lvl}</span>`)}
     <div class="stack">
-      ${preview}
+      ${P.photos.length ? `<div class="strip">${thumbs}${noAI ? '' : `<button class="th add" data-a="addPhoto" aria-label="صورة ثانية">${CAM_SVG.replace(/24/g, '20')}</button>`}<span class="stat" id="pStat"></span></div>` : '<span class="stat" id="pStat"></span>'}
+      ${view}
+      ${P.photos.map(x => x.state === 'err' ? `<div class="err">${x.err}</div>` : x.note ? `<div class="warn">${x.note}</div>` : '').join('')}
+      ${P.err ? `<div class="err">${P.err}</div>` : ''}
+      ${noAI && !P.photos.length ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? '' : ' أو مفتاح Anthropic (من ⋯)'}. أضف أوراق أكلاتنا هنا:</div>` : ''}
       <div id="pList"></div>
       <div id="pFix"></div>
-      ${acts}
-      <span class="stat" id="pStat"></span>
-      ${noAI ? `<div class="note">قراءة الصور تحتاج Claude${window.claude ? '' : ' أو مفتاح Anthropic (من ⋯)'}. اختر الأوراق من الجدول وتنحسب مباشرة.</div>` : ''}
-      ${P.err ? `<div class="err">${P.err}</div>` : ''}
-      <details class="gridbox"${P.gridOpen || !P.photos.length ? ' open' : ''}><summary>${P.photos.length ? 'ورقة ناقصة؟ أضفها من الجدول' : 'اختر الأوراق'}</summary><div class="grid" id="pGrid">${cells}</div></details>
-      <div id="pLast"></div>
+      <div id="pAdd"></div>
       <div id="pRes"></div>
-      <button class="go press" id="pGo" data-a="pSave">سجّل الجولة</button>
+      <button class="go press" id="pGo" data-a="pSave" hidden>سجّل الجولة</button>
     </div>`);
-  listPanel(); fixPanel();
+  listPanel(); fixPanel(); addPanel();
   pileUpdate();
 }
-/* the clean list: every card once; only the ones that need attention are coloured */
+/* the cards as compact chips; only the ones that need a look are coloured */
 function listPanel() {
   const box = $('#pList'); if (!box) return;
   const list = physCards(), removed = P.photos.flatMap(ph => (ph.dets || []).filter(d => d.status === 'removed').map(d => Object.assign(d, { ph: ph.id })));
-  if (!list.length && !removed.length) { box.innerHTML = ''; return; }
+  if (!list.length && !removed.length && busy()) { box.innerHTML = '<div class="chips ghost">' + '<i></i>'.repeat(8) + '</div>'; return; }
   const sel = d => P.sel && d && P.sel.ph === d.ph && P.sel.id === d.id;
   const att = list.filter(x => x.d && x.d.status !== 'ok').length;
-  box.innerHTML = `<div class="clist"><div class="clh"><b>الأوراق (${list.length})</b>${att ? `<span class="need">${att} تحتاج نظرة</span>` : (busy() ? '' : '<span class="okk">كلها مؤكدة</span>')}</div>
-    <div class="chips">${list.map(x => x.manual ? `<button class="ch man" data-a="card" data-v="${x.k}" dir="ltr" aria-label="${cardName(x.k)} مضافة يدوياً — اضغط للحذف">${cardName(x.k)}<i>+</i></button>`
-      : `<button class="ch ${x.d.status !== 'ok' ? (x.d.conflict ? 'conf' : 'att') : ''}${sel(x.d) ? ' sel' : ''}${x.d.reread ? ' rr' : ''}" data-a="selCard" data-v="${x.d.ph}|${x.d.id}" dir="ltr">${x.k && x.d.status !== 'unreadable' ? cardName(x.k) : '?'}${x.d.status !== 'ok' ? '<i>!</i>' : ''}</button>`).join('')}</div>
-    ${removed.length ? `<div class="rem">مستبعدة: ${removed.map(d => `<button data-a="restore" data-v="${d.ph}|${d.id}" dir="ltr">${dkey(d) ? cardName(dkey(d)) : '?'} ↺</button>`).join(' ')}</div>` : ''}
-    ${att && AIMODE !== 'none' && P.photos.some(ph => ph.img && ph.state === 'done') ? '<button class="soft press slim" data-a="recheck">افحص المعلّمة مرة ثانية (مكبّرة)</button>' : ''}</div>`;
+  box.innerHTML = `<div class="clist"><div class="clh"><b>${list.length} ورقة</b>${att ? `<span class="need">${att} تحتاج نظرة</span>` : busy() || !list.length ? '' : '<span class="okk">كلها واضحة ✓</span>'}</div>
+    <div class="chips">${list.map(x => x.manual ? `<button class="ch man" data-a="card" data-v="${x.k}" dir="ltr" aria-label="${cardName(x.k)} مضافة — اضغط للحذف">${cardName(x.k)}<i>×</i></button>`
+      : `<button class="ch ${x.d.status !== 'ok' ? (x.d.conflict ? 'conf' : 'att') : ''}${sel(x.d) ? ' sel' : ''}${x.d.reread ? ' rr' : ''}" data-a="selCard" data-v="${x.d.ph}|${x.d.id}" dir="ltr">${x.k && x.d.status !== 'unreadable' ? cardName(x.k) : '؟'}${x.d.status !== 'ok' ? '<i>!</i>' : ''}</button>`).join('')}
+      <button class="ch plus${P.adding ? ' sel' : ''}" data-a="addCard" aria-label="أضف ورقة ناقصة">+ ورقة</button></div>
+    ${removed.length ? `<div class="rem">مستبعدة: ${removed.map(d => `<button data-a="restore" data-v="${d.ph}|${d.id}" dir="ltr">${dkey(d) ? cardName(dkey(d)) : '؟'} ↺</button>`).join(' ')}</div>` : ''}</div>`;
 }
+/* add a card the photo missed: rank + suit, one tap each */
+function addPanel() {
+  const box = $('#pAdd'); if (!box) return;
+  if (!P.adding) { box.innerHTML = ''; return; }
+  box.innerHTML = `<div class="fix"><div class="fixtx"><b>أضف ورقة</b><small>اختر الرقم ثم النوع</small></div>
+    <div class="fsel"><div class="frk">${E.RANKS.map(r => `<button class="${FX.addRank === r ? 'on' : ''}" data-a="addRank" data-v="${r}">${r}</button>`).join('')}</div>
+    <div class="fsu">${E.SUITS.map(x => `<button class="${SUIT[x][2]}" data-a="addSuit" data-v="${x}" aria-label="${SUIT[x][1]}" ${FX.addRank ? '' : 'disabled'}>${SUIT[x][0]}</button>`).join('')}</div></div>
+    <div class="fl"><button data-a="addClose">تم</button></div></div>`;
+}
+/* one question, with the score on each answer: tapping an answer saves the round (undo is offered) */
 function pileUpdate() {
   if (SK !== 'pile') return;
-  const o = pileCalc(), n = physCards().length, pd = pending().length;
-  const ask = n && n < 32;
-  $('#pLast').innerHTML = ask ? `<div class="qrow"><span>الأرض (آخر أكلة +10)</span><div class="seg alt" id="segLast"><button data-a="pLast" data-v="us">لنا</button><button data-a="pLast" data-v="them">لهم</button></div></div>
-    <div class="qrow"><span>هذي كل أكلاتنا؟</span><div class="seg alt" id="segAll"><button data-a="pAll" data-v="1">إي، كلها</button><button data-a="pAll" data-v="0">لا، فيه ناقص</button></div></div>` : '';
-  if ($('#segLast')) setSeg($('#segLast'), P.last, ['us', 'them']);
-  if ($('#segAll')) setSeg($('#segAll'), P.complete === true ? '1' : P.complete === false ? '0' : null, ['1', '0']);
-  $('#pStat').innerHTML = busy() ? '<span class="spin"></span>نقرأ الأوراق…' : n ? `<b>${n}</b> ورقة` + (pd ? ` · <span style="color:var(--peach-ink)">${pd} تحتاج تأكيد</span>` : ' · كلها مؤكدة') + (o.ab != null ? ` · <b>${o.ab}</b> بنط` : '') : '';
-  const miss = [];
-  if (needTrump()) miss.push('الحكم'); if (pd) miss.push(`تأكيد ${pd} ورقة`); if (ask && !P.last) miss.push('مين أخذ الأرض'); if (ask && P.complete == null) miss.push('هل هذي كل أكلاتنا');
-  const go = $('#pGo'); go.dataset.a = 'pSave';
-  if (o.partial) {
-    $('#pRes').innerHTML = `<div class="missing">أبناطنا في الصور: <b>${o.ab}</b>. الجولة تنحسب لما تكون الصور فيها كل أكلاتنا — أضف صورة للباقي، أو أدخل النتيجة يدوياً.</div>`;
-    go.disabled = true; go.textContent = 'ناقص أكلات'; return;
+  const n = physCards().length, pd = pending().length, rd = busy();
+  const reading = P.photos.find(x => x.state === 'reading');
+  $('#pStat').innerHTML = rd ? `<span class="spin"></span>نقرأ الأوراق… ${reading ? Math.max(1, Math.round((performance.now() - reading.t0) / 1000)) + ' ث' : ''}` : P.photos.length && P.photos.every(x => x.ms) ? `قرأناها في ${(P.photos.reduce((t, x) => t + (x.ms || 0), 0) / 1000).toFixed(1)} ث` : '';
+  const res = $('#pRes'), go = $('#pGo'); go.hidden = true;
+  if (needTrump()) { res.innerHTML = '<div class="err">اختر الحكم أول من الشاشة الرئيسية.</div>'; return; }
+  if (rd && !n) { res.innerHTML = ''; return; }
+  if (!n) { res.innerHTML = ''; return; }
+  if (pd) { res.innerHTML = `<div class="ask wait"><b>باقي ${pd === 1 ? 'ورقة وحدة' : pd + ' أوراق'} نتأكد منها</b><small>اضغط على الورقة المعلّمة وصحّحها أو أكّدها.</small></div>`; return; }
+  if (rd) { res.innerHTML = '<div class="ask wait"><b>ننتظر قراءة الصورة الثانية…</b></div>'; return; }
+  if (P.complete === false) {
+    const o = pileOutcome('them');
+    res.innerHTML = `<div class="ask"><b>أبناطنا في الصور: ${o.raw != null ? o.raw : '…'}</b><small>الجولة تنحسب لما تكون كل أكلاتنا في الصور.</small>
+      <div class="ans2"><button class="soft press" data-a="addPhoto">صوّر الباقي</button><button class="soft press" data-a="toManual">إدخال يدوي</button><button class="soft press" data-a="pUndoPartial">رجوع</button></div></div>`;
+    return;
   }
-  $('#pRes').innerHTML = (miss.length && !o.err ? `<div class="missing">باقي قبل الحساب: ${miss.join(' · ')}</div>` : '') + (o.err ? `<div class="err">${o.err}</div>` : o.warn ? `<div class="warn">${o.warn}</div>` : (o.pending || o.needLast || o.needComplete || !o.r) ? '' : resultHTML(o.r));
-  go.disabled = !(o.r && !o.r.error) || busy();
-  go.textContent = o.pending ? `أكّد ${o.pending === 1 ? 'الورقة المعلّمة' : o.pending + ' أوراق'} أول` : o.needLast ? 'حدد مين أخذ الأرض' : o.needComplete ? 'هل هذي كل أكلاتنا؟' : (S.edit ? 'احفظ التعديل' : 'سجّل الجولة');
+  const a = pileOutcome('us'), b = pileOutcome('them');
+  if (a.err) { res.innerHTML = `<div class="err">${a.err}</div>`; return; }
+  const pv = r => r && !r.error ? `<span class="pv2"><span class="u"><bdi dir="ltr">+${r.us}</bdi> لنا</span><span class="t"><bdi dir="ltr">+${r.them}</bdi> لهم</span></span>` : '';
+  const st = r => r && !r.error ? (r.made === true ? 'المشتري نجح' : r.made === 'tie' ? 'تعادل' : 'المشتري خسر') : '';
+  const warn = a.warn ? `<div class="warn">${a.warn}</div>` : '';
+  if (a.kab) {
+    res.innerHTML = `<div class="ask"><b>كل الأوراق عندنا — كبوت</b><button class="ans press" data-a="pDone" data-v="us"><span>سجّل الكبوت</span>${pv(a.r)}</button></div>`;
+    return;
+  }
+  res.innerHTML = `${warn}<div class="ask"><b>هذي كل أكلاتنا؟ ومين أخذ الأرض؟</b>
+    <button class="ans press" data-a="pDone" data-v="us" ${a.r ? '' : 'disabled'}><span>كلها، والأرض لنا<small>${st(a.r)}</small></span>${pv(a.r)}</button>
+    <button class="ans press" data-a="pDone" data-v="them" ${b.r ? '' : 'disabled'}><span>كلها، والأرض لهم<small>${st(b.r)}</small></span>${pv(b.r)}</button>
+    <button class="ans soft2 press" data-a="pPartial"><span>لا، فيه أكلات ناقصة</span></button>
+    ${a.r ? `<details class="why"><summary>كيف انحسبت؟</summary>${explainHTML(a.r).replace(/<\/?details[^>]*>|<summary>.*?<\/summary>/g, '')}</details>` : ''}</div>`;
 }
-/* tap a card on the photo → its zoom, the AI's best reading and alternatives, one-tap fix */
+/* tap a card → its zoom, suggestions, rank + suit, confirm */
 function selDet() { if (!P || !P.sel) return null; const ph = P.photos.find(x => x.id === P.sel.ph); return ph && (ph.dets || []).find(d => d.id === P.sel.id) || null; }
 function fixPanel() {
   const box = $('#pFix'); if (!box) return;
   const d = selDet(); if (!d || d.status === 'removed') { box.innerHTML = ''; return; }
   const cur = dkey(d), want = FX.rank && FX.suit ? FX.rank + FX.suit : null;
   const others = (d.conflict || []).map(id => (P.photos.find(x => x.id === d.ph).dets || []).find(o => o.id === id)).filter(o => o && o.status !== 'removed');
-  const title = d.conflict && others.length ? `<bdi dir="ltr">${cardName(cur)}</bdi> ظاهرة في ${others.length + 1} أماكن — وحدة بس صح` : d.notCard ? 'يمكن هذي مو ورقة' : d.status === 'unreadable' ? 'ورقة هنا ما انقرت بوضوح' : d.status === 'check' ? 'متأكدين منها؟' : d.reread ? 'صُححت بعد فحص مكبّر' : 'الورقة';
-  const info = d.reread ? `أول قراءة <bdi dir="ltr">${cardName(d.prev)}</bdi>، والفحص المكبّر قرأها <bdi dir="ltr">${cardName(cur)}</bdi>` : cur ? `قراءة الذكاء: <bdi dir="ltr">${cardName(cur)}</bdi> · ثقة ${Math.round((d.conf || 0) * 100)}%` : 'اختر الرقم والنوع، أو صوّرها من قريب';
+  const title = d.conflict && others.length ? `<bdi dir="ltr">${cardName(cur)}</bdi> بانت مرتين — وحدة بس صح` : d.notCard ? 'يمكن هذي مو ورقة' : d.status === 'unreadable' ? 'ورقة ما بانت زين' : d.status === 'check' ? 'هل هذي ' + (cur ? `<bdi dir="ltr">${cardName(cur)}</bdi>؟` : 'الورقة؟') : d.reread ? 'تصحّحت بعد نظرة مكبّرة' : 'الورقة';
   const sugg = [...new Set([cur].concat(d.alts || []).filter(Boolean))].slice(0, 4);
   const cmp = d.conflict && others.length ? `<div class="cmp">${[d].concat(others).map(o => `<div><img src="${o.zoom || ''}" alt=""><button class="soft press" data-a="keepAs" data-v="${o.id}">هذي <bdi dir="ltr">${cardName(cur)}</bdi></button></div>`).join('')}</div>` : '';
-  box.innerHTML = `<div class="fix"><div class="fixtop">${d.zoom ? `<img src="${d.zoom}" alt="تكبير الورقة">` : ''}<div class="fixtx"><b>${title}</b><small>${info}</small></div></div>
+  box.innerHTML = `<div class="fix"><div class="fixtop">${d.zoom ? `<img src="${d.zoom}" alt="تكبير الورقة">` : ''}<div class="fixtx"><b>${title}</b>${d.reread ? `<small>أول قراءة <bdi dir="ltr">${cardName(d.prev)}</bdi></small>` : ''}</div></div>
     ${cmp}
-    ${sugg.length > 1 || (sugg.length && d.status !== 'ok') ? `<div class="fixopts">${sugg.map(k => `<button class="press${k === cur && d.status === 'ok' ? ' on' : ''}" data-a="detPick" data-v="${k}" dir="ltr">${cardName(k)}</button>`).join('')}</div>` : ''}
-    <div class="fsel"><span>الرقم</span><div class="frk">${E.RANKS.map(r => `<button class="${(FX.rank || (cur && cur.slice(0, -1))) === r ? 'on' : ''}" data-a="fxRank" data-v="${r}">${r}</button>`).join('')}</div>
-      <span>النوع</span><div class="fsu">${E.SUITS.map(x => `<button class="${SUIT[x][2]}${(FX.suit || (cur && cur.slice(-1))) === x ? ' on' : ''}" data-a="fxSuit" data-v="${x}" aria-label="${SUIT[x][1]}">${SUIT[x][0]}</button>`).join('')}</div></div>
+    ${sugg.length ? `<div class="fixopts">${sugg.map(k => `<button class="press${k === cur && d.status === 'ok' ? ' on' : ''}" data-a="detPick" data-v="${k}" dir="ltr">${cardName(k)}</button>`).join('')}</div>` : ''}
+    <div class="fsel"><div class="frk">${E.RANKS.map(r => `<button class="${(FX.rank || (cur && cur.slice(0, -1))) === r ? 'on' : ''}" data-a="fxRank" data-v="${r}">${r}</button>`).join('')}</div>
+      <div class="fsu">${E.SUITS.map(x => `<button class="${SUIT[x][2]}${(FX.suit || (cur && cur.slice(-1))) === x ? ' on' : ''}" data-a="fxSuit" data-v="${x}" aria-label="${SUIT[x][1]}">${SUIT[x][0]}</button>`).join('')}</div></div>
     <div class="fixacts">${(want || cur) && (d.status !== 'ok' || (want && want !== cur)) ? `<button class="go press" data-a="detPick" data-v="${want || cur}">تأكيد <bdi dir="ltr">${cardName(want || cur)}</bdi></button>` : ''}
-      <div class="fl"><button data-a="detRemove">${d.notCard ? 'صح، مو ورقة — استبعدها' : 'مو ورقة — استبعدها'}</button>${d.status === 'unreadable' ? '<button data-a="detRetake">صوّرها من قريب</button>' : ''}<button data-a="selClose">إغلاق</button></div></div></div>`;
+      <div class="fl"><button data-a="detRemove">${d.notCard ? 'صح، مو ورقة' : 'مو ورقة'}</button>${d.status !== 'ok' && AIMODE !== 'none' ? '<button data-a="detRetake">صوّرها من قريب</button>' : ''}<button data-a="selClose">إغلاق</button></div></div></div>`;
 }
 function nextPending() { const nx = pending()[0]; P.sel = nx ? { ph: nx.ph, id: nx.id } : null; FX = { rank: null, suit: null }; if (nx) P.cur = P.photos.findIndex(x => x.id === nx.ph); }
-let FX = { rank: null, suit: null };
+let FX = { rank: null, suit: null, addRank: null };
 function nudgeSuits() {
   const s = $('#suits'); s.classList.remove('need'); void s.offsetWidth; s.classList.add('need');
   toast('اختر الحكم أول');
@@ -1019,7 +1164,7 @@ function histSheet() {
   openSheet('hist', `${head('الجولات')}<div class="stack">
     ${S.rounds.length ? `<div class="hr" style="border:0;padding:0;color:var(--ink-2);font-size:13px"><span></span><span>المجموع · اضغط على جولة لتعديلها</span><span class="p u">${t.us}</span><span class="p t">${t.them}</span><span></span></div>` : ''}
     <div class="hl">${rows || '<div class="empty">ما فيه جولات للحين</div>'}</div>
-    ${S.rounds.length ? '<button class="soft press" data-a="undo">تراجع عن آخر جولة</button>' : ''}
+    ${S.rounds.length ? '<div class="ans2"><button class="soft press" data-a="undo">تراجع عن آخر جولة</button><button class="soft press" data-a="share">مشاركة النتيجة</button></div>' : ''}
     ${S.games.length ? `<div class="note">صكات سابقة: ${S.games.slice().reverse().slice(0, 5).map(g => `${g.w ? TEAM[g.w] : 'تعادل'} (${g.us}–${g.them})`).join(' · ')}</div>` : ''}
   </div>`);
 }
@@ -1136,30 +1281,31 @@ const A = {
   kab: v => { M.kaboot = M.kaboot === v ? null : v; M.val = ''; haptic(); manualUpdate(); },
   voice: () => listen(),
   mSave: () => { const o = manualCalc(); if (o.r && !o.r.error) commit(o.r, M.heard ? 'voice' : 'manual'); },
-  card: v => { if (P.cards.has(v)) { P.manual.delete(v); liveDets().filter(d => dkey(d) === v).forEach(d => { d.status = 'removed'; }); } else P.manual.add(v); P.photos.forEach(ph => conflictsIn(ph.id)); rebuild(); listPanel(); fixPanel();
+  card: v => { if (P.cards.has(v)) { P.manual.delete(v); liveDets().filter(d => dkey(d) === v).forEach(d => { d.status = 'removed'; }); } else P.manual.add(v); P.photos.forEach(ph => conflictsIn(ph.id)); rebuild(); listPanel(); fixPanel(); pileUpdate();
     const b = document.querySelector(`.cd[data-v="${v}"]`); if (b) { b.classList.toggle('on', P.cards.has(v)); b.classList.toggle('ai', P.ai.has(v)); b.setAttribute('aria-pressed', String(P.cards.has(v))); }
     pileUpdate(); },
   pTeam: v => { P.team = v; pileUpdate(); },
   pAll: v => { P.complete = v === '1'; pileUpdate(); },
-  pOwn: (v, el) => { P.owners[+el.dataset.i] = v; pileUpdate(); },
-  pHand: () => {
-    const o = pileCalc(); if (!o.hand) return;
-    const c = C(); let added = 0;
-    o.hand.forEach((p, i) => { const t = P.owners[i]; if (t !== 'us' && t !== 'them') return;
-      const next = c.projects.concat([{ type: p.type, team: t }]);
-      if (!E.validateProjects(c.mode, next).length) { c.projects = next; added++; } });
-    if (!hasSameBest()) c.tieWinner = null;
-    P = null; save(); renderProjRow(); closeSheet();
-    if (added) toast(`أضفنا ${added} مشروع — أدخل نتيجة الأكلات`);
-    setTimeout(() => { manualSheet(); if (SK === 'manual') $('#mVoice').textContent = 'من اليد ما نعرف مين أكل وش: أدخل أبناط الأكلات (أو كبوت).'; }, 380);
-  },
   pLast: v => { P.last = v; pileUpdate(); },
+  pDone: v => { // one tap: these are all our tricks, last trick = v → save
+    P.complete = true; P.last = v; const o = pileOutcome(v);
+    if (o.r && !o.r.error) { commit(o.r, 'scan'); P = null; }
+  },
+  pPartial: () => { P.complete = false; pileUpdate(); },
+  pUndoPartial: () => { P.complete = null; pileUpdate(); },
+  toManual: () => { closeSheet(); setTimeout(() => manualSheet(), 360); },
+  viewPhoto: v => { const i = +v; P.view = !(P.view && P.cur === i); P.cur = i; pileSheet(); },
+  addCard: () => { P.adding = !P.adding; P.sel = null; FX.addRank = null; pileSheet(); },
+  addRank: v => { FX.addRank = v; addPanel(); },
+  addSuit: v => { if (!FX.addRank) return; const k = FX.addRank + v; FX.addRank = null;
+    if (P.cards.has(k)) { toast(`${cardName(k)} موجودة`); addPanel(); return; }
+    P.manual.add(k); rebuild(); haptic(); toast(`+ ${cardName(k)}`); listPanel(); addPanel(); pileUpdate(); },
+  addClose: () => { P.adding = false; pileSheet(); },
   pickCam: () => $('#photoCam').click(),
   pickLib: () => $('#photoLib').click(),
-  pickGrid: () => { P.kind = 'tricks'; pileSheet(); },
-  addPhoto: () => srcSheet(),
-  retake: v => { const ph = P.photos.find(x => String(x.id) === v); if (!ph) return; PICK.replace = ph.id; P.sel = null; $(ph.src === 'cam' ? '#photoCam' : '#photoLib').click(); },
-  delPhoto: v => { const i = P.photos.findIndex(x => String(x.id) === v); if (i < 0) return; P.photos.splice(i, 1); P.cur = P.photos.length - 1; P.sel = null; rebuild(); pileSheet(); },
+  addPhoto: () => openCamera('صوّر الأكلات الباقية'),
+  retake: v => { const ph = P.photos.find(x => String(x.id) === v); if (!ph) return; PICK.replace = ph.id; P.sel = null; openCamera(); },
+  delPhoto: v => { const i = P.photos.findIndex(x => String(x.id) === v); if (i < 0) return; P.photos.splice(i, 1); P.cur = P.photos.length - 1; P.sel = null; P.view = false; rebuild(); pileSheet(); },
   selDet: v => { const ph = P.photos[P.cur] || P.photos[P.photos.length - 1]; P.sel = { ph: ph.id, id: +v }; FX = { rank: null, suit: null }; pileSheet(); },
   selCard: v => { const [phId, id] = v.split('|'); const i = P.photos.findIndex(x => String(x.id) === phId); if (i < 0) return; P.cur = i; P.sel = { ph: P.photos[i].id, id: +id }; FX = { rank: null, suit: null }; pileSheet(); },
   selClose: () => { P.sel = null; FX = { rank: null, suit: null }; pileSheet(); },
@@ -1191,8 +1337,8 @@ const A = {
       ph.state = 'done'; }
     rebuild(); nextPending(); if (SK === 'pile') pileSheet();
   },
-  detRetake: () => { toast('قرّب الكاميرا على الورقة المعلّمة'); srcSheet(); },
-  showPhoto: v => { P.cur = +v; P.sel = null; pileSheet(); },
+  detRetake: () => { const d = selDet(); if (!d) return; PICK.fix = d; openCamera('قرّب على الورقة المعلّمة بس'); },
+
   pSave: () => { const o = pileCalc(); if (o.r && !o.r.error) { commit(o.r, 'scan'); P = null; } },
   edit: v => startEdit(+v),
   editOpen: () => { const r = S.edit && S.rounds[S.edit.i]; manualSheet(r && r.kaboot ? { kaboot: r.kaboot } : { team: 'us', val: r && r.abnat != null ? String(r.abnat) : '' }); },
@@ -1204,6 +1350,7 @@ const A = {
     toast(`حذفنا الجولة ${i + 1}`, 'تراجع', () => { S.rounds.splice(Math.min(i, S.rounds.length), 0, r); save(); renderHome(); if (SK === 'hist') histSheet(); });
   },
   undo: () => { undoLast(); if (SK === 'hist') histSheet(); },
+  share: () => share(),
   newGame: () => newGame(),
   bench: () => benchSheet(),
   benchRun: () => benchRun(),
@@ -1228,14 +1375,16 @@ $('#segMode').onclick = e => segPick(e, v => {
 });
 $('#suits').onclick = e => { const b = e.target.closest('.suit'); if (!b) return; C().trump = b.dataset.v; haptic(); save(); renderHome(); };
 $('#segBuyer').onclick = e => segPick(e, v => { C().buyer = v; haptic(); fixLevel(); save(); renderHome(); });
-$('#lvBox').onclick = e => segPick(e, v => { if (!levelOpts().includes(v)) return; C().level = v; haptic(); save(); renderHome(); });
+$('#bLevel').onclick = () => levelSheet();
+document.addEventListener('click', e => { const b = e.target.closest('#segLv button[data-v]'); if (!b || !levelOpts().includes(b.dataset.v)) return; C().level = b.dataset.v; haptic(); save(); renderHome(); setSeg($('#segLv'), C().level, levelOpts()); });
 $('#bProj').onclick = () => { PT = C().buyer; projSheet(); };
 $('#bScan').onclick = () => startScan();
+$('#bLib').onclick = () => startScan(true);
+$('#bUndo').onclick = () => undoLast();
 $('#bManual').onclick = () => manualSheet();
 $('#bMic').onclick = () => { if (needTrump()) { nudgeSuits(); return; } listen(); };
 $('#bHist').onclick = () => histSheet();
 $('#bMore').onclick = () => moreSheet();
-$('#bShare').onclick = () => share();
 $('#scrim').onclick = () => closeSheet();
 document.addEventListener('keydown', e => {
   if (e.key === 'Escape') closeSheet();
