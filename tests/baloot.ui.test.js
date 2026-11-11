@@ -245,6 +245,33 @@ const PNG = Buffer.from('iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR
     const lay = await p.evaluate(() => ({ hs: document.documentElement.scrollWidth <= innerWidth, scan: document.querySelector('#bScan').getBoundingClientRect().bottom <= innerHeight + 1, clip: [...document.querySelectorAll('.app button')].filter(x => x.offsetParent && x.scrollWidth > x.clientWidth + 2).map(x => x.textContent.trim()) }));
     ok(`${w}×${h}: no sideways scroll, nothing clipped, Scan visible without scrolling`, lay.hs && lay.scan && !lay.clip.length, lay);
   }
+  console.log('site AI server (key on the server, not in the browser)');
+  {
+    const q = await ctx.newPage(); const qerr = []; q.on('pageerror', e => qerr.push(e.message));
+    await q.addInitScript(() => { window.BALOOT_CONFIG = { aiUrl: 'https://ai.test/read' }; });
+    const LIVE = [['J', 'H'], ['9', 'H'], ['A', 'H'], ['10', 'H'], ['A', 'S'], ['10', 'S'], ['K', 'S'], ['Q', 'S']];
+    const seen = []; let direct = 0;
+    await q.route('https://api.anthropic.com/**', r => { direct++; r.abort(); });
+    await q.route('https://ai.test/**', async route => {
+      const body = JSON.parse(route.request().postData() || '{}'); seen.push({ headers: route.request().headers(), n: body.images.length, types: body.images.map(i => i.media_type) });
+      const ans = /zoomed crop/.test(body.prompt) ? { crops: [] } : /turquoise frame/.test(body.prompt) ? { cards: [] } : { cards: LIVE.map(([rank, suit], i) => ({ box: [20 + i * 120, 100, 120 + i * 120, 450], rank, suit, conf: 0.95 })) };
+      await route.fulfill({ status: 200, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: JSON.stringify({ text: JSON.stringify(ans) }) });
+    });
+    await q.goto('file://' + path.resolve(__dirname, '../baloot/index.html')); await q.waitForTimeout(600);
+    await q.click('#bScan'); await q.waitForTimeout(1200); await q.click('#camShot'); await q.waitForTimeout(1800);
+    const n = await q.evaluate(() => +((document.querySelector('.clh b') || {}).textContent || '0').match(/\d+/)[0]);
+    ok('scan goes through the site AI server: 8 cards read', n === 8 && seen.length >= 1, { n, calls: seen.length });
+    ok('no key is sent from the browser, nothing goes to api.anthropic.com directly', seen.every(x => !x.headers['x-api-key'] && !x.headers.authorization) && direct === 0, seen.map(x => x.headers));
+    ok('only JPEG/PNG images are sent, at most 8 per call', seen.every(x => x.n >= 1 && x.n <= 8 && x.types.every(t => /image\/(jpeg|png)/.test(t))), seen.map(x => x.types));
+    await q.click('.sh-x'); await q.waitForTimeout(300); await q.click('#bMore'); await q.waitForTimeout(350);
+    ok('settings: no API key field when the site has its own AI server', !(await q.$('#aikey')));
+    await q.unroute('https://ai.test/**');
+    await q.route('https://ai.test/**', r => r.fulfill({ status: 429, contentType: 'application/json', headers: { 'access-control-allow-origin': '*' }, body: '{"error":"rate_limited"}' }));
+    await q.click('.sh-x'); await q.waitForTimeout(300); await q.click('#bScan'); await q.waitForTimeout(1200); await q.click('#camShot'); await q.waitForTimeout(1500);
+    const msg = await q.evaluate(() => document.querySelector('#pileSheet, .sheet') && document.body.innerText);
+    ok('server busy → a clear message and the tap-the-cards fallback, no crash', /حد الاستخدام/.test(msg) && !qerr.length, qerr);
+    await q.close();
+  }
   ok('no page errors', errs.length === 0, errs);
   console.log(`\n${pass} passed, ${fail} failed`);
   await b.close(); process.exit(fail ? 1 : 0);

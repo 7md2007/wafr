@@ -1,0 +1,27 @@
+# Deploy the Baloot AI server (Cloudflare Worker). Manual only: Actions → "Baloot AI server deploy" → Run workflow.
+# Needs repository secrets (Settings → Secrets and variables → Actions):
+#   CLOUDFLARE_API_TOKEN   (Cloudflare token with "Edit Cloudflare Workers")
+#   CLOUDFLARE_ACCOUNT_ID
+#   ANTHROPIC_API_KEY      (stored as a Worker secret; never in the code or the website)
+name: Baloot AI server deploy
+on: workflow_dispatch
+permissions:
+  contents: read
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci --no-audit --no-fund
+        working-directory: baloot/ai-worker
+      - uses: cloudflare/wrangler-action@v3
+        with:
+          apiToken: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+          accountId: ${{ secrets.CLOUDFLARE_ACCOUNT_ID }}
+          workingDirectory: baloot/ai-worker
+          secrets: |
+            ANTHROPIC_API_KEY
+        env:
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}

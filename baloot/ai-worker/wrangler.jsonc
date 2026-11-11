@@ -1,0 +1,16 @@
+// Baloot AI server. The key is NOT here: run `npx wrangler secret put ANTHROPIC_API_KEY`.
+{
+  "name": "baloot-ai",
+  "main": "worker.js",
+  "compatibility_date": "2026-11-01",
+  "vars": {
+    // the site(s) allowed to call this server, comma separated (your Pages / GitHub Pages address)
+    "ALLOWED_ORIGINS": "https://7md2007.github.io",
+    "MODEL": "claude-opus-5-5",
+    "EFFORT": "low"
+  },
+  // 20 photo reads per minute per visitor (each scan = 2–3 reads)
+  "ratelimits": [
+    { "name": "RL", "namespace_id": "1101", "simple": { "limit": 20, "period": 60 } }
+  ]
+}

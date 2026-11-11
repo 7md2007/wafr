@@ -87,7 +87,7 @@ ok('low confidence alone → "check"', V.mergeDetections([{ box: B(1, 1, 100, 10
     'real2.png': [[318, 215], [330, 240], [305, 265], [395, 260], [272, 265], [230, 290], [175, 290], [60, 335], [160, 375], [335, 370]] };
   for (const [f, centres] of Object.entries(REAL)) {
     const file = path.join(__dirname, 'vision-data', f);
-    if (!fs.existsSync(file)) { console.log('      (missing', f, ')'); continue; }
+    if (!fs.existsSync(file)) { console.log('      (private photo', f, 'not present — skipped)'); continue; }
     const data = 'data:image/png;base64,' + fs.readFileSync(file).toString('base64');
     const r = await p.evaluate(async ([data, centres]) => {
       const img = new Image(); img.src = data; await img.decode();
@@ -117,6 +117,7 @@ ok('low confidence alone → "check"', V.mergeDetections([{ box: B(1, 1, 100, 10
   ok('warm (yellow) light: colour cast reduced to under 2 (was 5–10)', ll.filter(r => r.castBefore > 3).every(r => r.castAfter < 2), ll.map(r => [r.name, r.castBefore, r.castAfter]));
   ok('the photo itself is not changed (correction works on a copy)', await p.evaluate(() => { const { canvas } = BalootSynth.makeScene(BalootSynth.SCENES[17]); const g = canvas.getContext('2d'); const a = g.getImageData(0, 0, 50, 50).data.join(); BalootVision.enhance(canvas, 1600); return g.getImageData(0, 0, 50, 50).data.join() === a; }));
   for (const f of ['real1.png', 'real2.png']) {
+    if (!fs.existsSync(path.join(__dirname, 'vision-data', f))) { console.log('      (private photo', f, 'not present — skipped; see baloot/README.md)'); continue; }
     const data = 'data:image/png;base64,' + fs.readFileSync(path.join(__dirname, 'vision-data', f)).toString('base64');
     const r = await p.evaluate(async ([data, centres]) => {
       const img = new Image(); img.src = data; await img.decode();
@@ -130,6 +131,54 @@ ok('low confidence alone → "check"', V.mergeDetections([{ box: B(1, 1, 100, 10
     }, [data, REAL[f]]);
     ok(`${f} made dim + yellow: all 10 cards inside zoom crops with correction (without: ${r.darkOnly}/10)`, r.withCorrection === 10, r);
   }
+
+  console.log('\nperspective correction: a card photographed at an angle is found and flattened');
+  const pc = await p.evaluate(() => {
+    const V = BalootVision, out = [];
+    const flatCard = (rank, suit) => { const c = document.createElement('canvas'); c.width = 250; c.height = 350; const g = c.getContext('2d'); g.translate(125, 175); BalootSynth.drawCard(g, rank, suit, 250, 350); return c; };
+    // render a flat card onto a dark table through a true perspective (corner positions in pixels, TL TR BR BL)
+    const scene = (card, quad, extra) => {
+      const W = 1000, H = 800, cv = document.createElement('canvas'); cv.width = W; cv.height = H; const g = cv.getContext('2d');
+      g.fillStyle = '#1d3b2e'; g.fillRect(0, 0, W, H);
+      const td = g.getImageData(0, 0, W, H), sd = card.getContext('2d').getImageData(0, 0, card.width, card.height).data;
+      const Hm = V.homography(quad, [[0, 0], [card.width, 0], [card.width, card.height], [0, card.height]]);
+      for (let y = 0; y < H; y++) for (let x = 0; x < W; x++) { const w = Hm[6] * x + Hm[7] * y + 1, u = (Hm[0] * x + Hm[1] * y + Hm[2]) / w, v = (Hm[3] * x + Hm[4] * y + Hm[5]) / w;
+        if (u >= 0 && v >= 0 && u < card.width - 1 && v < card.height - 1) { const si = ((v | 0) * card.width + (u | 0)) * 4, di = (y * W + x) * 4; if (sd[si + 3] < 128) continue; td.data[di] = sd[si]; td.data[di + 1] = sd[si + 1]; td.data[di + 2] = sd[si + 2]; } }
+      g.putImageData(td, 0, 0); if (extra) extra(g); return cv;
+    };
+    const diff = (a, b) => { const A = V.canvasOf(a, 60), Bc = document.createElement('canvas'); Bc.width = A.width; Bc.height = A.height; Bc.getContext('2d').drawImage(b, 0, 0, A.width, A.height);
+      const x = A.getContext('2d').getImageData(0, 0, A.width, A.height).data, y = Bc.getContext('2d').getImageData(0, 0, A.width, A.height).data; let s = 0; for (let i = 0; i < x.length; i += 4) s += Math.abs(x[i] - y[i]) + Math.abs(x[i + 1] - y[i + 1]) + Math.abs(x[i + 2] - y[i + 2]); return s / (x.length / 4) / 3; };
+    const cases = [
+      ['tilted away (top narrower)', [[420, 230], [580, 230], [640, 560], [360, 560]]],
+      ['tilted sideways (right side nearer)', [[400, 250], [610, 200], [610, 600], [400, 550]]],
+      ['tilted and turned', [[380, 300], [560, 210], [690, 470], [470, 590]]],
+      ['lying sideways, tilted', [[300, 330], [700, 290], [720, 520], [280, 500]]],
+    ];
+    for (const [name, quad] of cases) {
+      const card = flatCard('9', 'H'), cv = scene(card, quad);
+      const xs = quad.map(p => p[0]), ys = quad.map(p => p[1]), box = [Math.min(...xs) / 1000, Math.min(...ys) / 800, Math.max(...xs) / 1000, Math.max(...ys) / 800];
+      const q = V.cardQuad(cv, box);
+      const err = q ? Math.max(...q.quad.map(([x, y], i) => Math.min(...quad.map(([tx, ty]) => Math.hypot(x * 1000 - tx, y * 800 - ty))))) : null;
+      const flat = q && V.warpCard(cv, q.quad);
+      let dFlat = null;
+      if (flat) { const inner = document.createElement('canvas'); inner.width = flat.width - 16; inner.height = flat.height - 16; inner.getContext('2d').drawImage(flat, 8, 8, inner.width, inner.height, 0, 0, inner.width, inner.height);
+        const cardSideways = name.startsWith('lying'); let ref = card;
+        if (cardSideways) { ref = document.createElement('canvas'); ref.width = 250; ref.height = 350; const g = ref.getContext('2d'); g.drawImage(card, 0, 0); } // long side kept vertical either way
+        dFlat = Math.min(diff(ref, inner), (() => { const r2 = document.createElement('canvas'); r2.width = 250; r2.height = 350; const g = r2.getContext('2d'); g.translate(250, 350); g.rotate(Math.PI); g.drawImage(ref, 0, 0); return diff(r2, inner); })()); }
+      const naive = V.canvasOf(cv, 300, box), dNaive = diff(card, naive);
+      out.push({ name, found: !!q, cornerErr: err && +err.toFixed(1), dFlat: dFlat && +dFlat.toFixed(1), dNaive: +dNaive.toFixed(1) });
+    }
+    // a straight-on card is left alone; a card touching another card is not "isolated"
+    const card = flatCard('K', 'S');
+    const straight = V.cardQuad(scene(card, [[400, 200], [600, 200], [600, 480], [400, 480]]), [0.4, 0.25, 0.6, 0.6]);
+    const touching = V.cardQuad(scene(card, [[420, 230], [580, 230], [640, 560], [360, 560]], g => { g.fillStyle = '#FBFBF8'; g.fillRect(600, 300, 200, 280); }), [0.36, 0.29, 0.64, 0.7]);
+    return { out, straight, touching };
+  });
+  pc.out.forEach(r => console.log(`      ${r.name}: corners ${r.found ? 'found, worst error ' + r.cornerErr + ' px' : 'not found'} · difference from the real card: flattened ${r.dFlat} vs plain crop ${r.dNaive}`));
+  ok('all 4 angled cards: corners found within 8 px (card ≈ 300 px tall)', pc.out.every(r => r.found && r.cornerErr <= 8), pc.out);
+  ok('flattened card is much closer to the real card than the plain crop', pc.out.every(r => r.dFlat < r.dNaive * 0.6), pc.out);
+  ok('straight-on card: no correction (nothing changed)', pc.straight === null, pc.straight);
+  ok('card touching another card: not treated as isolated (no guess)', pc.touching === null, pc.touching);
 
   console.log('\nfull pipeline with a stub AI that answers from the truth (checks plumbing, not accuracy)');
   const e2e = await p.evaluate(async () => {

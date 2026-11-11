@@ -188,6 +188,16 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   Speed: `lightCheck()` skips light correction for well-lit photos (judged on the cards' white, not the table): local work on a
   12-MP photo 0.17–0.27 s clear / 0.5–0.6 s dark or warm (desktop Chromium; AI time extra, measured in the in-app test).
   Haptics: navigator.vibrate, else the iOS 18 switch-input tick.
+- FINAL PHASE (Nov 11 2026): see `baloot/README.md` (install, tests, deploy, Home Screen, privacy, limits).
+  AI server `baloot/ai-worker/` (Cloudflare Worker, `@anthropic-ai/sdk`, key = Worker secret `ANTHROPIC_API_KEY`; origin allowlist
+  `ALLOWED_ORIGINS`, rate limit binding `RL`, ≤8 images/≤14 MB, `MODEL` default claude-opus-5-5 + `EFFORT` low, `fallbacks:"default"`,
+  refusal → 422). Front end: `baloot/config.js` `aiUrl` (public, no secrets) → AIMODE 'proxy' (order: claude > proxy > own key).
+  PWA: `baloot/manifest.webmanifest`, icons, `baloot/sw.js` (scope /baloot/, network-first, AI never cached; registered only on https
+  and not inside Claude). Perspective: `cardQuad()` (isolated card, outer-edge line fit, null when straight/overlapped) + `warpCard()`
+  (homography) used in pass C. Owner's photos (`tests/vision-data/`, `baloot/bench-real.js`) are git-ignored (still in old history);
+  the artifact build inlines bench-real.js. Tests added: `tests/baloot.props.test.js` (random-round invariants),
+  `tests/baloot.worker.test.mjs` (17), `tests/baloot.perf.js` (iPhone emulation + CPU ×1/×4/×6), `tests/baloot.ai-eval.js` (real AI, 29
+  held-out scenes + own photos; `--stub` checks plumbing). CI: `.github/workflows/baloot-tests.yml`; manual worker deploy workflow.
 - Accuracy test (⋯ → اختبار دقة قراءة الأوراق): `baloot/synth.js` draws 16 scenes with exact truth (clear, fan, rotated, covered, mixed,
   low light, shadow, far, pile, tilted, felt/wood/white tables, 1–32 cards) → real pipeline → recall, false cards, rank/suit accuracy,
   complete images, time (saved in `baloot.bench`). Real photos for tests: `tests/vision-data/real1.png`, `real2.png` (10 cards each).
@@ -198,4 +208,4 @@ Rules: don't invent prices or turn on billing; keep privacy text matching real b
   Doubled round = winner takes all: 26 or 16 × level + all projects × level (setting: ×2 max in ثري/فور), بلوت 2 to its owner; tie → buyer loses;
   kaboot × level (setting: not multiplied). قهوة: round winner gets enough points to reach the target and wins the game.
 - Tests: `node tests/baloot.test.js` (80, plain node), `node tests/baloot.examples.test.js` (36 hand-calculated worked examples;
-  `--write` regenerates `baloot/SCORING-EXAMPLES.md`), `node tests/baloot.vision.test.js` (37) and `node tests/baloot.ui.test.js` (81, Playwright with a fake camera; AI reply is a stub).
+  `--write` regenerates `baloot/SCORING-EXAMPLES.md`), `node tests/baloot.vision.test.js` (41) and `node tests/baloot.ui.test.js` (86, Playwright with a fake camera; AI reply is a stub).

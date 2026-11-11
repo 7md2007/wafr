@@ -3,7 +3,10 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#E3F4FC">
+<meta name="theme-color" content="#FAF7F0">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="apple-touch-icon.png">
+<link rel="icon" type="image/png" sizes="192x192" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="بلوت">
@@ -456,10 +459,10 @@ input.key{width:100%;height:48px;border-radius:12px;border:1.5px solid var(--lin
 <input type="file" id="photoCam" accept="image/*" capture="environment" hidden>
 <input type="file" id="photoLib" accept="image/*,.heic,.heif,.jpg,.jpeg,.png" hidden>
 
+<script src="config.js"></script>
 <script src="engine.js"></script>
 <script src="vision.js"></script>
 <script src="synth.js"></script>
-<script src="bench-real.js"></script>
 <script>
 'use strict';
 const E = BalootEngine;
@@ -864,6 +867,8 @@ function listen() {
   } catch (e) { $('#mVoice').textContent = 'الإدخال بالصوت غير متاح هنا.'; }
 }
 if (REC_OK) $('#bMic').hidden = false;
+// offline + Home Screen app: own service worker for /baloot/ (not inside Claude, not from file://)
+if ('serviceWorker' in navigator && !window.claude && (location.protocol === 'https:' || location.hostname === 'localhost')) navigator.serviceWorker.register('sw.js', { scope: './' }).catch(() => {});
 
 /* ---------- camera scan ---------- */
 // AI: inside Claude → the viewer's Claude (sample capability with images); outside → the user's own Anthropic key (same key as Wafr).
@@ -871,29 +876,38 @@ if (REC_OK) $('#bMic').hidden = false;
 const KEY_LS = 'wafr.aikey';
 const getKey = () => { try { return localStorage.getItem(KEY_LS) || ''; } catch (e) { return ''; } };
 let AIF = null, AIMODE = 'none';
+const AI_URL = (window.BALOOT_CONFIG && window.BALOOT_CONFIG.aiUrl) || ''; // the site's own AI server (key stays on the server)
 async function initAI() {
   AIMODE = 'none'; AIF = null;
   if (window.claude && window.claude.use) {
     try { const f = await window.claude.use('sample'); if (f) { const lim = await f.limits().catch(() => null); if (lim && lim.images) { AIF = f; AIMODE = 'claude'; AIMAX = Math.max(1, Math.min(8, lim.images.maxCount || 8)); } } } catch (e) {}
-  } else if (getKey()) AIMODE = 'key';
+  } else if (AI_URL) AIMODE = 'proxy';
+  else if (getKey()) AIMODE = 'key';
   $('#scanSub').textContent = AIMODE === 'none' ? 'أضف أوراق أكلاتنا، والحساب علينا' : 'صوّر أكلاتنا، والحساب علينا';
 }
 let AIMAX = 8; // images per AI call
 /* one AI call with one or more images → parsed JSON. Inside Claude: the viewer's Claude; outside: the user's key. */
 async function aiJSON(prompt, blobs) {
   if (AIMODE === 'claude') return AIF.json(prompt, { images: blobs, modelTier: 'default' });
-  const key = getKey(); if (!key) throw new Error('noai');
   const b64 = b => new Promise((res, rej) => { const r = new FileReader(); r.onload = () => res(String(r.result).split(',')[1]); r.onerror = rej; r.readAsDataURL(b); });
   const content = [];
   for (const b of blobs) content.push({ type: 'image', source: { type: 'base64', media_type: b.type || 'image/jpeg', data: await b64(b) } });
   content.push({ type: 'text', text: prompt });
+  const parse = t => { const m = t.match(/\{[\s\S]*\}/); return JSON.parse(m ? m[0] : t); };
+  if (AIMODE === 'proxy') {
+    const r = await fetch(AI_URL, { method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ prompt, images: content.filter(c => c.type === 'image').map(c => c.source).map(({ media_type, data }) => ({ media_type, data })) }) });
+    if (r.status === 429) { const e = new Error('rate'); e.code = 'rate_limited'; throw e; }
+    if (!r.ok) throw new Error('api');
+    return parse((await r.json()).text || '');
+  }
+  const key = getKey(); if (!key) throw new Error('noai');
   const resp = await fetch('https://api.anthropic.com/v1/messages', { method: 'POST', headers: { 'content-type': 'application/json', 'x-api-key': key,
     'anthropic-version': '2023-06-01', 'anthropic-dangerous-direct-browser-access': 'true' },
     body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4000, messages: [{ role: 'user', content }] }) });
   if (resp.status === 401 || resp.status === 403) throw new Error('badkey');
   if (!resp.ok) throw new Error('api');
-  const d = await resp.json(); const t = (d.content || []).filter(p => p.type === 'text').map(p => p.text).join('');
-  const m = t.match(/\{[\s\S]*\}/); return JSON.parse(m ? m[0] : t);
+  const d = await resp.json(); return parse((d.content || []).filter(p => p.type === 'text').map(p => p.text).join(''));
 }
 // downscale big phone photos before sending (faster, fits limits); a photo the browser cannot open is reported, not sent
 function shrink(file) {
@@ -1175,7 +1189,7 @@ function moreSheet() {
     <div class="opt"><span class="lb">الدبل في الصن</span><div class="seg alt" id="segSunD"><button data-a="sunDouble" data-v="over100">بعد 100</button><button data-a="sunDouble" data-v="always">دائماً</button><button data-a="sunDouble" data-v="off">لا</button></div></div>
     <div class="opt"><span class="lb">المشاريع في الثري والفور</span><div class="seg alt" id="segPM"><button data-a="projMult" data-v="mult">تتضاعف مثل الجولة</button><button data-a="projMult" data-v="double">×2 بس</button></div></div>
     <div class="opt"><span class="lb">الكبوت في الدبل</span><div class="seg alt" id="segKM"><button data-a="kabootMult" data-v="1">يتضاعف</button><button data-a="kabootMult" data-v="0">ما يتضاعف</button></div></div>
-    ${window.claude ? '' : `<div class="opt"><span class="lb">مفتاح Anthropic لقراءة الصور (يبقى في جهازك)</span><input class="key" id="aikey" placeholder="sk-ant-…" value="${esc(getKey())}" autocomplete="off" spellcheck="false" autocapitalize="off"></div>`}
+    ${window.claude || AI_URL ? '' : `<div class="opt"><span class="lb">مفتاح Anthropic لقراءة الصور (يبقى في جهازك)</span><input class="key" id="aikey" placeholder="sk-ant-…" value="${esc(getKey())}" autocomplete="off" spellcheck="false" autocapitalize="off"></div>`}
     <button class="soft press" data-a="bench">اختبار دقة قراءة الأوراق</button>
     <button class="soft press" data-a="newGame">صكة جديدة</button>
     <div class="note">الحساب: صن 130 بنط = 26 نقطة، حكم 162 بنط = 16 نقطة (الخمسة تنزل). الكبوت 44 صن و25 حكم. الدبل: الفائز ياخذ الجولة كاملة ×2/×3/×4 مع المشاريع، والبلوت يبقى 2 لصاحبه. القهوة: اللي يكسب الجولة يكسب الصكة.</div>
@@ -1238,6 +1252,7 @@ async function benchRun() {
   }
   // your real photos, each read twice: identity accuracy, duplicates, and whether two runs give the same result
   BENCH.real = [];
+  if (!window.BalootRealBench && !window.claude) await new Promise(res => { const sc = document.createElement('script'); sc.src = 'bench-real.js'; sc.onload = sc.onerror = res; document.head.appendChild(sc); }); // private photos: only on the owner's copy
   for (const rp of (window.BalootRealBench || [])) {
     if (!BENCH.running) break;
     const bin = atob(rp.src.split(',')[1]), u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i);

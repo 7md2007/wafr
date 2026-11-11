@@ -243,7 +243,7 @@
   /* Re-read uncertain cards from full-resolution crops. Each card is sent twice — as photographed and with the light
      corrected — turned upright, with the card framed in turquoise. Rank and suit are judged separately. */
   function promptC(n) {
-    return `You get ${n} pair${n > 1 ? 's' : ''} of zoomed images from a photo of a Baloot game. Images 1 and 2 are pair 1, images 3 and 4 are pair 2, and so on: the first of each pair is the photo as taken, the second is the same crop with the light, colour and contrast corrected. ${DECK}
+    return `You get ${n} pair${n > 1 ? 's' : ''} of zoomed images from a photo of a Baloot game. Images 1 and 2 are pair 1, images 3 and 4 are pair 2, and so on: the first of each pair is the photo as taken, the second is the same card with the light, colour and contrast corrected (and, when the card was photographed at an angle, flattened to a straight-on view that fills the frame). ${DECK}
 In each pair, identify ONLY the card inside the turquoise frame; other cards around it do not matter. Judge the RANK and the SUIT separately: rank from the corner index letter/number (and the number of pips), suit from the symbol shape (♥ rounded top vs ♦ pointed; ♠ pointed top with stem vs ♣ three round leaves) and its colour (♥♦ red, ♠♣ black). This deck has only 7 8 9 10 J Q K A.
 If the frame does not contain a playing card, set "card": false. Use null for a rank or suit that is not readable — never guess.
 Reply with only JSON: {"cards":[{"i":1,"card":true,"rank":"A|K|Q|J|10|9|8|7"|null,"rank_conf":0.0,"suit":"S|H|D|C"|null,"suit_conf":0.0}]}`;
@@ -276,6 +276,111 @@ Reply with only JSON: {"cards":[{"i":1,"card":true,"rank":"A|K|Q|J|10|9|8|7"|nul
     o.fillStyle = '#20262a'; o.fillRect(0, 0, W, H); o.translate(W / 2, H / 2); o.rotate(angle); o.drawImage(cv, -cv.width / 2, -cv.height / 2);
     return out;
   }
+  /* ---------- perspective correction for a card photographed at an angle ----------
+     cardQuad: inside a padded crop, the bright region under the box centre (one connected region, Otsu threshold).
+     Its 4 corners = extremes of x+y and x−y. Accepted only when the region is an isolated card: it does not touch the crop
+     edge, and the quadrilateral covers ≥ 90% of it (a convex 4-sided shape). Returns null when the card is already
+     straight-on (opposite sides within 6%, corners within ~5° of square) or when it is not sure — then nothing changes. */
+  function solve8(A, b) { // Gaussian elimination, 8×8
+    const n = 8, M = A.map((r, i) => r.concat([b[i]]));
+    for (let c = 0; c < n; c++) { let p = c; for (let r = c + 1; r < n; r++) if (Math.abs(M[r][c]) > Math.abs(M[p][c])) p = r;
+      if (Math.abs(M[p][c]) < 1e-12) return null; [M[c], M[p]] = [M[p], M[c]];
+      for (let r = 0; r < n; r++) if (r !== c) { const f = M[r][c] / M[c][c]; for (let k = c; k <= n; k++) M[r][k] -= f * M[c][k]; } }
+    return M.map((r, i) => r[n] / r[i]);
+  }
+  // homography H mapping from[i] → to[i] (4 point pairs); returns [h0..h7] with h8 = 1
+  function homography(from, to) {
+    const A = [], b = [];
+    for (let i = 0; i < 4; i++) { const [x, y] = from[i], [u, v] = to[i];
+      A.push([x, y, 1, 0, 0, 0, -u * x, -u * y]); b.push(u); A.push([0, 0, 0, x, y, 1, -v * x, -v * y]); b.push(v); }
+    return solve8(A, b);
+  }
+  const hApply = (h, x, y) => { const w = h[6] * x + h[7] * y + 1; return [(h[0] * x + h[1] * y + h[2]) / w, (h[3] * x + h[4] * y + h[5]) / w]; };
+  function quadArea(q) { let a = 0; for (let i = 0; i < 4; i++) { const [x1, y1] = q[i], [x2, y2] = q[(i + 1) % 4]; a += x1 * y2 - x2 * y1; } return Math.abs(a) / 2; }
+  function cardQuad(src, box) {
+    try {
+      const area = pad(box, 0.3), cv = canvasOf(src, 320, area), w = cv.width, h = cv.height, d = cv.getContext('2d').getImageData(0, 0, w, h).data;
+      const L = new Uint8Array(w * h), hist = new Uint32Array(256);
+      for (let i = 0; i < w * h; i++) { const v = (d[i * 4] * 299 + d[i * 4 + 1] * 587 + d[i * 4 + 2] * 114) / 1000 | 0; L[i] = v; hist[v]++; }
+      const t = otsu(hist, w * h), on = new Uint8Array(w * h);
+      for (let i = 0; i < w * h; i++) on[i] = L[i] > t ? 1 : 0;
+      // close small dark gaps (pips, letters) inside the card: 2 passes of dilation then erosion
+      const morph = (m, grow) => { const o = new Uint8Array(w * h); for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) { let v = grow ? 0 : 1;
+        for (let yy = Math.max(0, y - 2); yy <= Math.min(h - 1, y + 2); yy++) for (let xx = Math.max(0, x - 2); xx <= Math.min(w - 1, x + 2); xx++) { if (grow && m[yy * w + xx]) v = 1; if (!grow && !m[yy * w + xx]) v = 0; }
+        o[y * w + x] = v; } return o; };
+      const m = morph(morph(on, true), false);
+      const cx = Math.round(w / 2), cy = Math.round(h / 2); let seed = -1;
+      for (let r = 0; r < Math.min(w, h) / 6 && seed < 0; r++) for (let dy = -r; dy <= r && seed < 0; dy++) for (let dx = -r; dx <= r; dx++) { const x = cx + dx, y = cy + dy; if (x >= 0 && y >= 0 && x < w && y < h && m[y * w + x]) { seed = y * w + x; break; } }
+      if (seed < 0) return null;
+      const seen = new Uint8Array(w * h), st = [seed]; seen[seed] = 1; let n = 0, edge = 0;
+      let best = [[0, 0], [0, 0], [0, 0], [0, 0]], sc = [-1e9, -1e9, -1e9, -1e9];
+      while (st.length) { const i = st.pop(), x = i % w, y = (i / w) | 0; n++;
+        if (x === 0 || y === 0 || x === w - 1 || y === h - 1) edge++;
+        const s4 = [-x - y, x - y, x + y, -x + y]; // top-left, top-right, bottom-right, bottom-left
+        for (let k = 0; k < 4; k++) if (s4[k] > sc[k]) { sc[k] = s4[k]; best[k] = [x, y]; }
+        for (const j of [i - 1, i + 1, i - w, i + w]) if (j >= 0 && j < w * h && !seen[j] && m[j] && Math.abs((j % w) - x) <= 1) { seen[j] = 1; st.push(j); } }
+      if (edge > 0 || n < w * h * 0.12) return null; // touches the crop edge = overlapped/not isolated; too small = not a card
+      // refine: fit a straight line to each side's edge pixels (ignoring the rounded corners) and intersect neighbours
+      const sides = [[], [], [], []], outside = new Uint8Array(w * h), os = []; // outside = not card, reachable from the crop border (pips/letters are holes, not edges)
+      for (let x = 0; x < w; x++) for (const y of [0, h - 1]) { const i = y * w + x; if (!seen[i] && !outside[i]) { outside[i] = 1; os.push(i); } }
+      for (let y = 0; y < h; y++) for (const x of [0, w - 1]) { const i = y * w + x; if (!seen[i] && !outside[i]) { outside[i] = 1; os.push(i); } }
+      while (os.length) { const i = os.pop(), x = i % w; for (const j of [i - 1, i + 1, i - w, i + w]) if (j >= 0 && j < w * h && !seen[j] && !outside[j] && Math.abs((j % w) - x) <= 1) { outside[j] = 1; os.push(j); } }
+      const segDist = (px, py, a, b) => { const vx = b[0] - a[0], vy = b[1] - a[1], L2 = vx * vx + vy * vy, t = ((px - a[0]) * vx + (py - a[1]) * vy) / L2; return [Math.abs((px - a[0]) * vy - (py - a[1]) * vx) / Math.sqrt(L2), t]; };
+      for (let i = 0; i < w * h; i++) { if (!seen[i]) continue; const x = i % w, y = (i / w) | 0;
+        if (!(outside[i - 1] || outside[i + 1] || outside[i - w] || outside[i + w])) continue; // not on the card's outer edge
+        let bk = -1, bd = 1e9, bt = 0; for (let k = 0; k < 4; k++) { const [dd, t] = segDist(x, y, best[k], best[(k + 1) % 4]); if (dd < bd) { bd = dd; bk = k; bt = t; } }
+        if (bt > 0.18 && bt < 0.82) sides[bk].push([x, y]); }
+      const lines = sides.map(pts => { if (pts.length < 8) return null; let mx = 0, my = 0; for (const [x, y] of pts) { mx += x; my += y; } mx /= pts.length; my /= pts.length;
+        let a = 0, b = 0, c = 0; for (const [x, y] of pts) { a += (x - mx) ** 2; b += (x - mx) * (y - my); c += (y - my) ** 2; }
+        const th = 0.5 * Math.atan2(2 * b, a - c); return { p: [mx, my], d: [Math.cos(th), Math.sin(th)] }; });
+      if (lines.every(Boolean)) {
+        const meet = (l1, l2) => { const den = l1.d[0] * l2.d[1] - l1.d[1] * l2.d[0]; if (Math.abs(den) < 1e-6) return null; const t = ((l2.p[0] - l1.p[0]) * l2.d[1] - (l2.p[1] - l1.p[1]) * l2.d[0]) / den; return [l1.p[0] + t * l1.d[0], l1.p[1] + t * l1.d[1]]; };
+        const ref = [meet(lines[3], lines[0]), meet(lines[0], lines[1]), meet(lines[1], lines[2]), meet(lines[2], lines[3])];
+        // use the refined corners only when each stays close to its rough estimate (a bad fit never moves a corner far)
+        if (ref.every((r, k) => r && Math.hypot(r[0] - best[k][0], r[1] - best[k][1]) < Math.min(w, h) * 0.08)) best = ref;
+      }
+      const fill = n / Math.max(1, quadArea(best));
+      if (fill < 0.9 || fill > 1.12) return null; // not a clean 4-sided card
+      const len = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+      const [tl, tr, br, bl] = best, top = len(tl, tr), bot = len(bl, br), lef = len(tl, bl), rig = len(tr, br);
+      if (Math.min(top, bot, lef, rig) < 12) return null;
+      const ang = (a, b, c) => { const v1 = [a[0] - b[0], a[1] - b[1]], v2 = [c[0] - b[0], c[1] - b[1]]; return Math.acos(Math.max(-1, Math.min(1, (v1[0] * v2[0] + v1[1] * v2[1]) / (Math.hypot(...v1) * Math.hypot(...v2))))); };
+      const skew = Math.max(...[[bl, tl, tr], [tl, tr, br], [tr, br, bl], [br, bl, tl]].map(([a, b, c]) => Math.abs(ang(a, b, c) - Math.PI / 2)));
+      const sideDiff = Math.max(Math.abs(top - bot) / Math.max(top, bot), Math.abs(lef - rig) / Math.max(lef, rig));
+      const axisTilt = Math.abs(Math.atan2(tr[1] - tl[1], tr[0] - tl[0]));
+      if (sideDiff < 0.06 && skew < 0.09 && axisTilt < 0.09) return null; // already straight-on and level
+      // back to whole-photo fractions
+      const toF = ([x, y]) => [area[0] + x / w * (area[2] - area[0]), area[1] + y / h * (area[3] - area[1])];
+      return { quad: best.map(toF), skew: +skew.toFixed(3), sideDiff: +sideDiff.toFixed(3), fill: +fill.toFixed(2) };
+    } catch (e) { return null; }
+  }
+  // flatten a card quad (photo fractions, order TL TR BR BL) into an upright card image, long side vertical, turquoise border
+  function warpCard(src, quad, outLong) {
+    const sw = src.width || src.naturalWidth, sh = src.height || src.naturalHeight;
+    const xs = quad.map(p => p[0]), ys = quad.map(p => p[1]);
+    const area = [Math.max(0, Math.min(...xs) - 0.01), Math.max(0, Math.min(...ys) - 0.01), Math.min(1, Math.max(...xs) + 0.01), Math.min(1, Math.max(...ys) + 0.01)];
+    const cv = canvasOf(src, 1000, area), w = cv.width, h = cv.height, sd = cv.getContext('2d').getImageData(0, 0, w, h).data;
+    const q = quad.map(([x, y]) => [(x - area[0]) / (area[2] - area[0]) * w, (y - area[1]) / (area[3] - area[1]) * h]);
+    const len = (a, b) => Math.hypot(a[0] - b[0], a[1] - b[1]);
+    const wide = (len(q[0], q[1]) + len(q[3], q[2])) / 2, tall = (len(q[0], q[3]) + len(q[1], q[2])) / 2;
+    // keep the long side vertical: a landscape quad is read starting from its bottom-left corner (turned 90°)
+    const qq = wide > tall ? [q[3], q[0], q[1], q[2]] : q;
+    const L = outLong || 420, W = Math.round(L * 5 / 7), B = 8;
+    const out = document.createElement('canvas'); out.width = W + 2 * B; out.height = L + 2 * B; const o = out.getContext('2d');
+    o.fillStyle = '#19D3C5'; o.fillRect(0, 0, out.width, out.height);
+    const H = homography([[0, 0], [W, 0], [W, L], [0, L]], qq); if (!H) return null;
+    const od = o.createImageData(W, L), dd = od.data;
+    for (let y = 0; y < L; y++) for (let x = 0; x < W; x++) {
+      const [u, v] = hApply(H, x + 0.5, y + 0.5), x0 = Math.floor(u - 0.5), y0 = Math.floor(v - 0.5), fx = u - 0.5 - x0, fy = v - 0.5 - y0, di = (y * W + x) * 4;
+      if (x0 < 0 || y0 < 0 || x0 >= w - 1 || y0 >= h - 1) { dd[di + 3] = 255; continue; }
+      for (let ch = 0; ch < 3; ch++) { const i00 = (y0 * w + x0) * 4 + ch;
+        dd[di + ch] = sd[i00] * (1 - fx) * (1 - fy) + sd[i00 + 4] * fx * (1 - fy) + sd[i00 + w * 4] * (1 - fx) * fy + sd[i00 + w * 4 + 4] * fx * fy; }
+      dd[di + 3] = 255;
+    }
+    o.putImageData(od, B, B);
+    return out;
+  }
+
   /* local colour check of a card region: red ink vs black ink (independent of the AI) */
   function cardColor(src, box) {
     try {
@@ -332,7 +437,11 @@ Reply with only JSON: {"cards":[{"i":1,"card":true,"rank":"A|K|Q|J|10|9|8|7"|nul
     const per = Math.max(1, Math.floor(maxImg / 2)), src2 = enh || img;
     for (let s = 0; s < targets.length; s += per) {
       const part = targets.slice(s, s + per), blobs = [];
-      for (const c of part) { const ang = uprightAngle(src2, c.box); blobs.push(await toBlob(frameCrop(img, c.box, ang), 0.9), await toBlob(frameCrop(src2, c.box, ang), 0.9)); }
+      for (const c of part) {
+        const ang = uprightAngle(src2, c.box), cq = cardQuad(src2, c.box), flat = cq && warpCard(src2, cq.quad);
+        if (flat) c.flattened = { skew: cq.skew, sideDiff: cq.sideDiff };
+        blobs.push(await toBlob(frameCrop(img, c.box, ang), 0.9), await toBlob(flat || frameCrop(src2, c.box, ang), 0.9));
+      }
       try { const r = await ai(promptC(part.length), blobs); applyRecheck(cards, part, r && r.cards); } catch (e) { /* keep the first reading */ }
     }
     return { cards, n: targets.length };
@@ -498,6 +607,6 @@ Reply with only JSON: {"crops":[{"i":1,"cards":[{"box":[x0,y0,x1,y1],"rank":"A|K
       passA: !ra.__err, passB: !rb.__err, width: img.width, height: img.height, img, enh: enh.canvas, light: enh.stats };
   }
 
-  const api = { RANKS, SUITS, findCardBlobs, iou, cropPlan, mergeDetections, markConflicts, applyRecheck, recheck, frameCrop, uprightAngle, cardColor, enhance, enhancePixels, lightCheck, normCard, promptA, promptB, promptC, scanPhoto, canvasOf, decode, pad };
+  const api = { RANKS, SUITS, findCardBlobs, iou, cropPlan, mergeDetections, markConflicts, applyRecheck, recheck, frameCrop, uprightAngle, cardQuad, warpCard, homography, cardColor, enhance, enhancePixels, lightCheck, normCard, promptA, promptB, promptC, scanPhoto, canvasOf, decode, pad };
   if (typeof module !== 'undefined' && module.exports) module.exports = api; else root.BalootVision = api;
 })(typeof self !== 'undefined' ? self : this);
