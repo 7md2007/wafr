@@ -1,0 +1,41 @@
+# Codemagic: build the Wafr iOS app (Capacitor wrapper of index.html) on a cloud Mac and upload it to TestFlight.
+# One-time setup in Codemagic (see docs/TESTFLIGHT.md):
+#   - Team integrations → Developer Portal → add an App Store Connect API key named exactly "Wafr ASC"
+#   - codemagic.yaml settings → Code signing identities → iOS certificates: Generate (Apple Distribution)
+#   - codemagic.yaml settings → Code signing identities → iOS provisioning profiles: Fetch the App Store profile
+#     for com.hamadaljneibi.wafr
+workflows:
+  ios-testflight:
+    name: Wafr iOS → TestFlight
+    instance_type: mac_mini_m2
+    max_build_duration: 45
+    integrations:
+      app_store_connect: Wafr ASC
+    environment:
+      ios_signing:
+        distribution_type: app_store
+        bundle_identifier: com.hamadaljneibi.wafr
+      vars:
+        XCODE_PROJECT: ios/App/App.xcodeproj
+        XCODE_SCHEME: App
+      node: 22
+      xcode: latest
+    scripts:
+      - name: Install packages
+        script: npm ci
+      - name: Copy the web app into the iOS project
+        script: npm run build && npx cap sync ios
+      - name: Use signing profiles
+        script: xcode-project use-profiles
+      - name: Set build number (must grow for every TestFlight upload)
+        script: |
+          sed -i '' "s/CURRENT_PROJECT_VERSION = [0-9]*;/CURRENT_PROJECT_VERSION = $BUILD_NUMBER;/g" "$XCODE_PROJECT/project.pbxproj"
+      - name: Build the .ipa
+        script: xcode-project build-ipa --project "$XCODE_PROJECT" --scheme "$XCODE_SCHEME"
+    artifacts:
+      - build/ios/ipa/*.ipa
+      - /tmp/xcodebuild_logs/*.log
+    publishing:
+      app_store_connect:
+        auth: integration
+        submit_to_testflight: true

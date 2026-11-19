@@ -1,0 +1,9 @@
+{
+  "appId": "com.hamadaljneibi.wafr",
+  "appName": "Wafr",
+  "webDir": "www",
+  "ios": {
+    "contentInset": "never",
+    "backgroundColor": "#0C1114"
+  }
+}

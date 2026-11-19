@@ -111,7 +111,10 @@ If the test file path points at `../index.html` it uses this repo's file. (47 te
 Done: everything above is live on GitHub Pages. Owner added it to his iPhone Home Screen.
 Next (in this order):
 1. Split `index.html` into a real project (e.g. Vite + modules: engine, parser, views, styles, i18n) WITHOUT changing behaviour; keep tests green.
-2. Prepare Capacitor (iOS) + Codemagic cloud build (owner has NO Mac). Needs his Apple Developer account (was re-applying).
+2. iOS app (Nov 19, 2026): Capacitor 8 wrapper added (`ios/`, SPM, bundle `com.hamadaljneibi.wafr`, iPhone only, `capacitor.config.json`,
+   `npm run build` copies the web app into `www/`) + `codemagic.yaml` (cloud Mac → TestFlight, manual start). Owner's Apple Developer
+   account is active; one-time App Store Connect/Codemagic setup steps in `docs/TESTFLIGHT.md`. Not yet built on a Mac — first
+   Codemagic build is the real test.
 3. Native features to pass App Store guideline 4.2: notifications (evening check-in), widget, Siri/App Intents to add expenses
    (and capture ADIB bank notifications / Apple Pay directly), offline storage.
 4. Later: own backend (accounts + sync) and server-side AI with usage limits (AI cost estimate ~AED 0.13/user/month on Claude Haiku 5.5).
